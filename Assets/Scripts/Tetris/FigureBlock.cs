@@ -53,36 +53,50 @@ public class FigureBlock : MonoBehaviour
 
 	public bool TryRotateAroundFigure(int figureX, int figureY)
 	{
-		//print("Rotate started for (" + xOffsetFromZero + ";" + yOffsetFromZero + ")");
-		float directionFromZerothCoord = Mathf.Atan2(yOffsetFromZero, xOffsetFromZero) * Mathf.Rad2Deg;
-		//print("Start direction:"+directionFromZerothCoord);	
-		directionFromZerothCoord = Mathf.MoveTowardsAngle(directionFromZerothCoord, directionFromZerothCoord - 90, 90);
-		//print("New direction:" + directionFromZerothCoord);
-		directionFromZerothCoord *= Mathf.Deg2Rad;
-		//Vector2 newCoordsVector = new Vector2(Mathf.Cos(directionFromZerothCoord),Mathf.Sin(directionFromZerothCoord))*distanceFromZerothCoord;
-		//print("Rotating to (" +newCoordsVector+")");
-
-		float distanceFromZerothCoord = new Vector2(xOffsetFromZero, yOffsetFromZero).magnitude;
-		newXOffsetFromZero = Mathf.RoundToInt(Mathf.Cos(directionFromZerothCoord)*distanceFromZerothCoord);
-		newYOffsetFromZero = Mathf.RoundToInt(Mathf.Sin(directionFromZerothCoord)*distanceFromZerothCoord);
-
-		FigureController.ERotateStatusDetermined += ResolveStartedRotation;
-
-		if (Grid.Instance.CellExistsIsUnoccupied(figureX + newXOffsetFromZero, figureY + newYOffsetFromZero))
+		int newXOffset;
+		int newYOffset;
+		if (CanRotateAroundPoint(figureX, figureY, out newXOffset, out newYOffset))
 		{
-			//print("cell exists");
+			StartRotation(newXOffset, newYOffset);
 			return true;
 		}
 		else
-		{
-			//print("cell does not exist");
 			return false;
-		}
 	}
 
-	void ResolveStartedRotation(bool confirmed, int figureX, int figureY)
+	public bool CanRotateAroundPoint(int pointX, int pointY)
 	{
-		if (confirmed)
+		int dummyOutX;
+		int dummyOutY;
+		return CanRotateAroundPoint(pointX, pointY, out dummyOutX, out dummyOutY);
+	}
+
+	bool CanRotateAroundPoint(int pointX, int pointY, out int newXOffset, out int newYOffset)
+	{
+		float directionFromZerothCoord = Mathf.Atan2(yOffsetFromZero, xOffsetFromZero) * Mathf.Rad2Deg;
+		directionFromZerothCoord = Mathf.MoveTowardsAngle(directionFromZerothCoord, directionFromZerothCoord - 90, 90);
+		directionFromZerothCoord *= Mathf.Deg2Rad;
+
+		float distanceFromZerothCoord = new Vector2(xOffsetFromZero, yOffsetFromZero).magnitude;
+		newXOffset = Mathf.RoundToInt(Mathf.Cos(directionFromZerothCoord) * distanceFromZerothCoord);
+		newYOffset = Mathf.RoundToInt(Mathf.Sin(directionFromZerothCoord) * distanceFromZerothCoord);
+
+		if (Grid.Instance.CellExistsIsUnoccupied(pointX + newXOffset, pointY + newYOffset))
+			return true;
+		else
+			return false;
+	}
+
+	void StartRotation(int newXOffset, int newYOffset)
+	{
+		newXOffsetFromZero = newXOffset;
+		newYOffsetFromZero = newYOffset;
+		FigureController.ERotateStatusDetermined += ResolveStartedRotation;
+	}
+
+	void ResolveStartedRotation(bool canRotate, int figureX, int figureY)
+	{
+		if (canRotate)
 		{
 			xOffsetFromZero = newXOffsetFromZero;
 			yOffsetFromZero = newYOffsetFromZero;

@@ -5,4 +5,5 @@ using UnityEngine;
 public class ParticleDB : Singleton<ParticleDB> {
 
 	public ParticleController settledBlockDestroyParticles;
+	public ParticleController shipGotHitParticles;
 }

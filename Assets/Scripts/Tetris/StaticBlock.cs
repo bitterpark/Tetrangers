@@ -16,7 +16,7 @@ public class StaticBlock : MonoBehaviour {
 		transform.localPosition = Grid.Instance.GetCellWorldPosition(currentX, currentY);
 	}
 
-	public virtual void Initialize(int startingGridX, int startingGridY)
+	public void Initialize(int startingGridX, int startingGridY)
 	{
 		transform.SetParent(Grid.Instance.transform, false);
 		MoveToGridCell(startingGridX, startingGridY);

@@ -1,17 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
+
 
 public class Grid : Singleton<Grid> 
 {
-	public delegate void EmptyDeleg();
-	public static event EmptyDeleg EOverstacked;
+	public static event UnityAction EOverstacked;
 	public delegate void FigureDeleg(Rect settledBlocksDimensions);
 	public static event FigureDeleg ENewFigureSettled;
-	public static event EmptyDeleg ENewPlayerMoveDone;
 	public delegate void RowClearDeleg(int clearedRows);
 	public static event RowClearDeleg ERowsCleared;
+
+	public static bool gridReady = false;
 
 	public float cellSize = 30;
 	//int _cellSize = 50;
@@ -40,10 +42,17 @@ public class Grid : Singleton<Grid>
 	//bool[,] unoccupiedCells;
 	Cell[,] cells;
 
-	public void Initialize()
+	void Awake()
 	{
+		TetrisManager.ETetrisFinished += ClearGrid;
+		FigureController.EFigureSettled += NewSettledFigureHandler;
+		StartCoroutine(WaitForCanvasToSetupRoutine());
+	}
+
+	IEnumerator WaitForCanvasToSetupRoutine()
+	{
+		yield return new WaitForFixedUpdate();
 		CreateGrid();
-		FigureController.EFigureSettled += NewFigureSettled;
 	}
 
 	void CreateGrid()
@@ -60,6 +69,13 @@ public class Grid : Singleton<Grid>
 				newCellImage.transform.SetParent(transform, false);
 				newCellImage.GetComponent<RectTransform>().anchoredPosition = new Vector3(j * cellSize, i * cellSize);
 			}
+		gridReady = true;
+	}
+
+	void ClearGrid()
+	{
+		foreach (Cell cell in cells)
+			cell.EmptyCell();
 	}
 
 	public Cell GetCell(int cellX, int cellY)
@@ -88,14 +104,14 @@ public class Grid : Singleton<Grid>
 		return new Vector3(cellX*cellSize, cellY*cellSize, -1);
 	}
 
-	void NewFigureSettled(List<SettledBlock> figureBlocks)
+	void NewSettledFigureHandler(List<SettledBlock> figureBlocks)
 	{
 		Rect figureDimensions = FillInSettledFigure(figureBlocks);
 
 		HandleFilledUpRows(CheckForFilledUpRows(figureBlocks));
 
 		if (ENewFigureSettled != null) ENewFigureSettled(figureDimensions);
-		if (ENewPlayerMoveDone != null) ENewPlayerMoveDone();
+	
 	}
 
 	Rect FillInSettledFigure(List<SettledBlock> settledBlocks)
@@ -179,8 +195,6 @@ public class Grid : Singleton<Grid>
 
 	void ClearRow(int rowIndex)
 	{
-		//for (int i = 0; i <= maxX; i++)
-			//ClearCell(i, rowIndex);
 		ClearArea(0,rowIndex,maxX,rowIndex);
 	}
 
@@ -201,25 +215,17 @@ public class Grid : Singleton<Grid>
 
 	void ClearCell(int cellX, int cellY)
 	{
-		SettledBlock clearedBlock = cells[cellX, cellY].staticBlockInCell;
-		if (clearedBlock != null)
-		{
-			clearedBlock.ClearBlock();
-			cells[cellX, cellY].EmptyCell();
-		}
+		cells[cellX, cellY].ClearCell();
 	}
 
 	void LowerRow(int rowIndex, int lowerByN)
 	{
 		for (int i = 0; i <= maxX; i++)
 		{
-			SettledBlock block = cells[i, rowIndex].staticBlockInCell;
+			SettledBlock block = cells[i, rowIndex].ExtractBlockFromCell();
 			if (block!=null)
 			{
-				//Debug.LogFormat("Lowering block from ({0},{1})",block.currentX,block.currentY);
-				cells[i, rowIndex].EmptyCell();
 				block.MoveToGridCell(i, rowIndex - lowerByN);
-				//Debug.LogFormat("Lowered block to ({0},{1})", block.currentX, block.currentY);
 				cells[i, rowIndex-lowerByN].FillCell(block,true);
 			}
 		}

@@ -19,10 +19,16 @@ public class PowerupBlock : StaticBlock
 
 	PowerupType myPowerupType;
 
-	public override void Initialize(int startingGridX, int startingGridY)
+	public void AssignPowerupType(PowerupType type)
 	{
-		base.Initialize(startingGridX, startingGridY);
-		PickRandomPowerupType();
+		myPowerupType = type;
+		
+		if (myPowerupType == PowerupType.Freeze)
+			powerupImage.sprite = freezeSprite;
+		if (myPowerupType == PowerupType.Bomb)
+			powerupImage.sprite = bombSprite;
+		if (myPowerupType == PowerupType.Change)
+			powerupImage.sprite = changeSprite;
 	}
 
 	public void DisposePowerup()
@@ -34,21 +40,5 @@ public class PowerupBlock : StaticBlock
 	{
 		PowerupActivator.Instance.ActivatePowerup(myPowerupType);
 		GameObject.Destroy(this.gameObject);
-	}
-	
-	void PickRandomPowerupType()
-	{
-		System.Array types = System.Enum.GetValues(typeof(PowerupType));
-		myPowerupType = (PowerupType)types.GetValue(Random.Range(0, types.Length));
-		//testing
-		myPowerupType = PowerupType.Bomb;
-
-		if (myPowerupType == PowerupType.Freeze)
-			powerupImage.sprite = freezeSprite;
-		if (myPowerupType == PowerupType.Bomb)
-			powerupImage.sprite = bombSprite;
-		if (myPowerupType == PowerupType.Change)
-			powerupImage.sprite = changeSprite;
-
 	}
 }

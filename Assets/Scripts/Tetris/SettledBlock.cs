@@ -8,13 +8,20 @@ public class SettledBlock : StaticBlock {
 	public void ClearBlock()
 	{
 		SpawnClearParticles();
-		GameObject.Destroy(this.gameObject);
+		DestroyBlock();
 	}
-	
+
+	public void DestroyBlock()
+	{
+		GameObject.Destroy(this.gameObject);	
+	}
+
 	void SpawnClearParticles()
 	{
 		ParticleController particles = Instantiate(ParticleDB.Instance.settledBlockDestroyParticles);
-		particles.transform.position = this.transform.position;
+		Vector3 particlesPosition = this.transform.position;
+		particlesPosition.z = -2;
+		particles.transform.position = particlesPosition;
 		particles.EnableParticleSystemOnce();
 	}
 }

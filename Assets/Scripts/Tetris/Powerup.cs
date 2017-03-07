@@ -4,22 +4,37 @@ using UnityEngine;
 
 public interface IPowerup
 {
-	IEnumerator ActivateEffect();
+	IEnumerator GetPowerupRoutine();
 }
 
+public abstract class Powerup: IPowerup
+{
 
-public class FreezeTime : IPowerup
+	public abstract IEnumerator GetPowerupRoutine();
+	//USE THIS FOR SIGNING ACTIVE POWERUPS UP TO EVENTS, TO MAKE SURE THEY CAN UNSUBSCRIBE EVEN IF THE POWERUP ACTIVATOR STOPS THEM FROM FINISHING
+	protected  virtual void InitializePowerup()
+	{
+		PowerupActivator.EDeactivateAllPowerupRoutines += DeinitializePowerup;
+	}
+	protected virtual void DeinitializePowerup()
+	{
+		PowerupActivator.EDeactivateAllPowerupRoutines -= DeinitializePowerup;
+	}
+
+}
+
+public class FreezeTime : Powerup
 {
 	const float freezeTime = 5f;
 
-	public IEnumerator ActivateEffect()
+	public override IEnumerator GetPowerupRoutine()
 	{
 		float timePassed = 0;
 		
 		FigureController.frozen = true;
 		while (timePassed < freezeTime && FigureController.frozen)
 		{
-			timePassed += Time.deltaTime;
+			timePassed += TetrisManager.tetrisDeltaTime;
 			yield return new WaitForFixedUpdate();
 		}
 		FigureController.frozen = false;
@@ -27,25 +42,36 @@ public class FreezeTime : IPowerup
 	}
 }
 
-public class Bomb : IPowerup
+public class Bomb : Powerup
 {
 	bool bombDetonated = false;
-	
-	public IEnumerator ActivateEffect()
-	{
-		/*CAREFUL!!! - If the coroutine is stopped before this can fully execute, the methods will not
-		  unsubscribe from the Grid events, causing a memory leak! */
-		FigureSpawner.EFigureDropped += ActivateBomb;
-		while (!bombDetonated)
-			yield return new WaitForFixedUpdate();
 
-		yield break;
+	protected override void InitializePowerup()
+	{
+		base.InitializePowerup();
+		FigureSpawner.EFigureDropped += ActivateBomb;
 	}
 
 	void ActivateBomb()
 	{
 		FigureSpawner.EFigureDropped -= ActivateBomb;
 		Grid.ENewFigureSettled += DetonateBomb;
+	}
+
+	protected override void DeinitializePowerup()
+	{
+		base.DeinitializePowerup();
+		FigureSpawner.EFigureDropped -= ActivateBomb;
+		Grid.ENewFigureSettled -= DetonateBomb;
+	}
+
+	public override IEnumerator GetPowerupRoutine()
+	{
+		InitializePowerup();
+		while (!bombDetonated)
+			yield return new WaitForFixedUpdate();
+		DeinitializePowerup();
+		yield break;
 	}
 
 	void DetonateBomb(Rect bombFigureDimensions)
@@ -63,9 +89,9 @@ public class Bomb : IPowerup
 
 }
 
-public class Change : IPowerup
+public class Change : Powerup
 {
-	public IEnumerator ActivateEffect()
+	public override IEnumerator GetPowerupRoutine()
 	{
 		FigureSpawner.Instance.ChangeNextFigure();
 		yield break;

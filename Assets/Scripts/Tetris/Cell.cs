@@ -6,7 +6,7 @@ public class Cell
 {
 	public bool isUnoccupied
 	{
-		get { return staticBlockInCell == null;}
+		get { return settledBlockInCell == null;}
 	}
 	public bool hasPowerup
 	{
@@ -16,7 +16,7 @@ public class Cell
 	public int xCoord;
 	public int yCoord;
 
-	public SettledBlock staticBlockInCell { get; private set; }
+	public SettledBlock settledBlockInCell { get; private set; }
 	public PowerupBlock powerupInCell { get; set; }
 
 	public Cell(int xCoord, int yCoord)
@@ -27,7 +27,7 @@ public class Cell
 
 	public void FillCell(SettledBlock fillWithBlock, bool filledByRowLowering)
 	{
-		staticBlockInCell = fillWithBlock;
+		settledBlockInCell = fillWithBlock;
 		if (powerupInCell != null)
 		{
 			if (filledByRowLowering)
@@ -40,9 +40,28 @@ public class Cell
 		}
 	}
 
+	public void ClearCell()
+	{
+		if (settledBlockInCell != null)
+			settledBlockInCell.ClearBlock();
+		settledBlockInCell = null;
+	}
+
+	public SettledBlock ExtractBlockFromCell()
+	{
+		SettledBlock result = settledBlockInCell;
+		settledBlockInCell = null;
+		return result;
+	}
+
 	public void EmptyCell()
 	{
-		staticBlockInCell = null;
+		if (settledBlockInCell != null)
+			settledBlockInCell.DestroyBlock();
+		settledBlockInCell = null;
+		if (powerupInCell!=null)
+			powerupInCell.DisposePowerup();
+		powerupInCell = null;
 	}
 
 }

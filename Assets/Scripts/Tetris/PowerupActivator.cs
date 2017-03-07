@@ -8,15 +8,36 @@ public enum PowerupType { Freeze, Bomb, Change };
 public class PowerupActivator : Singleton<PowerupActivator> 
 {
 
+	public delegate void PowerupActivateDeleg(PowerupType type);
+	public static event PowerupActivateDeleg EPowerupActivated;
+	public delegate void EmptyDeleg();
+	public static event EmptyDeleg EDeactivateAllPowerupRoutines;
+
 	[SerializeField]
 	Text powerupTextPrefab;
 	[SerializeField]
 	Transform powerupTextGroup;
 
+	void Awake()
+	{
+		TetrisManager.ETetrisFinished += ClearOnTetrisEnd;
+	}
+
+	void ClearOnTetrisEnd()
+	{
+		if (EDeactivateAllPowerupRoutines != null)
+			EDeactivateAllPowerupRoutines();
+		foreach (Text powerupText in powerupTextGroup.GetComponentsInChildren<Text>())
+			GameObject.Destroy(powerupText.gameObject);
+		StopAllCoroutines();
+	}
+
 	public void ActivatePowerup(PowerupType type)
 	{
+		if (EPowerupActivated != null)
+			EPowerupActivated(type);
 		IPowerup powerup = GetPowerupInstance(type);
-		StartCoroutine(PerformPowerupEffectRoutine(powerup.ActivateEffect,type));
+		StartCoroutine(PerformPowerupEffectRoutine(powerup.GetPowerupRoutine,type));
 	}
 
 	IPowerup GetPowerupInstance(PowerupType type)
@@ -34,7 +55,6 @@ public class PowerupActivator : Singleton<PowerupActivator>
 
 	IEnumerator PerformPowerupEffectRoutine(System.Func<IEnumerator> routineFunc, PowerupType powerupType)
 	{
-		//Debug.Log("Starting powerup effect!");
 		Text newPowerupText = Instantiate(powerupTextPrefab,powerupTextGroup);
 		newPowerupText.text = powerupType.ToString()+" active!";
 		yield return StartCoroutine(routineFunc());

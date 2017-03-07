@@ -6,18 +6,40 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 
 	[SerializeField]
 	PowerupBlock powerupPrefab;
+	[SerializeField]
+	float chanceToSpawnPowerupOnPlayerMove;
 
-	const float chanceToSpawnPowerupOnPlayerMove = 0.5f;
+	List<PowerupType> powerupTypesNotInUse = new List<PowerupType>();
 
 	void Awake()
 	{
-		Grid.ENewPlayerMoveDone += TriggerChanceToSpawn;
+		TetrisManager.ETetrisFinished += ClearOnTetrisFinish;
+		TetrisManager.ENextPlayerMoveStarted += TriggerChanceToSpawn;
+		PowerupActivator.EPowerupActivated += FreeUpPowerupType;
+
+		ResetUnusedPowerupTypes();
+	}
+
+	void ClearOnTetrisFinish()
+	{
+		ResetUnusedPowerupTypes();
+	}
+
+	void ResetUnusedPowerupTypes()
+	{
+		powerupTypesNotInUse.Clear();
+		System.Array types = System.Enum.GetValues(typeof(PowerupType));
+		for (int i = 0; i < types.Length; i++)
+		{
+			PowerupType type = (PowerupType)types.GetValue(i);
+			powerupTypesNotInUse.Add(type);
+		}
 	}
 
 	void TriggerChanceToSpawn()
 	{
 		//Debug.Log("Triggering chance to spawn powerup");
-		if (Random.value < chanceToSpawnPowerupOnPlayerMove)
+		if (powerupTypesNotInUse.Count>0 && Random.value < chanceToSpawnPowerupOnPlayerMove)
 			SpawnPowerupInRandomSpot();
 	}
 
@@ -54,7 +76,20 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 		PowerupBlock newPowerup = Instantiate(powerupPrefab);
 		//Cell spawnInCell = Grid.Instance.GetCell(gridX, gridY);
 		newPowerup.Initialize(spawnInCell.xCoord, spawnInCell.yCoord);
+
+		PowerupType randomType = powerupTypesNotInUse[Random.Range(0,powerupTypesNotInUse.Count)];
+		powerupTypesNotInUse.Remove(randomType);
+
+		//randomType = PowerupType.Bomb;//debug
+
+		newPowerup.AssignPowerupType(randomType);
 		spawnInCell.powerupInCell = newPowerup;
+	}
+
+	void FreeUpPowerupType(PowerupType type)
+	{
+		if (!powerupTypesNotInUse.Contains(type))
+			powerupTypesNotInUse.Add(type);
 	}
 
 }

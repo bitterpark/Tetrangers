@@ -17,7 +17,8 @@ public class FigureSpawner : Singleton<FigureSpawner>
 	void Awake()
 	{
 		TetrisManager.ETetrisStarted += StartSpawning;
-		
+		TetrisManager.ETetrisFinished += ClearOnTetrisEnd;
+		TetrisManager.ENextPlayerMoveStarted += DropInCurrentFigure;
 	}
 
 	public void StartSpawning()
@@ -26,17 +27,27 @@ public class FigureSpawner : Singleton<FigureSpawner>
 		//The 0,0 center of figures is not always at the top of the figure, this makes sure any blocks above the center still fit
 		spawnedFiguresY = Grid.Instance.maxY-1;
 		DropInCurrentFigure();
-		Grid.ENewPlayerMoveDone += DropInCurrentFigure;
+	}
+
+	void ClearOnTetrisEnd()
+	{
+		ClearNextFigure();
 	}
 
 	public void ChangeNextFigure()
 	{
+		TetrominoTypes currentNextFigureType = ClearNextFigure();
+		SpawnNextFigure(true, currentNextFigureType);
+	}
+
+	TetrominoTypes ClearNextFigure()
+	{
 		FigureController nextFigure = nextFigureDisplay.GetComponentInChildren<FigureController>();
 		if (nextFigure == null)
-			Debug.LogError("Cannot change next figure - no existing next figure found!");
-
+			Debug.LogError("Cannot clear next figure - no existing next figure found!");
+		TetrominoTypes clearedNextFigureType = nextFigure.tetrominoType;
 		GameObject.DestroyImmediate(nextFigure.gameObject);
-		SpawnNextFigure();
+		return clearedNextFigureType;
 	}
 
 	public void DropInCurrentFigure()
@@ -52,21 +63,46 @@ public class FigureSpawner : Singleton<FigureSpawner>
 
 	void SpawnNextFigure()
 	{
-		FigureController nextFigure = CreateRandomFigure();
+		SpawnNextFigure(false, TetrominoTypes.L);
+	}
+
+	void SpawnNextFigure(bool excludeAType, TetrominoTypes excludedType)
+	{
+		FigureController nextFigure;
+		if (excludeAType)
+			nextFigure = CreateRandomFigure(excludedType);
+		else
+			nextFigure = CreateRandomFigure();
+
 		nextFigure.DisplayAsNext();
 	}
 
 	FigureController CreateRandomFigure()
 	{
-		FigureController randomPrefab = figurePrefabs[Random.Range(0, figurePrefabs.Count)];
+		return CreateRandomFigure(figurePrefabs);
+	}
+
+	FigureController CreateRandomFigure(TetrominoTypes excludeType)
+	{
+		List<FigureController> allowedPrefabs = new List<FigureController>(figurePrefabs);
+		foreach (FigureController prefab in allowedPrefabs)
+		{
+			if (prefab.tetrominoType == excludeType)
+			{
+				allowedPrefabs.Remove(prefab);
+				break;
+			}
+		}
+
+		return CreateRandomFigure(allowedPrefabs);
+	}
+
+	FigureController CreateRandomFigure(List<FigureController> prefabSelection)
+	{
+		FigureController randomPrefab = prefabSelection[Random.Range(0, prefabSelection.Count)];
 		FigureController newFigure = Instantiate(randomPrefab);
 		newFigure.Initialize();
 		return newFigure;
-	}
-
-	public void TetrisFinished()
-	{
-
 	}
 
 }
