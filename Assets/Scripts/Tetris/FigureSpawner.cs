@@ -5,11 +5,15 @@ using UnityEngine;
 public class FigureSpawner : Singleton<FigureSpawner>
 {
 
-	public delegate void EmptyDeleg();
-	public static event EmptyDeleg EFigureDropped;
+	public static event UnityEngine.Events.UnityAction EFigureDropped;
+    public static event UnityEngine.Events.UnityAction ENoRoomToDropFigure;
 
-	public List<FigureController> figurePrefabs = new List<FigureController>();
+	public static bool coolantMode = false;
+
 	public Transform nextFigureDisplay;
+	[SerializeField]
+	List<FigureController> figurePrefabs = new List<FigureController>();
+	
 
 	int spawnedFiguresX;
 	int spawnedFiguresY;
@@ -17,7 +21,7 @@ public class FigureSpawner : Singleton<FigureSpawner>
 	void Awake()
 	{
 		TetrisManager.ETetrisStarted += StartSpawning;
-		TetrisManager.ETetrisFinished += ClearOnTetrisEnd;
+		TetrisManager.ETetrisEndClear += ClearOnTetrisEnd;
 		TetrisManager.ENextPlayerMoveStarted += DropInCurrentFigure;
 	}
 
@@ -26,7 +30,7 @@ public class FigureSpawner : Singleton<FigureSpawner>
 		spawnedFiguresX = Mathf.RoundToInt(Grid.Instance.maxX/2);
 		//The 0,0 center of figures is not always at the top of the figure, this makes sure any blocks above the center still fit
 		spawnedFiguresY = Grid.Instance.maxY-1;
-		DropInCurrentFigure();
+		//DropInCurrentFigure();
 	}
 
 	void ClearOnTetrisEnd()
@@ -52,13 +56,29 @@ public class FigureSpawner : Singleton<FigureSpawner>
 
 	public void DropInCurrentFigure()
 	{
+		Debug.Log("Dropping figure");
 		FigureController currentFigure = nextFigureDisplay.GetComponentInChildren<FigureController>();
 		if (currentFigure == null)
 			currentFigure = CreateRandomFigure();
 
-		currentFigure.DropIntoPlay(spawnedFiguresX, spawnedFiguresY);
-		if (EFigureDropped != null) EFigureDropped();
-		SpawnNextFigure();
+        bool roomToDropExists = true;
+        foreach (Vector2 blockCoord in currentFigure.figureBlockOffsets)
+            if (!Grid.Instance.CellExistsIsUnoccupied(blockCoord+new Vector2(spawnedFiguresX,spawnedFiguresY)))
+            {
+                roomToDropExists = false;
+                break;
+            }
+
+        if (roomToDropExists)
+        {
+			if (coolantMode)
+				FigureController.frozen = true;
+			currentFigure.DropIntoPlay(spawnedFiguresX, spawnedFiguresY);
+            if (EFigureDropped != null) EFigureDropped();
+            SpawnNextFigure();
+        }
+        else
+            if (ENoRoomToDropFigure!=null)	ENoRoomToDropFigure();
 	}
 
 	void SpawnNextFigure()

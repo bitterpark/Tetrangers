@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class MissionManager : Singleton<MissionManager> 
-{	
+{
 	[SerializeField]
 	Image startMissionPanel;
 	[SerializeField]
@@ -33,6 +34,10 @@ public class MissionManager : Singleton<MissionManager>
 
 	public PlayerShipModel playerShipTempLocation { get; private set;}
 
+	public static event UnityAction EMissionWon;
+	public static event UnityAction EMissionFailed;
+	public static event UnityAction EMissionStarted;
+
 	struct Mission
 	{
 		public EnemyShipModel[] enemyShips;
@@ -44,7 +49,7 @@ public class MissionManager : Singleton<MissionManager>
 		{
 			enemyShips = new EnemyShipModel[enemyShipCount];
 			for (int i = 0; i < enemyShipCount; i++)
-				enemyShips[i] = new EnemyShipModel(500, 500, 500, MissionManager.Instance.tempShipSprite, "Enemy Ship"+i);
+				enemyShips[i] = EnemyShipModel.GetEnemyShipModelInstance();
 			this.description = description;
 		}
 
@@ -67,7 +72,7 @@ public class MissionManager : Singleton<MissionManager>
 		missionWonButton.onClick.AddListener(MissionWinButtonPressed);
 		missionFailedButton.onClick.AddListener(MissionFailButtonPressed);
 
-		playerShipTempLocation = new PlayerShipModel(500, 500, 500, tempShipSprite, "Player Ship");
+		playerShipTempLocation = PlayerShipModel.GetPlayerShipModelInstance();
 	}
 
 	public void InitializeMissionManager()
@@ -77,10 +82,12 @@ public class MissionManager : Singleton<MissionManager>
 
 	void StartNewMission()
 	{
-		currentMission = new Mission("Defeat all enemy ships", 2);
+		currentMission = new Mission("Defeat all enemy ships", 3);
 		shipsDefeatedInCurrentMission = 0;
 		startMissionPanel.gameObject.SetActive(false);
-		battleManager.StartNewBattle(playerShipTempLocation, currentMission.enemyShips[shipsDefeatedInCurrentMission]);
+		ShowMissionProgressPanel();
+		if (EMissionStarted != null) EMissionStarted();
+		//battleManager.StartNewBattle(playerShipTempLocation, currentMission.enemyShips[shipsDefeatedInCurrentMission]);
 	}
 
 	void ProgressCurrentMission()
@@ -92,7 +99,18 @@ public class MissionManager : Singleton<MissionManager>
 	void ShowMissionProgressPanel()
 	{
 		progressMissionPanel.gameObject.SetActive(true);
-		progressMissionText.text = string.Format("Defeated:{0}/{1}", shipsDefeatedInCurrentMission, currentMission.missionLength);
+
+		if (shipsDefeatedInCurrentMission < currentMission.missionLength)
+		{
+			progressMissionText.text = string.Format("Defeated:{0}/{1}\nNext enemy:{2}"
+			, shipsDefeatedInCurrentMission, currentMission.missionLength, currentMission.enemyShips[shipsDefeatedInCurrentMission].shipName);
+			continueMissionButton.GetComponentInChildren<Text>().text = "Attack";
+		}
+		else
+		{
+			progressMissionText.text = string.Format("Mission complete!");
+			continueMissionButton.GetComponentInChildren<Text>().text = "Continue";
+		}
 	}
 
 	void ContinueMissionButtonPressed()
@@ -106,6 +124,7 @@ public class MissionManager : Singleton<MissionManager>
 
 	void WinCurrentMission()
 	{
+		if (EMissionWon != null) EMissionWon();
 		missionWonPanel.gameObject.SetActive(true);
 	}
 	void MissionWinButtonPressed()
@@ -116,6 +135,7 @@ public class MissionManager : Singleton<MissionManager>
 
 	void FailCurrentMission()
 	{
+		if (EMissionFailed != null) EMissionFailed();
 		missionFailedPanel.gameObject.SetActive(true);
 	}
 	void MissionFailButtonPressed()

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using UnityEngine;
-
 /// <summary>
 /// Be aware this will not prevent a non singleton constructor
 ///   such as `T myT = new T();`

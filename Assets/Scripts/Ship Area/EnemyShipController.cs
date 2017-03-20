@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyShipController : ShipController 
+public class EnemyShipController : ShipCombatController 
 {
 
 	public delegate void EmptyDeleg();
@@ -21,31 +21,41 @@ public class EnemyShipController : ShipController
 		EEnemyTurnFinished = null;
 	}
 
-
-	protected override void HandleWeaponButtonPress(int buttonIndex)
-	{
-		model.FireWeapon(buttonIndex);
-		//throw new System.NotImplementedException();
-	}
-
-	protected override void HandleWeaponButtonAnimationFinish()
+	protected override void HandleEquipmentButtonAnimationFinish()
 	{
 		DoEnemyTurn();
 	}
 
 	void DoEnemyTurn()
 	{
-		if (!TryActivateRandomWeapon())
-			if (EEnemyTurnFinished != null) EEnemyTurnFinished();		
+		//Debug.Log("Doing enemy turn");
+		if (!TryActivateBestEquipment())
+		{
+			if (EEnemyTurnFinished != null) EEnemyTurnFinished();
+			//Debug.Log("Enemy turn finished");
+		}
 	}
 
-	bool TryActivateRandomWeapon()
+	bool TryActivateBestEquipment()
 	{
-		List<int> fireableWeaponIndeces;
-		if (model.TryGetFireableWeapons(out fireableWeaponIndeces))
+		List<ShipEquipment> usableEquipment;
+		if (model.TryGetAllUsableEquipment(out usableEquipment))
 		{
-			int randomWeaponIndex = fireableWeaponIndeces[Random.Range(0, fireableWeaponIndeces.Count)];
-			view.GetWeaponViews()[randomWeaponIndex].DoButtonPress();
+
+			ShipEquipment bestEquipment=null;
+			int highestTotalPointsWorth = -1;
+			foreach (ShipEquipment equipment in usableEquipment)
+			{
+				int equipmentTotalPointsWorth = BalanceValuesManager.Instance.GetTotalPointsValue(equipment.blueEnergyCostToUse, equipment.greenEnergyCostToUse);
+				if (equipmentTotalPointsWorth > highestTotalPointsWorth || (equipmentTotalPointsWorth==highestTotalPointsWorth && Random.value>0.5f))
+				{
+					highestTotalPointsWorth = equipmentTotalPointsWorth;
+					bestEquipment = equipment;
+				}
+			}
+			//usableEquipment[Random.Range(0,usableEquipment.Count)];
+			Debug.Assert(bestEquipment != null, "Could not find best equipment to use by AI!");
+			GetViewRepresentingEquipment(bestEquipment).DoButtonPress();
 			return true;
 		}
 		else

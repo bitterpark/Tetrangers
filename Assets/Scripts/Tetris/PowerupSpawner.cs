@@ -6,18 +6,19 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 
 	[SerializeField]
 	PowerupBlock powerupPrefab;
-	[SerializeField]
+
 	float chanceToSpawnPowerupOnPlayerMove;
 
 	List<PowerupType> powerupTypesNotInUse = new List<PowerupType>();
 
 	void Awake()
 	{
-		TetrisManager.ETetrisFinished += ClearOnTetrisFinish;
+		TetrisManager.ETetrisEndClear += ClearOnTetrisFinish;
 		TetrisManager.ENextPlayerMoveStarted += TriggerChanceToSpawn;
 		PowerupActivator.EPowerupActivated += FreeUpPowerupType;
 
 		ResetUnusedPowerupTypes();
+		chanceToSpawnPowerupOnPlayerMove = BalanceValuesManager.Instance.powerupSpawnChancePerMove;
 	}
 
 	void ClearOnTetrisFinish()
@@ -80,7 +81,7 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 		PowerupType randomType = powerupTypesNotInUse[Random.Range(0,powerupTypesNotInUse.Count)];
 		powerupTypesNotInUse.Remove(randomType);
 
-		//randomType = PowerupType.Bomb;//debug
+		randomType = PowerupType.Change;//debug
 
 		newPowerup.AssignPowerupType(randomType);
 		spawnInCell.powerupInCell = newPowerup;

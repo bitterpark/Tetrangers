@@ -2,29 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ShipWeapon 
+public abstract class ShipWeapon: ShipEquipment
 {
-	public int damage { get; set; }
-	public int energyCostToFire { get; set; }
-	public string name { get; set; }
-	public int cooldownTime { get; protected set; }
-	public int cooldownTimeRemaining 
-	{
-		get { return _cooldownTimeRemaining; }
-		set { _cooldownTimeRemaining = Mathf.Max(value, 0); } 
-	}
-	int _cooldownTimeRemaining = 0;
+
+	public int damage { get; protected set; }
 
 	public ShipWeapon()
 	{
-		Initialize();
+		equipmentType = EquipmentTypes.Weapon;
 	}
 
-	protected abstract void Initialize();
-
-	public void SetCooldown()
+	public int FireWeapon()
 	{
-		cooldownTimeRemaining = cooldownTime;
+		SetCooldown();
+		return damage;
 	}
 }
 
@@ -32,9 +23,10 @@ public class LaserGun : ShipWeapon
 {
 	protected override void Initialize()
 	{
-		cooldownTime = 1;
-		damage = 10;
-		energyCostToFire = 100;
+		maxCooldownTime = 1;
+		damage = 100;
+		blueEnergyCostToUse = 100;
+		greenEnergyCostToUse = 0;
 		name = "Laser Gun";
 	}
 }
@@ -43,9 +35,22 @@ public class PlasmaCannon : ShipWeapon
 {
 	protected override void Initialize()
 	{
-		cooldownTime = 2;
-		damage = 20;
-		energyCostToFire = 200;
+		maxCooldownTime = 3;
+		damage = 300;
+		blueEnergyCostToUse = 200;
+		greenEnergyCostToUse = 0;
 		name = "Plasma Cannon";
+	}
+}
+
+public class TorpedoLauncher : ShipWeapon
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 1;
+		damage = 80;
+		blueEnergyCostToUse = 0;
+		greenEnergyCostToUse = 40;
+		name = "Torpedo Launcher";
 	}
 }

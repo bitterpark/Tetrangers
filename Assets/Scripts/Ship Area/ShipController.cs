@@ -1,82 +1,85 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using StatusEffects;
 
-public abstract class ShipController {
+public class ShipController: EquipmentListController {
 
-	protected ShipView view;
-	protected ShipModel model;
+	protected new ShipView view;
+	protected new ShipModel model;
 
-	public ShipController(ShipModel model, ShipView view)
+
+	public ShipController(ShipModel model, ShipView view):base(model,view)
 	{
 		this.view = view;
 		this.model = model;
 
-		model.ETookDamage += TakeDamage;
+		model.EHealthChanged += UpdateHealth;
 		model.EEnergyChanged += UpdateEnergy;
-		model.ECooldownsChanged += UpdateCooldownTimes;
 
+		/*
 		List<ShipWeapon> modelWeapons = model.shipWeapons;
-		Debug.Assert(view != null, "view is null!");
-		ShipWeaponView[] weaponViews = view.CreateWeaponViews(modelWeapons.Count);
+		List<ShipEquipment> otherEquipment = model.shipOtherEquipment;
+		
 
+		
+		ShipEquipmentView[] weaponViews = view.CreateEquipmentViews(modelWeapons.Count);
 		for (int i = 0; i < modelWeapons.Count; i++)
 		{
-			ShipWeapon weapon = modelWeapons[i];
-			ShipWeaponView weaponView = weaponViews[i];
-			weaponView.SetDisplayValues(weapon.damage, weapon.energyCostToFire, weapon.name);
-			weaponView.SetButtonInteractable(false);
-			weaponView.EWeaponButtonPressed += HandleWeaponButtonPress;
-			weaponView.EWeaponButtonAnimationFinished += HandleWeaponButtonAnimationFinish;
+			ShipWeapon weapon = modelWeapons[i];	
+			ShipEquipmentView weaponView = weaponViews[i];
+			SetupEquipmentView(weaponView,weapon);
+			weaponView.SetDamage(weapon.damage);
 		}
+		ShipEquipmentView[] otherEquipmentViews = view.CreateEquipmentViews(otherEquipment.Count);
+		for (int j = 0; j < otherEquipment.Count; j++)
+		{
+			ShipEquipment equipment = otherEquipment[j];
+			ShipEquipmentView equipmentView = otherEquipmentViews[j];
+			SetupEquipmentView(equipmentView, equipment);
+		}*/
 
 		view.SetNameAndSprite(model.shipName,model.shipSprite);
 
 		UpdateHealth();
 		UpdateEnergy();
-		UpdateCooldownTimes();
 	}
 
-	protected abstract void HandleWeaponButtonPress(int buttonIndex);
-	protected abstract void HandleWeaponButtonAnimationFinish ();
-
-	public virtual void DisposeController(bool disposeModel)
+	protected override void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
 	{
-		model.ETookDamage -= TakeDamage;
+		base.SetupEquipmentView(newView, equipment);
+		if (equipment.equipmentType==EquipmentTypes.Weapon)
+		{
+			ShipWeapon weapon = equipment as ShipWeapon;
+			newView.SetDamage(weapon.damage);
+		}
+	}
+
+
+	public override void DisposeController(bool disposeModel)
+	{
+		base.DisposeController(disposeModel);
+		model.EHealthChanged -= UpdateHealth;
 		model.EEnergyChanged -= UpdateEnergy;
 
-		foreach (ShipWeaponView weaponView in view.GetWeaponViews())
-		{
-			weaponView.EWeaponButtonPressed -= HandleWeaponButtonPress;
-			weaponView.EWeaponButtonAnimationFinished -= HandleWeaponButtonAnimationFinish;
-		}
-		view.ClearShipView();
 		if (disposeModel)
 			model.DisposeModel();
 	}
 
-	void TakeDamage()
-	{
-		UpdateHealth();
-		view.PlayGotHitFX();
-	}
+	
 
-	void UpdateHealth()
+	protected void UpdateHealth()
 	{
 		view.SetHealth(model.shipHealth,model.shipHealthMax);
 	}
 	void UpdateEnergy()
 	{
-		view.SetEnergy(model.shipEnergy,model.shipEnergyMax);
+		view.SetBlueEnergy(model.shipBlueEnergy,model.shipBlueEnergyMax);
+		view.SetGreenEnergy(model.shipGreenEnergy, model.shipGreenEnergyMax);
 	}
 
-	void UpdateCooldownTimes()
-	{
-		ShipWeaponView[] shipWeaponViews = view.GetWeaponViews();
-		List<int> shipWeaponCooldowns = model.GetWeaponCooldownTimes();
-		for (int i=0; i<shipWeaponViews.Length; i++)
-			shipWeaponViews[i].SetCooldownTime(shipWeaponCooldowns[i]);
-	}
+
+	
 	
 
 }

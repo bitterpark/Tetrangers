@@ -10,9 +10,10 @@ public class MainMenuManager : Singleton<MainMenuManager>
 	[SerializeField]
 	GameObject combatPanelGameobject;
 	[SerializeField]
-	GameObject missionPanelGameobject;
-	[SerializeField]
 	Button startGameButton;
+
+	[SerializeField]
+	HangarManager debugHangManager;
 	
 
 	void Awake()
@@ -22,10 +23,8 @@ public class MainMenuManager : Singleton<MainMenuManager>
 
 	void StartNewGame()
 	{
-		//BattleManager.Instance.gameObject.SetActive(true);
-		//combatPanelGameobject.SetActive(true);
-
 		menuPanelGameobject.SetActive(false);
-		GetComponent<MissionManager>().InitializeMissionManager();
+		//GetComponent<MissionManager>().InitializeMissionManager();
+		debugHangManager.OpenHangarScreen(new PlayerShipModel(), new HangarModel());
 	}
 }

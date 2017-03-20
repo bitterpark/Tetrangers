@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class BattleManager : Singleton<BattleManager> {
 
 	
-	public delegate void EmptyDeleg();
-	public static event EmptyDeleg EBattleStarted;
-	public static event EmptyDeleg EBattleFinished;
-	public static event EmptyDeleg EEngagementModeStarted;
-	public static event EmptyDeleg EEngagementModeEnded;
+	public static event UnityAction EBattleStarted;
+	public static event UnityAction EBattleFinished;
+	public static event UnityAction EEngagementModeStarted;
+	public static event UnityAction EEngagementModeEnded;
+	public static event UnityAction EBattleManagerDeactivated;
+	public static event UnityAction EBattleManagerActivated;
 
 	[SerializeField]
 	Button engagementButton;
@@ -28,7 +30,7 @@ public class BattleManager : Singleton<BattleManager> {
 	EnemyShipController enemyShipController;
 	PlayerShipController playerShipController;
 
-	const int turnsPerEngagement = 1;
+	int turnsPerEngagement;
 	int turnsRemaining
 	{
 		get { return _turnsRemaining; }
@@ -45,22 +47,22 @@ public class BattleManager : Singleton<BattleManager> {
 	//Only called once, happens before start
 	void Awake()
 	{
-		TetrisManager.ECurrentPlayerMoveDone += AdvanceTurn;
+		turnsPerEngagement = BalanceValuesManager.Instance.movesPerEngagement;
+		TetrisManager.ETransitionFromCurrentToNextMove += AdvanceTurn;
+		MissionManager.EMissionWon += DeactivateBattleManager;
+		MissionManager.EMissionFailed += DeactivateBattleManager;
 	}
 
 	void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.B))
-			EndBattle();
+		//if (Input.GetKeyDown(KeyCode.B))
+			//EndBattle();
 	}
 
 	public void StartNewBattle(PlayerShipModel playerShip, EnemyShipModel enemyShip)
 	{
 		if (!gameObject.activeSelf)
-		{
-			gameObject.SetActive(true);
-			engagementButton.onClick.AddListener(EndEngagementMode);
-		}
+			ActivateBattleManager();
 
 		enemyShip.ActivateModel();
 		//if (playerShipController==null)
@@ -70,10 +72,19 @@ public class BattleManager : Singleton<BattleManager> {
 		turnsRemaining = turnsPerEngagement;
 
 		PlayerShipModel.EPlayerDied += LoseBattle;
+		TetrisManager.ETetrisLost += LoseBattle;
 		EnemyShipModel.EEnemyDied += WinBattle;
 
 		if (EBattleStarted != null)
 			EBattleStarted();
+	}
+
+	void ActivateBattleManager()
+	{
+		gameObject.SetActive(true);
+		engagementButton.onClick.RemoveAllListeners();
+		engagementButton.onClick.AddListener(EndEngagementMode);
+		if (EBattleManagerActivated != null) EBattleManagerActivated();
 	}
 
 	void DisplayPlayerShip(ShipModel playerShipModel)
@@ -98,6 +109,38 @@ public class BattleManager : Singleton<BattleManager> {
 		enemyShipController = null;
 	}
 
+	void AdvanceTurn()
+	{
+		turnsRemaining--;
+		if (turnsRemaining == 0)
+			StartEngagementMode();
+	}
+
+	void StartEngagementMode()
+	{
+		engagementButton.GetComponent<Animator>().SetTrigger("Stop_Alert");
+		engagementButton.interactable = true;
+		engagementStatusText.text = "Disengage";
+
+		//Debug.Log("Engagement mode started");
+
+		if (EEngagementModeStarted != null)
+			EEngagementModeStarted();
+	}
+
+	void RevertEngagementMode()
+	{
+		engagementButton.interactable = false;
+		turnsRemaining = turnsPerEngagement;
+	}
+
+	void EndEngagementMode()
+	{
+		RevertEngagementMode();
+		if (EEngagementModeEnded != null)
+			EEngagementModeEnded();
+	}
+
 	void WinBattle()
 	{
 		ClearEnemyShip(true);
@@ -117,54 +160,21 @@ public class BattleManager : Singleton<BattleManager> {
 	void EndBattle()
 	{
 		PlayerShipModel.EPlayerDied -= LoseBattle;
+		TetrisManager.ETetrisLost -= LoseBattle;
 		EnemyShipModel.EEnemyDied -= WinBattle;
 
 		engagementButton.GetComponent<Animator>().SetTrigger("Stop_Alert");
-		
+		RevertEngagementMode();
+
 		if (EBattleFinished != null)
 			EBattleFinished();
+	}
 
+	void DeactivateBattleManager()
+	{
 		gameObject.SetActive(false);
-	}
-
-	void AdvanceTurn()
-	{
-		turnsRemaining--;
-		if (turnsRemaining == 0)
-			StartEngagementMode();
-	}
-
-	void StartEngagementMode()
-	{
-		EBattleFinished += RevertEngagementModeAfterBattleEnd;
-		
-		engagementButton.GetComponent<Animator>().SetTrigger("Stop_Alert");
-		engagementButton.interactable = true;
-		engagementStatusText.text = "Disengage";
-
-		if (EEngagementModeStarted != null)
-			EEngagementModeStarted();
-	}
-
-	void RevertEngagementModeAfterBattleEnd()
-	{
-		EndEngagementMode(true);
-	}
-
-	void EndEngagementMode()
-	{
-		EndEngagementMode(false);
-	}
-
-	void EndEngagementMode(bool battleEnded)
-	{
-		EBattleFinished -= RevertEngagementModeAfterBattleEnd;
-
-		engagementButton.interactable = false;
-		turnsRemaining = turnsPerEngagement;
-
-		if (!battleEnded && EEngagementModeEnded != null)
-			EEngagementModeEnded();
+		if (EBattleManagerDeactivated != null) 
+			EBattleManagerDeactivated();
 	}
 
 }

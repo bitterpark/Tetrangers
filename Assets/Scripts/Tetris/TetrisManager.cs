@@ -8,14 +8,30 @@ public class TetrisManager : Singleton<TetrisManager>
 {
 	//public delegate void EmptyDeleg();
 	public static event UnityAction ETetrisStarted;
-	public static event UnityAction ETetrisFinished;
+	public static event UnityAction ETetrisLost;
+	public static event UnityAction ETetrisEndClear;
 	public static event UnityAction ECurrentPlayerMoveDone;
+	public static event UnityAction ETransitionFromCurrentToNextMove;
 	public static event UnityAction ENextPlayerMoveStarted;
 
 	public static bool paused = false;
 
+	const int generatorMaxLevel = 5;
+	public int generatorLevel
+	{
+		get { return _generatorLevel; }
+		set
+		{
+			_generatorLevel = value;
+		}
+	}
+	int _generatorLevel;
+
 	[SerializeField]
 	CanvasGroup tetrisPanelGroup;
+
+	[SerializeField]
+	Text generatorLevelText;
 
 	public static float tetrisDeltaTime
 	{
@@ -28,9 +44,46 @@ public class TetrisManager : Singleton<TetrisManager>
 		}
 	}
 
+	public void RaiseGeneratorLevel()
+	{
+		RaiseGeneratorLevel(1);
+	}
+
+	public void RaiseGeneratorLevel(int delta)
+	{
+		SetGeneratorLevel(generatorLevel+delta);
+	}
+
+	public void LowerGeneratorLevel()
+	{
+		LowerGeneratorLevel(1);
+	}
+
+	public void LowerGeneratorLevel(int delta)
+	{
+		SetGeneratorLevel(generatorLevel - delta);
+	}
+
+	public void ChangeGeneratorLevel(int delta)
+	{
+		SetGeneratorLevel(generatorLevel + delta);
+	}
+
+	public void ResetGeneratorLevel()
+	{
+		SetGeneratorLevel(0);
+	}
+
+	void SetGeneratorLevel(int newGeneratorLevel)
+	{
+		generatorLevel = Mathf.Clamp(newGeneratorLevel,0, generatorMaxLevel);
+		generatorLevelText.text = generatorLevel.ToString();
+	}
+
 	public void StartTetris()
 	{
 		UnpauseTetris();
+		ResetGeneratorLevel();
 		StartCoroutine(WaitForGridReadyRoutine());
 	}
 
@@ -40,25 +93,28 @@ public class TetrisManager : Singleton<TetrisManager>
 			yield return null;
 		if (ETetrisStarted != null)
 			ETetrisStarted();
+		ContinueTetris();
 		yield break;
 	}
 
 
+	void HandleGridOverstack()
+	{
+		PauseTetris();
+		if (ETetrisLost != null) ETetrisLost();
+		//ETetrisLost.Invoke();
+
+	}
+
 	void HandleFinishedPlayerMove(Rect dummySettledBlockArg)
 	{
 		if (ECurrentPlayerMoveDone != null) ECurrentPlayerMoveDone();
-		//Debug.Log("Assering pause status: "+paused);
+		if (ETransitionFromCurrentToNextMove != null) ETransitionFromCurrentToNextMove();
 		if (!paused)
 			StartNextPlayerMove();
 	}
 
-	void PauseTetrisForEngagementMode()
-	{
-		PauseTetris();
-		//Debug.Log("paused status: "+paused);
-	}
-
-	void UnpauseTetrisAfterEngagementMode()
+	void ContinueTetris()
 	{
 		UnpauseTetris();
 		StartNextPlayerMove();
@@ -69,9 +125,9 @@ public class TetrisManager : Singleton<TetrisManager>
 		if (ENextPlayerMoveStarted != null) ENextPlayerMoveStarted();
 	}
 
-	public void EndTetris()
+	public void EndAndClearTetris()
 	{
-		if (ETetrisFinished != null) ETetrisFinished();
+		if (ETetrisEndClear != null) ETetrisEndClear();
 	}
 
 
@@ -79,27 +135,33 @@ public class TetrisManager : Singleton<TetrisManager>
 	{
 		//Debug.Log("Pausing tetris");
 		paused = true;
-		tetrisPanelGroup.alpha = 0;
+		tetrisPanelGroup.alpha = 0.5f;
 	}
 
 	void UnpauseTetris()
 	{
 		//Debug.Log("Unpausing tetris");
 		paused = false;
-		tetrisPanelGroup.alpha = 1;
+		tetrisPanelGroup.alpha = 1f;
 	}
 
 	void Awake()
 	{
-		BattleManager.EEngagementModeStarted += PauseTetrisForEngagementMode;
-		BattleManager.EEngagementModeEnded += UnpauseTetrisAfterEngagementMode;
+		BattleManager.EEngagementModeStarted += PauseTetris;
+		BattleManager.EEngagementModeEnded += ContinueTetris;
+		BattleManager.EBattleManagerDeactivated += EndAndClearTetris;
 		BattleManager.EBattleStarted += StartTetris;
-		BattleManager.EBattleFinished += EndTetris;
+		BattleManager.EBattleFinished += PauseTetris;
 		Grid.ENewFigureSettled += HandleFinishedPlayerMove;
+		FigureSpawner.ENoRoomToDropFigure += HandleGridOverstack;
 	}
 
 	void Update()
 	{
+		if (Input.GetKeyDown(KeyCode.P))
+			RaiseGeneratorLevel();
+		if (Input.GetKeyDown(KeyCode.L))
+			LowerGeneratorLevel();
 		//if (Input.GetKeyDown(KeyCode.P))
 		//PauseTetris();
 		//if (Input.GetKeyDown(KeyCode.U))

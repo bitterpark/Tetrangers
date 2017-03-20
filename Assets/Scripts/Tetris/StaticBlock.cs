@@ -13,12 +13,12 @@ public class StaticBlock : MonoBehaviour {
 	{
 		currentX = cellX;
 		currentY = cellY;
-		transform.localPosition = Grid.Instance.GetCellWorldPosition(currentX, currentY);
+		GetComponent<RectTransform>().anchoredPosition = Grid.Instance.GetCellPositionInGrid(currentX, currentY);
 	}
 
 	public void Initialize(int startingGridX, int startingGridY)
 	{
-		transform.SetParent(Grid.Instance.transform, false);
+		transform.SetParent(Grid.Instance.gridGroup, false);
 		MoveToGridCell(startingGridX, startingGridY);
 	}
 }

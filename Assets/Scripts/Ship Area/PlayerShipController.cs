@@ -2,56 +2,55 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerShipController : ShipController 
+public class PlayerShipController : ShipCombatController 
 {
 	public PlayerShipController(ShipModel model, ShipView view)
 		: base(model, view)
 	{
-		EnemyShipController.EEnemyTurnFinished += TryEnableWeaponViewButtons;
-		BattleManager.EEngagementModeEnded += DisableWeaponViewButtons;
+		EnemyShipController.EEnemyTurnFinished += TryEnableEquipmentViewButtons;
+		BattleManager.EEngagementModeEnded += DisableEquipmentViewButtons;
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
-		EnemyShipController.EEnemyTurnFinished -= TryEnableWeaponViewButtons;
-		BattleManager.EEngagementModeEnded -= DisableWeaponViewButtons;
+		EnemyShipController.EEnemyTurnFinished -= TryEnableEquipmentViewButtons;
+		BattleManager.EEngagementModeEnded -= DisableEquipmentViewButtons;
 	}
 
 
-	void TryEnableWeaponViewButtons()
+	void TryEnableEquipmentViewButtons()
 	{
-		List<int> fireableWeaponIndices;
-		if (model.TryGetFireableWeapons(out fireableWeaponIndices))
+		List<ShipEquipment> usableEquipment;
+		if (model.TryGetAllUsableEquipment(out usableEquipment))
 		{
-			ShipWeaponView[] weaponViews = view.GetWeaponViews();
-			foreach (ShipWeaponView weaponView in weaponViews)
-				if (fireableWeaponIndices.Contains(weaponView.viewIndex))
-					weaponView.SetButtonInteractable(true);
+			foreach (ShipEquipmentView equipmentView in equipmentViewPairings.Keys)
+				if (usableEquipment.Contains(equipmentViewPairings[equipmentView]))
+					equipmentView.SetButtonInteractable(true);
 				else
-					weaponView.SetButtonInteractable(false);
+					equipmentView.SetButtonInteractable(false);
 		}
 	}
 
-	void DisableWeaponViewButtons()
+	void DisableEquipmentViewButtons()
 	{
-		SetAllWeaponViewButtonsEnabled(false);
+		SetAllEquipmentViewButtonsEnabled(false);
 	}
 
-	void SetAllWeaponViewButtonsEnabled(bool enabled)
+	void SetAllEquipmentViewButtonsEnabled(bool enabled)
 	{
-		foreach (ShipWeaponView weaponView in view.GetWeaponViews())
+		foreach (ShipEquipmentView weaponView in view.GetEquipmentViews())
 			weaponView.SetButtonInteractable(enabled);
 	}
 
-	protected override void HandleWeaponButtonPress(int buttonIndex)
+	protected override void HandleEquipmentButtonPress(ShipEquipmentView buttonView)
 	{
-		SetAllWeaponViewButtonsEnabled(false);
-		model.FireWeapon(buttonIndex);
+		base.HandleEquipmentButtonPress(buttonView);
+		SetAllEquipmentViewButtonsEnabled(false);
 	}
 
-	protected override void HandleWeaponButtonAnimationFinish()
+	protected override void HandleEquipmentButtonAnimationFinish()
 	{
-		TryEnableWeaponViewButtons();
+		TryEnableEquipmentViewButtons();
 	}
 }

@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\BalanceValuesManager.cs" />
      <Compile Include="Assets\Scripts\BattleManager.cs" />
      <Compile Include="Assets\Scripts\BattleResultsView.cs" />
      <Compile Include="Assets\Scripts\MainMenuManager.cs" />
@@ -57,10 +58,11 @@
      <Compile Include="Assets\Scripts\Ship Area\PlayerShipController.cs" />
      <Compile Include="Assets\Scripts\Ship Area\PlayerShipModel.cs" />
      <Compile Include="Assets\Scripts\Ship Area\ShipController.cs" />
+     <Compile Include="Assets\Scripts\Ship Area\ShipEquipment.cs" />
+     <Compile Include="Assets\Scripts\Ship Area\ShipEquipmentView.cs" />
      <Compile Include="Assets\Scripts\Ship Area\ShipModel.cs" />
      <Compile Include="Assets\Scripts\Ship Area\ShipView.cs" />
      <Compile Include="Assets\Scripts\Ship Area\ShipWeapon.cs" />
-     <Compile Include="Assets\Scripts\Ship Area\ShipWeaponView.cs" />
      <Compile Include="Assets\Scripts\Singleton.cs" />
      <Compile Include="Assets\Scripts\Tetris\Cell.cs" />
      <Compile Include="Assets\Scripts\Tetris\FigureBlock.cs" />
@@ -74,11 +76,9 @@
      <Compile Include="Assets\Scripts\Tetris\SettledBlock.cs" />
      <Compile Include="Assets\Scripts\Tetris\StaticBlock.cs" />
      <Compile Include="Assets\Scripts\Tetris\TetrisManager.cs" />
+     <Compile Include="Assets\Scripts\TooltipManager.cs" />
      <Compile Include="Assets\ViewButtonAnimBehaviour.cs" />
      <None Include="Assets\Sprites\WeweFreeGameIcons\ReadMe.txt" />
- <Reference Include="UnityEngine.Advertisements">
- <HintPath>C:/Unity/Editor/Data/UnityExtensions/Unity/Advertisements/UnityEngine.Advertisements.dll</HintPath>
- </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
@@ -93,9 +93,6 @@
  </Reference>
  <Reference Include="UnityEngine.HoloLens">
  <HintPath>C:/Unity/Editor/Data/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.Purchasing">
- <HintPath>C:/Unity/Editor/Data/UnityExtensions/Unity/UnityPurchasing/UnityEngine.Purchasing.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.VR">
  <HintPath>C:/Unity/Editor/Data/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>

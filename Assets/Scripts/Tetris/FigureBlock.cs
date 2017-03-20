@@ -4,8 +4,14 @@ using UnityEngine;
 
 
 public class FigureBlock : MonoBehaviour
-{	
-	[SerializeField]
+{
+
+    public Vector2 getBlockOffsets
+    {
+        get { return new Vector2(xOffsetFromZero,yOffsetFromZero); }
+
+    }
+    [SerializeField]
 	int xOffsetFromZero;
 	[SerializeField]
 	int yOffsetFromZero;
@@ -31,7 +37,7 @@ public class FigureBlock : MonoBehaviour
 
 	public void SnapToParent()
 	{
-		transform.localPosition = new Vector3(xOffsetFromZero * Grid.Instance.cellSize, yOffsetFromZero * Grid.Instance.cellSize);
+		GetComponent<RectTransform>().anchoredPosition = new Vector2(xOffsetFromZero * Grid.Instance.cellSize, yOffsetFromZero * Grid.Instance.cellSize);
 	}
 
 	public bool TryMoveWithFigure(int figureX, int figureY)

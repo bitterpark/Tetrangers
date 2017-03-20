@@ -20,7 +20,7 @@ public class PowerupActivator : Singleton<PowerupActivator>
 
 	void Awake()
 	{
-		TetrisManager.ETetrisFinished += ClearOnTetrisEnd;
+		TetrisManager.ETetrisEndClear += ClearOnTetrisEnd;
 	}
 
 	void ClearOnTetrisEnd()

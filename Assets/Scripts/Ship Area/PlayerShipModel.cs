@@ -8,26 +8,85 @@ public class PlayerShipModel : ShipModel {
 	public static event WeaponFiredDeleg EPlayerWeaponFired;
 	public static event UnityEngine.Events.UnityAction EPlayerDied;
 
-	const int energyGainPerRow = 15;
+	public static bool energyGainPerSecondsSavedEnabled = false;
 
-	public PlayerShipModel(int shipHealthMax, int shipEnergy, int shipEnergyMax, Sprite shipSprite, string shipName)
-		: base(shipHealthMax, shipEnergy, shipEnergyMax, shipSprite, shipName) 
+	//readonly int energyGainPerRow;
+	//public static float energyGainPerSecondSaved;
+	int energyGainPerSecondSaved;
+	readonly int maxAmountOfSavedSeconds = 5;
+
+	public static PlayerShipModel GetPlayerShipModelInstance()
 	{
-		Grid.ERowsCleared += GainEnergyOnRowClears;
-		EnemyShipModel.EEnemyWeaponFired += TakeDamage;
+		return new PlayerShipModel();
 	}
+
+	public PlayerShipModel()
+	{
+		InitializeEventSubscriptions();
+	}
+
+	protected override void InitializeEventSubscriptions()
+	{
+		base.InitializeEventSubscriptions();
+		Grid.ERowsCleared += GainEnergyOnRowClears;
+		FigureController.EFigureSettledTimeClocked += GainEnergyOnFigureSettle;
+		EnemyShipModel.EEnemyWeaponFired += TakeDamage;
+		BattleManager.EEngagementModeStarted += GainGreenOnEngagementStart;
+		BattleManager.EBattleFinished += ResetToStartingStatsKeepHealth;
+		MissionManager.EMissionStarted += ResetToStartingStats;
+	}
+
+	protected override void InitializeClassStats()
+	{
+		SetStartingStats(BalanceValuesManager.Instance.playerShipHealth, BalanceValuesManager.Instance.playerBlueMax, BalanceValuesManager.Instance.playerGreenMax
+			,SpriteDB.Instance.shipsprite,"Player ship");
+
+		blueEnergyGain = BalanceValuesManager.Instance.playerBlueGain;
+		greenEnergyGain = BalanceValuesManager.Instance.playerGreenGain;
+		energyGainPerSecondSaved = BalanceValuesManager.Instance.playerBlueGainPerSecondSaved;
+		AddWeapons(new LaserGun(),new PlasmaCannon());
+		AddOtherEquipment(new Overdrive(), new Coolant(), new Interface(), new Forcefield(), new GeneratorUp());
+	}
+
 
 	public override void DisposeModel()
 	{
 		base.DisposeModel();
 		Grid.ERowsCleared -= GainEnergyOnRowClears;
+		FigureController.EFigureSettledTimeClocked -= GainEnergyOnFigureSettle;
 		EnemyShipModel.EEnemyWeaponFired -= TakeDamage;
+		BattleManager.EEngagementModeStarted -= GainGreenOnEngagementStart;
+
+		BattleManager.EBattleFinished -= ResetToStartingStatsKeepHealth;
+		MissionManager.EMissionStarted -= ResetToStartingStats;
+
 		EPlayerWeaponFired = null;
+	}
+	
+	void GainGreenOnEngagementStart()
+	{
+		GainGreenEnergy(2);
 	}
 
 	void GainEnergyOnRowClears(int rowsCount)
 	{
-		ChangeEnergy(energyGainPerRow*rowsCount);
+		GainGreenEnergy(rowsCount);
+		//ChangeGreenEnergy(energyGainPerRow*rowsCount);
+	}
+
+	void GainEnergyOnFigureSettle(float timeSinceDropped)
+	{
+		
+		//if (blueDelta>0)
+		//ChangeBlueEnergy(blueDelta);
+		if (energyGainPerSecondsSavedEnabled)
+		{
+			int blueDelta = Mathf.FloorToInt((maxAmountOfSavedSeconds - Mathf.RoundToInt(timeSinceDropped))*energyGainPerSecondSaved);
+			if (blueDelta > 0)
+				GainBlueEnergy(blueDelta,true);
+		}
+
+		GainBlueEnergy();
 	}
 
 	protected override void DoWeaponFireEvent(int weaponDamage)

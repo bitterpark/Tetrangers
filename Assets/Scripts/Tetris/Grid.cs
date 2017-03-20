@@ -7,15 +7,21 @@ using UnityEngine.UI;
 
 public class Grid : Singleton<Grid> 
 {
-	public static event UnityAction EOverstacked;
-	public delegate void FigureDeleg(Rect settledBlocksDimensions);
-	public static event FigureDeleg ENewFigureSettled;
-	public delegate void RowClearDeleg(int clearedRows);
-	public static event RowClearDeleg ERowsCleared;
+	//public static event UnityAction EOverstacked;
+	public static event UnityAction<Rect> ENewFigureSettled;
+	public static event UnityAction<int> ERowsCleared;
 
 	public static bool gridReady = false;
 
-	public float cellSize = 30;
+	public float cellSize;
+
+	public Transform gridGroup
+	{
+		get { return _gridGroup; }
+	}
+	[SerializeField]
+	Transform _gridGroup;
+
 	//int _cellSize = 50;
 	[SerializeField]
 	Image gridCellImage;
@@ -24,6 +30,8 @@ public class Grid : Singleton<Grid>
 	int gridVertSize = 20;
 	[SerializeField]
 	int gridHorSize = 20;
+
+	
 
 	public int maxX
 	{
@@ -36,7 +44,7 @@ public class Grid : Singleton<Grid>
 
 	public int maxYAllowedForSettling
 	{
-		get { return maxY - 4; }
+		get { return maxY; }
 	}
 
 	//bool[,] unoccupiedCells;
@@ -44,7 +52,7 @@ public class Grid : Singleton<Grid>
 
 	void Awake()
 	{
-		TetrisManager.ETetrisFinished += ClearGrid;
+		TetrisManager.ETetrisEndClear += ClearGrid;
 		FigureController.EFigureSettled += NewSettledFigureHandler;
 		StartCoroutine(WaitForCanvasToSetupRoutine());
 	}
@@ -57,7 +65,7 @@ public class Grid : Singleton<Grid>
 
 	void CreateGrid()
 	{
-		cellSize = GetComponent<RectTransform>().rect.width / gridHorSize;
+		cellSize = _gridGroup.GetComponent<RectTransform>().rect.width / gridHorSize;
 
 		cells = new Cell[gridHorSize, gridVertSize];
 
@@ -66,8 +74,10 @@ public class Grid : Singleton<Grid>
 			{
 				cells[j, i] = new Cell(j,i);
 				Image newCellImage = Instantiate(gridCellImage);
-				newCellImage.transform.SetParent(transform, false);
-				newCellImage.GetComponent<RectTransform>().anchoredPosition = new Vector3(j * cellSize, i * cellSize);
+				newCellImage.transform.SetParent(_gridGroup, false);
+                RectTransform newCellImageTransform = newCellImage.GetComponent<RectTransform>();
+                newCellImageTransform.sizeDelta = new Vector2(cellSize,cellSize);
+                newCellImageTransform.GetComponent<RectTransform>().anchoredPosition = new Vector3(j * cellSize, i * cellSize);
 			}
 		gridReady = true;
 	}
@@ -86,6 +96,11 @@ public class Grid : Singleton<Grid>
 		return cells[cellX, cellY];
 	}
 
+    public bool CellExistsIsUnoccupied(Vector2 cellCoords)
+    {
+        return CellExistsIsUnoccupied((int)cellCoords.x, (int)cellCoords.y);
+    }
+
 	public bool CellExistsIsUnoccupied(int cellX, int cellY)
 	{
 		//print("Checking cell "+cellX+","+cellY);
@@ -96,12 +111,12 @@ public class Grid : Singleton<Grid>
 		return false;
 	}
 
-	public Vector3 GetCellWorldPosition(int cellX, int cellY)
+	public Vector2 GetCellPositionInGrid(int cellX, int cellY)
 	{
 		if (cellX < 0 | cellY < 0 | cellX >= gridHorSize | cellY >= gridVertSize)
 			Debug.LogFormat("Getting world position of cell ({0},{1}) which does not exist!", cellX, cellY);
 
-		return new Vector3(cellX*cellSize, cellY*cellSize, -1);
+		return new Vector2(cellX*cellSize, cellY*cellSize);
 	}
 
 	void NewSettledFigureHandler(List<SettledBlock> figureBlocks)
@@ -119,7 +134,7 @@ public class Grid : Singleton<Grid>
 		Rect settledFigureDimensions = new Rect();
 		settledFigureDimensions.min = new Vector2(100,100);
 		settledFigureDimensions.max = new Vector2(-1,-1);
-		bool overStacked = false;
+		//bool overStacked = false;
 		foreach (SettledBlock block in settledBlocks)
 		{
 			int xCoord = block.currentX;
@@ -133,13 +148,15 @@ public class Grid : Singleton<Grid>
 			settledFigureDimensions.xMax = Mathf.Max(settledFigureDimensions.xMax, xCoord);
 			settledFigureDimensions.yMax = Mathf.Max(settledFigureDimensions.yMax, yCoord);
 
+			/*
 			if (yCoord > maxYAllowedForSettling)
 				overStacked = true;
 			else
-				cells[xCoord, yCoord].FillCell(block, false);
+				cells[xCoord, yCoord].FillCell(block, false);*/
+			cells[xCoord, yCoord].FillCell(block, false);
 		}
-		if (overStacked && EOverstacked != null)
-			EOverstacked();
+		//if (overStacked && EOverstacked != null)
+			//EOverstacked();
 
 		return settledFigureDimensions;
 	}

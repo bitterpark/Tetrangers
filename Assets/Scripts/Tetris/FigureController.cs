@@ -19,9 +19,38 @@ public class FigureController : MonoBehaviour
 	public delegate void DroppedDelegate(List<SettledBlock> settledBlocks);
 	public static event DroppedDelegate EFigureSettled;
 
-	public TetrominoTypes tetrominoType;
+	public static event UnityEngine.Events.UnityAction EFigureHoveredForOneSecond;
+	public delegate void SettledTimeDelegate(float timeSinceDropped);
+	public static event SettledTimeDelegate EFigureSettledTimeClocked;
+
 
 	public static bool frozen = false;
+	public static bool accelerated = false;
+
+	const float speedMultiplierChangePerLevel = 2f;
+	float currentSpeedMultiplierModifier
+	{
+		get { return TetrisManager.Instance.generatorLevel * speedMultiplierChangePerLevel; }
+	}
+
+	const float acceleratedTimeMultiplier = 15f;
+
+    public TetrominoTypes tetrominoType;
+
+    public List<Vector2> figureBlockOffsets
+    {
+        get
+        {
+            List<Vector2> blockCoords = new List<Vector2>();
+            foreach (FigureBlock block in myBlocks)
+                blockCoords.Add(block.getBlockOffsets);
+
+            return blockCoords;
+        }
+
+    }
+
+    float timeSinceDropped = 0;
 
 	[SerializeField]
 	Color figureColor;
@@ -37,6 +66,7 @@ public class FigureController : MonoBehaviour
 	bool dropped = false;
 
 	float moveDownFrequency = 1f;
+	//made this public and static for status effect testing, change later
 	float moveDownFrequencyModifier;
 
 	float moveSidewaysEveryNSeconds = 0.05f;
@@ -56,18 +86,19 @@ public class FigureController : MonoBehaviour
 		//Debug.LogFormat("{0} dropped into play", name);
 		dropped = true;
 
-		TetrisManager.ETetrisFinished += DisposeFigure;
+		TetrisManager.ETetrisEndClear += DisposeFigure;
 
 		currentX = startX;
 		currentY = startY;
-		transform.SetParent(Grid.Instance.transform, false);
+		transform.SetParent(Grid.Instance.gridGroup, false);
 		transform.SetAsLastSibling();
-		transform.localPosition = Grid.Instance.GetCellWorldPosition(currentX, currentY);
+		GetComponent<RectTransform>().anchoredPosition = Grid.Instance.GetCellPositionInGrid(currentX, currentY);
 
 		foreach (FigureBlock block in myBlocks)
 			block.SnapToParent();
 
 		StartCoroutine(MoveDownRoutine());
+		StartCoroutine(TimeSinceDroppedRoutine());
 	}
 
 	public void Initialize()
@@ -81,8 +112,28 @@ public class FigureController : MonoBehaviour
 	{
 		EMoveStatusDetermined = null;
 		ERotateStatusDetermined = null;
-		TetrisManager.ETetrisFinished -= DisposeFigure;
+		TetrisManager.ETetrisEndClear -= DisposeFigure;
 		GameObject.Destroy(this.gameObject);
+	}
+
+	IEnumerator TimeSinceDroppedRoutine()
+	{
+		float hoverTickFrequencyInSecs = 1f;
+		float timeUntilNextHoverTick = hoverTickFrequencyInSecs;
+		while (true)
+		{
+			if (!frozen)
+			{
+				timeSinceDropped += TetrisManager.tetrisDeltaTime;
+				timeUntilNextHoverTick -= TetrisManager.tetrisDeltaTime;
+			}
+			if (timeUntilNextHoverTick <= 0)
+			{
+				if (EFigureHoveredForOneSecond!=null) EFigureHoveredForOneSecond();
+				timeUntilNextHoverTick = hoverTickFrequencyInSecs;
+			}
+			yield return new WaitForFixedUpdate();
+		}
 	}
 
 	IEnumerator MoveDownRoutine()
@@ -97,7 +148,14 @@ public class FigureController : MonoBehaviour
 					TryMove(MoveDirections.Down);
 					timeSinceLastMoveDown = 0;
 				}
-				timeSinceLastMoveDown += TetrisManager.tetrisDeltaTime;
+
+				float timeMultiplier;
+				if (accelerated)
+					timeMultiplier = acceleratedTimeMultiplier;
+				else
+					timeMultiplier = 1 + currentSpeedMultiplierModifier;
+
+				timeSinceLastMoveDown += TetrisManager.tetrisDeltaTime* timeMultiplier;
 			}
 			yield return new WaitForFixedUpdate();
 		}
@@ -240,7 +298,7 @@ public class FigureController : MonoBehaviour
 		{
 			currentX = newX;
 			currentY = newY;
-			transform.localPosition = Grid.Instance.GetCellWorldPosition(currentX, currentY);
+			GetComponent<RectTransform>().anchoredPosition = Grid.Instance.GetCellPositionInGrid(currentX, currentY);
 		}
 		if (EMoveStatusDetermined!=null)
 			EMoveStatusDetermined(movePossible);
@@ -282,6 +340,8 @@ public class FigureController : MonoBehaviour
 				figureSettledBlocks.Add(newSettledBlock);
 			
 		}
+		if (EFigureSettledTimeClocked != null)
+			EFigureSettledTimeClocked(timeSinceDropped);
 		if (EFigureSettled != null)
 			EFigureSettled(figureSettledBlocks);
 		DisposeFigure();
