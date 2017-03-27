@@ -8,7 +8,7 @@ public abstract	class ShipCombatController: ShipController
 
 	public ShipCombatController(ShipModel model, ShipView view):base(model,view)
 	{
-		ShipEquipment.EEquipmentCooldownChanged += UpdateCooldownTime;
+		//ShipEquipment.EEquipmentCooldownChanged += UpdateCooldownTime;
 		model.EStatusEffectGained += HandleStatusEffectAdding;
 		model.EHealthDamaged += DisplayDamage;
 	}
@@ -16,19 +16,18 @@ public abstract	class ShipCombatController: ShipController
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
-
-		ShipEquipment.EEquipmentCooldownChanged -= UpdateCooldownTime;
+		//ShipEquipment.EEquipmentCooldownChanged -= UpdateCooldownTime;
 		model.EStatusEffectGained -= HandleStatusEffectAdding;
 		model.EHealthDamaged -= DisplayDamage;
 	}
-
+	/*
 	protected override void UnsubscribeFromEquipmentView(ShipEquipmentView view)
 	{
 		base.UnsubscribeFromEquipmentView(view);
 		view.EEquipmentButtonPressed -= HandleEquipmentButtonPress;
 		view.EEquipmentButtonAnimationFinished -= HandleEquipmentButtonAnimationFinish;
 	}
-
+	
 	protected override void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
 	{
 		base.SetupEquipmentView(newView, equipment);
@@ -53,12 +52,12 @@ public abstract	class ShipCombatController: ShipController
 			model.UseEquipment(equipment);
 	}
 	protected abstract void HandleEquipmentButtonAnimationFinish();
-
+	*/
 	void HandleStatusEffectAdding(IDisplayableStatusEffect effect)
 	{
 		view.ShowStatusEffect(effect);
 	}
-
+	/*
 	void UpdateCooldownTime(ShipEquipment equipment, int currentCooldownTime)
 	{
 		List<ShipEquipmentView> allViews = new List<ShipEquipmentView>();
@@ -72,7 +71,7 @@ public abstract	class ShipCombatController: ShipController
 				return;
 			}
 		}
-	}
+	}*/
 
 	void DisplayDamage()
 	{

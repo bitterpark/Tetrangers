@@ -174,12 +174,34 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		fireWeaponButton.interactable = interactable;
 	}
 
+	public void SetViewHidden(bool hidden)
+	{
+		CanvasGroup myCanvasGroup = GetComponent<CanvasGroup>();
+		Debug.Assert(myCanvasGroup != null, "CanvasGroup is null!");
+		if (hidden)
+		{
+			myCanvasGroup.alpha = 0;
+			myCanvasGroup.blocksRaycasts = false;
+			myCanvasGroup.interactable = false;
+			GetComponent<LayoutElement>().ignoreLayout = true;
+		}
+		else
+		{
+			myCanvasGroup.alpha = 1;
+			myCanvasGroup.blocksRaycasts = true;
+			myCanvasGroup.interactable = true;
+			GetComponent<LayoutElement>().ignoreLayout = false;
+		}
+
+	}
+
 	public void DisposeView()
 	{
 		EEquipmentButtonPressed = null;
 		EEquipmentButtonAnimationFinished = null;
 		EEquipmentMousedOver = null;
 		fireWeaponButton.onClick.RemoveAllListeners();
+		//Debug.Assert(myAnimator.GetBehaviour<ViewButtonAnimBehaviour>() != null, "Myanimator is null!");
 		myAnimator.GetBehaviour<ViewButtonAnimBehaviour>().EStateFinished -= AnimatorCallbackOnAnimationFinished;
 		GameObject.Destroy(this.gameObject);
 	}

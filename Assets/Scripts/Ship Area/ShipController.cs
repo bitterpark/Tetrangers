@@ -3,41 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using StatusEffects;
 
-public class ShipController: EquipmentListController {
+public abstract class ShipController {
 
-	protected new ShipView view;
-	protected new ShipModel model;
+	protected ShipView view;
+	protected ShipModel model;
 
+	protected EquipmentListController equipmentController;
 
-	public ShipController(ShipModel model, ShipView view):base(model,view)
+	public ShipController(ShipModel model, ShipView view)//:base(model,view)
 	{
 		this.view = view;
 		this.model = model;
 
+		equipmentController = CreateEquipmentController(model, view);
+
 		model.EHealthChanged += UpdateHealth;
 		model.EEnergyChanged += UpdateEnergy;
-
-		/*
-		List<ShipWeapon> modelWeapons = model.shipWeapons;
-		List<ShipEquipment> otherEquipment = model.shipOtherEquipment;
-		
-
-		
-		ShipEquipmentView[] weaponViews = view.CreateEquipmentViews(modelWeapons.Count);
-		for (int i = 0; i < modelWeapons.Count; i++)
-		{
-			ShipWeapon weapon = modelWeapons[i];	
-			ShipEquipmentView weaponView = weaponViews[i];
-			SetupEquipmentView(weaponView,weapon);
-			weaponView.SetDamage(weapon.damage);
-		}
-		ShipEquipmentView[] otherEquipmentViews = view.CreateEquipmentViews(otherEquipment.Count);
-		for (int j = 0; j < otherEquipment.Count; j++)
-		{
-			ShipEquipment equipment = otherEquipment[j];
-			ShipEquipmentView equipmentView = otherEquipmentViews[j];
-			SetupEquipmentView(equipmentView, equipment);
-		}*/
 
 		view.SetNameAndSprite(model.shipName,model.shipSprite);
 
@@ -45,20 +26,11 @@ public class ShipController: EquipmentListController {
 		UpdateEnergy();
 	}
 
-	protected override void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
-	{
-		base.SetupEquipmentView(newView, equipment);
-		if (equipment.equipmentType==EquipmentTypes.Weapon)
-		{
-			ShipWeapon weapon = equipment as ShipWeapon;
-			newView.SetDamage(weapon.damage);
-		}
-	}
+	protected abstract EquipmentListController CreateEquipmentController(ShipModel model, ShipView view);
 
-
-	public override void DisposeController(bool disposeModel)
+	public virtual void DisposeController(bool disposeModel)
 	{
-		base.DisposeController(disposeModel);
+		equipmentController.DisposeController(disposeModel);
 		model.EHealthChanged -= UpdateHealth;
 		model.EEnergyChanged -= UpdateEnergy;
 

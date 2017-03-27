@@ -38,35 +38,41 @@ public class EquipmentListController
 	protected virtual void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
 	{
 		newView.SetDisplayValues(equipment.blueEnergyCostToUse, equipment.greenEnergyCostToUse, equipment.generatorLevelDelta, equipment.name);
+		if (equipment.equipmentType == EquipmentTypes.Weapon)
+		{
+			ShipWeapon weapon = equipment as ShipWeapon;
+			newView.SetDamage(weapon.damage);
+		}
 		newView.SetCooldownTime(equipment.cooldownTimeRemaining, equipment.maxCooldownTime);
 		newView.SetButtonInteractable(false);
 		newView.EEquipmentMousedOver += HandleEquipmentMouseover;
+		
 
 		equipmentViewPairings.Add(newView, equipment);
 	}
 
-	void ShowWeaponsTab()
+	protected virtual void ShowWeaponsTab()
 	{
 		ShowEquipmentTypeViews(EquipmentTypes.Weapon);
 	}
-	void ShowEquipmentTab()
+	protected virtual void ShowEquipmentTab()
 	{
 		ShowEquipmentTypeViews(EquipmentTypes.Equipment);
 	}
-	void ShowSkillsTab()
+	protected virtual void ShowSkillsTab()
 	{
 		ShowEquipmentTypeViews(EquipmentTypes.Skill);
 	}
 
-	protected void ShowEquipmentTypeViews(EquipmentTypes showType)
+	protected virtual void ShowEquipmentTypeViews(EquipmentTypes showType)
 	{
-		foreach (ShipEquipmentView view in equipmentViewPairings.Keys)
-		{
-			if (equipmentViewPairings[view].equipmentType == showType)
-				view.gameObject.SetActive(true);
-			else
-				view.gameObject.SetActive(false);
-		}
+			foreach (ShipEquipmentView view in equipmentViewPairings.Keys)
+			{
+				if (equipmentViewPairings[view].equipmentType == showType)
+					view.SetViewHidden(false);
+				else
+					view.SetViewHidden(true);
+			}
 
 	}
 
@@ -111,7 +117,7 @@ public class EquipmentListController
 		//ShipEquipment.EEquipmentCooldownChanged -= UpdateCooldownTime;
 		ShipEquipmentView.EEquipmentMouseoverStopped -= HandleEquipmentMouseoverStop;
 
-		foreach (ShipEquipmentView equipmentView in view.GetEquipmentViews())
+		foreach (ShipEquipmentView equipmentView in new List<ShipEquipmentView>(view.GetEnabledEquipmentViews()))
 			UnsubscribeFromEquipmentView(equipmentView);
 
 		view.EEquipmentTabPressed -= ShowEquipmentTab;
@@ -123,6 +129,7 @@ public class EquipmentListController
 
 	protected virtual void UnsubscribeFromEquipmentView(ShipEquipmentView view)
 	{
+		equipmentViewPairings.Remove(view);
 		view.EEquipmentMousedOver -= HandleEquipmentMouseover;
 	}
 

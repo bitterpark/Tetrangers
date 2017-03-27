@@ -9,15 +9,15 @@ public class HangarModel: IEquipmentListModel
 	
 	public HangarModel()
 	{
-		AddStoredEquipment(new LaserGun(),new LaserGun(),new Siphon());
+		//AddEquipment(new LaserGun(),new LaserGun(),new Siphon());
 	}
 
-	public void AddStoredEquipment(params ShipEquipment[] addedEquipment)
+	public void AddEquipment(params ShipEquipment[] addedEquipment)
 	{
 		storedEquipment.AddRange(addedEquipment);
 	}
 
-	public void TakeOutStoredEquipment(params ShipEquipment[] removedEquipment)
+	public void RemoveEquipment(params ShipEquipment[] removedEquipment)
 	{
 		foreach (ShipEquipment equipment in removedEquipment)
 			storedEquipment.Remove(equipment);

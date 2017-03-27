@@ -48,9 +48,14 @@ public class EquipmentListView: MonoBehaviour
 			view.DisposeView();
 	}
 
-	public ShipEquipmentView[] GetEquipmentViews()
+	public ShipEquipmentView[] GetEnabledEquipmentViews()
 	{
 		return equipmentArea.GetComponentsInChildren<ShipEquipmentView>();
+	}
+
+	public Transform GetEquipmentAreaTransform()
+	{
+		return equipmentArea;
 	}
 
 	void Awake()
@@ -70,6 +75,7 @@ public class EquipmentListView: MonoBehaviour
 		EWeaponsTabPressed = null;
 		EEquipmentTabPressed = null;
 		ESkillsTabPressed = null;
+		
 		ClearEquipmentViews();
 	}
 

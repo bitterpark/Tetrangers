@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-
-public class HangarManager: Singleton<HangarManager>
+public class HangarManager: BaseSubscreen
 {
 	[SerializeField]
 	ShipView playerShipView;
@@ -11,30 +11,31 @@ public class HangarManager: Singleton<HangarManager>
 	EquipmentListView equipmentListView;
 
 
-	ShipController playerShipController;
+	ShipController playerHangarShipController;
 	EquipmentListController equipmentListController;
 
-	public void OpenHangarScreen(ShipModel playerShip, HangarModel hangar)
+	public override void OpenSubscreen()
 	{
-		if (!gameObject.activeSelf)
-			ActivateHangarManager();
-		DisplayPlayerShip(playerShip);
-		DisplayStoredEquipment(hangar);
-	}
-
-	void ActivateHangarManager()
-	{
-		gameObject.SetActive(true);
+		base.OpenSubscreen();
+		DisplayPlayerShip(GameDataManager.Instance.playerShip);
+		DisplayStoredEquipment(GameDataManager.Instance.playerHangar);
 	}
 
 	void DisplayPlayerShip(ShipModel playerShip)
 	{
-		playerShipController = new ShipController(playerShip, playerShipView);
+		playerHangarShipController = new HangarShipController(playerShip, playerShipView);
 	}
 
 	void DisplayStoredEquipment(HangarModel hangar)
 	{
-		equipmentListController = new EquipmentListController(hangar,equipmentListView);
+		equipmentListController = new HangarEquipmentController(hangar,equipmentListView);
+	}
+
+	protected override void CloseSubscreen()
+	{
+		playerHangarShipController.DisposeController(false);
+		equipmentListController.DisposeController(false);
+		base.CloseSubscreen();
 	}
 
 }

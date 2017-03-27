@@ -7,6 +7,8 @@ public class BalanceValuesManager : Singleton<BalanceValuesManager> {
 	[Header("Game stats")]
 	public int movesPerEngagement;
 	public float powerupSpawnChancePerMove;
+	public int startingIntel;
+	public int startingMaterials;
 
 	public int bluePointsWorthPerGreenPoint;
 

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,18 +8,16 @@ public class PlayerShipController : ShipCombatController
 	public PlayerShipController(ShipModel model, ShipView view)
 		: base(model, view)
 	{
-		EnemyShipController.EEnemyTurnFinished += TryEnableEquipmentViewButtons;
-		BattleManager.EEngagementModeEnded += DisableEquipmentViewButtons;
+		//EnemyShipController.EEnemyTurnFinished += TryEnableEquipmentViewButtons;
+		//BattleManager.EEngagementModeEnded += DisableEquipmentViewButtons;
 	}
 
-	public override void DisposeController(bool disposeModel)
+	protected override EquipmentListController CreateEquipmentController(ShipModel model, ShipView view)
 	{
-		base.DisposeController(disposeModel);
-		EnemyShipController.EEnemyTurnFinished -= TryEnableEquipmentViewButtons;
-		BattleManager.EEngagementModeEnded -= DisableEquipmentViewButtons;
+		return new PlayerShipEquipmentController(model, view);
 	}
 
-
+	/*
 	void TryEnableEquipmentViewButtons()
 	{
 		List<ShipEquipment> usableEquipment;
@@ -52,5 +51,5 @@ public class PlayerShipController : ShipCombatController
 	protected override void HandleEquipmentButtonAnimationFinish()
 	{
 		TryEnableEquipmentViewButtons();
-	}
+	}*/
 }

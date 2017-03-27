@@ -1,26 +1,33 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyShipController : ShipCombatController 
 {
 
-	public delegate void EmptyDeleg();
-	public static event EmptyDeleg EEnemyTurnFinished;
+	//public delegate void EmptyDeleg();
+	//public static event EmptyDeleg EEnemyTurnFinished;
 
 	public EnemyShipController(ShipModel model, ShipView view)
 		: base(model, view)
 	{
-		BattleManager.EEngagementModeStarted += DoEnemyTurn;
+		//BattleManager.EEngagementModeStarted += DoEnemyTurn;
 	}
 
+	protected override EquipmentListController CreateEquipmentController(ShipModel model, ShipView view)
+	{
+		return new EnemyShipEquipmentController(model, view);
+	}
+
+	/*
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
 		BattleManager.EEngagementModeStarted -= DoEnemyTurn;
 		EEnemyTurnFinished = null;
 	}
-
+	
 	protected override void HandleEquipmentButtonAnimationFinish()
 	{
 		DoEnemyTurn();
@@ -60,5 +67,5 @@ public class EnemyShipController : ShipCombatController
 		}
 		else
 			return false;
-	}
+	}*/
 }

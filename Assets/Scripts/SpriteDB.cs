@@ -12,5 +12,7 @@ class SpriteDB:Singleton<SpriteDB>
 
 	public Sprite shipsprite;
 
+	public Sprite intelSprite;
+	public Sprite materialsSprite;
 }
 

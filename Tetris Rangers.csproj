@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.2f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -84,37 +82,55 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\BalanceValuesManager.cs" />
+    <Compile Include="Assets\Scripts\Base\BaseScreen.cs" />
+    <Compile Include="Assets\Scripts\Base\BaseSubscreen.cs" />
     <Compile Include="Assets\Scripts\Base\Hangar\EquipmentListController.cs" />
-    <Compile Include="Assets\Scripts\Base\Hangar\EquipmentListModel.cs" />
+    <Compile Include="Assets\Scripts\Base\Hangar\EquipmentListView.cs" />
+    <Compile Include="Assets\Scripts\Base\Hangar\HangarEquipmentController.cs" />
     <Compile Include="Assets\Scripts\Base\Hangar\HangarManager.cs" />
     <Compile Include="Assets\Scripts\Base\Hangar\HangarModel.cs" />
-    <Compile Include="Assets\Scripts\Base\Hangar\EquipmentListView.cs" />
-    <Compile Include="Assets\Scripts\BattleManager.cs" />
-    <Compile Include="Assets\Scripts\BattleResultsView.cs" />
-    <Compile Include="Assets\Scripts\DraggableUIObject.cs" />
+    <Compile Include="Assets\Scripts\Base\Hangar\HangarShipController.cs" />
+    <Compile Include="Assets\Scripts\Base\Hangar\IEquipmentListModel.cs" />
+    <Compile Include="Assets\Scripts\Base\Missions\MissionView.cs" />
+    <Compile Include="Assets\Scripts\Base\Missions\MissionsScreen.cs" />
+    <Compile Include="Assets\Scripts\Base\Missions\RewardView.cs" />
+    <Compile Include="Assets\Scripts\Base\RND\RNDModel.cs" />
+    <Compile Include="Assets\Scripts\Base\RND\RNDScreen.cs" />
+    <Compile Include="Assets\Scripts\Base\RND\ResearchTopicView.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleManager.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleResultsView.cs" />
     <Compile Include="Assets\Scripts\DragUITarget.cs" />
+    <Compile Include="Assets\Scripts\DraggableUIObject.cs" />
+    <Compile Include="Assets\Scripts\GameDataManager.cs" />
     <Compile Include="Assets\Scripts\MainMenuManager.cs" />
-    <Compile Include="Assets\Scripts\MissionManager.cs" />
+    <Compile Include="Assets\Scripts\Mission\MissionCompletedScreen.cs" />
+    <Compile Include="Assets\Scripts\Mission\MissionManager.cs" />
+    <Compile Include="Assets\Scripts\Mission\MissionProgressScreen.cs" />
+    <Compile Include="Assets\Scripts\Mission\MissionSubscreen.cs" />
     <Compile Include="Assets\Scripts\ParticleController.cs" />
     <Compile Include="Assets\Scripts\ParticleDB.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\Ability.cs" />
     <Compile Include="Assets\Scripts\Ship Area\EnemyShipController.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\EnemyShipModel.cs" />
+    <Compile Include="Assets\Scripts\Ship Area\EnemyShipEquipmentController.cs" />
     <Compile Include="Assets\Scripts\Ship Area\PlayerShipController.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\PlayerShipModel.cs" />
+    <Compile Include="Assets\Scripts\Ship Area\PlayerShipEquipmentController.cs" />
     <Compile Include="Assets\Scripts\Ship Area\ShipCombatController.cs" />
     <Compile Include="Assets\Scripts\Ship Area\ShipController.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\ShipEquipment.cs" />
+    <Compile Include="Assets\Scripts\Ship Area\ShipEquipmentController.cs" />
     <Compile Include="Assets\Scripts\Ship Area\ShipEquipmentView.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\ShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship Area\ShipView.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\ShipWeapon.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\StatusEffect.cs" />
-    <Compile Include="Assets\Scripts\Ship Area\StatusEffectEquipment.cs" />
     <Compile Include="Assets\Scripts\Ship Area\StatusEffectIcon.cs" />
     <Compile Include="Assets\Scripts\Ship Area\StatusEffectView.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ability.cs" />
+    <Compile Include="Assets\Scripts\Ship\EnemyShipModel.cs" />
+    <Compile Include="Assets\Scripts\Ship\PlayerShipModel.cs" />
+    <Compile Include="Assets\Scripts\Ship\ShipEquipment.cs" />
+    <Compile Include="Assets\Scripts\Ship\ShipModel.cs" />
+    <Compile Include="Assets\Scripts\Ship\ShipWeapon.cs" />
+    <Compile Include="Assets\Scripts\Ship\StatusEffect.cs" />
+    <Compile Include="Assets\Scripts\Ship\StatusEffectEquipment.cs" />
     <Compile Include="Assets\Scripts\Singleton.cs" />
     <Compile Include="Assets\Scripts\SpriteDB.cs" />
+    <Compile Include="Assets\Scripts\Subscreen.cs" />
     <Compile Include="Assets\Scripts\Tetris\Cell.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureController.cs" />

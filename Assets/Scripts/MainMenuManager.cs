@@ -13,7 +13,7 @@ public class MainMenuManager : Singleton<MainMenuManager>
 	Button startGameButton;
 
 	[SerializeField]
-	HangarManager debugHangManager;
+	BaseScreen baseScreen;
 	
 
 	void Awake()
@@ -25,6 +25,6 @@ public class MainMenuManager : Singleton<MainMenuManager>
 	{
 		menuPanelGameobject.SetActive(false);
 		//GetComponent<MissionManager>().InitializeMissionManager();
-		debugHangManager.OpenHangarScreen(new PlayerShipModel(), new HangarModel());
+		baseScreen.OpenBaseScreen();
 	}
 }

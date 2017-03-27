@@ -210,6 +210,12 @@ public class Grid : Singleton<Grid>
 		}
 	}
 
+	public void ClearBottomRows(int numberOfRows)
+	{
+		for (int i = 0; i < numberOfRows; i++)
+			ClearRow(i);
+	}
+
 	void ClearRow(int rowIndex)
 	{
 		ClearArea(0,rowIndex,maxX,rowIndex);
