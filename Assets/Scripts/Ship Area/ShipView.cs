@@ -20,14 +20,25 @@ public class ShipView : EquipmentListView {
 	RectTransform healthBar;
 
 	[SerializeField]
+	Transform shieldBarObject;
+	Text shieldText;
+	RectTransform shieldBar;
+	[SerializeField]
+	Text shieldsGainText;
+
+	[SerializeField]
 	Transform blueEnergyBarObject;
 	Text blueEnergyText;
 	RectTransform blueEnergyBar;
+	[SerializeField]
+	Text blueEnergyGainText;
 
 	[SerializeField]
 	Transform greenEnergyBarObject;
 	Text greenEnergyText;
 	RectTransform greenEnergyBar;
+	[SerializeField]
+	Text greenEnergyGainText;
 
 	[SerializeField]
 	StatusEffectView statusEffectsView;
@@ -51,6 +62,24 @@ public class ShipView : EquipmentListView {
 			barPercentage = 1;
 
 		healthBar.anchorMax = new Vector2(barPercentage, healthBar.anchorMax.y);
+	}
+
+	public void SetShields(int newShields, int maxShields)
+	{
+		shieldText.text = newShields.ToString() + "/" + maxShields.ToString();
+
+		float barPercentage;
+		if (maxShields > 0)
+			barPercentage = (float)newShields / (float)maxShields;
+		else
+			barPercentage = 1;
+
+		shieldBar.anchorMax = new Vector2(barPercentage, shieldBar.anchorMax.y);
+	}
+
+	public void SetShieldsGain(int gain)
+	{
+		shieldsGainText.text = gain.ToString();
 	}
 
 	public void SetBlueEnergy(int newEnergy, int maxEnergy)
@@ -77,13 +106,24 @@ public class ShipView : EquipmentListView {
 		greenEnergyBar.anchorMax = new Vector2(barPercentage, greenEnergyBar.anchorMax.y);
 	}
 
+	public void SetEnergyGainLevels(int blueEnergyGain, int greenEnergyGain)
+	{
+		SetBlueEnergyGain(blueEnergyGain);
+		SetGreenEnergyGain(greenEnergyGain);
+	}
+
+	void SetBlueEnergyGain(int gain)
+	{
+		blueEnergyGainText.text = gain.ToString();
+	}
+	void SetGreenEnergyGain(int gain)
+	{
+		greenEnergyGainText.text = gain.ToString();
+	}
+
 	public void PlayGotHitFX()
 	{
-		ParticleController gotHitParticles = Instantiate(ParticleDB.Instance.shipGotHitParticles);
-		Vector3 particlesPosition = shipImage.transform.position;
-		particlesPosition.z = -2;
-		gotHitParticles.transform.position = particlesPosition;
-		gotHitParticles.EnableParticleSystemOnce();
+		ParticleDB.Instance.CreateShipGotHitParticles(shipImage.transform.position);
 	}
 
 	public void ShowStatusEffect(IDisplayableStatusEffect effect)
@@ -96,6 +136,9 @@ public class ShipView : EquipmentListView {
 		base.Initialize();
 		healthText = healthBarObject.transform.FindChild("Value").GetComponent<Text>();
 		healthBar = healthBarObject.transform.FindChild("Underbar").FindChild("Bar").GetComponent<RectTransform>();
+
+		shieldText = shieldBarObject.transform.FindChild("Value").GetComponent<Text>();
+		shieldBar = shieldBarObject.transform.FindChild("Underbar").FindChild("Bar").GetComponent<RectTransform>();
 
 		blueEnergyText = blueEnergyBarObject.transform.FindChild("Value").GetComponent<Text>();
 		blueEnergyBar = blueEnergyBarObject.transform.FindChild("Underbar").FindChild("Bar").GetComponent<RectTransform>();

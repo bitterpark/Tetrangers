@@ -4,9 +4,20 @@ using UnityEngine;
 
 public class SettledBlock : StaticBlock {
 
+	public static event UnityEngine.Events.UnityAction<BlockType> EBlockCleared;
+
+	public BlockType blockType { get; private set; }
+
+	public void Initialize(int startingGridX, int startingGridY, BlockType type)
+	{
+		base.Initialize(startingGridX, startingGridY);
+		blockType = type;
+	}
 
 	public void ClearBlock()
 	{
+		//Debug.Log("Clearing "+blockType+" block!");
+		if (EBlockCleared != null) EBlockCleared(blockType);
 		SpawnClearParticles();
 		DestroyBlock();
 	}
@@ -18,10 +29,6 @@ public class SettledBlock : StaticBlock {
 
 	void SpawnClearParticles()
 	{
-		ParticleController particles = Instantiate(ParticleDB.Instance.settledBlockDestroyParticles);
-		Vector3 particlesPosition = this.transform.position;
-		particlesPosition.z = -2;
-		particles.transform.position = particlesPosition;
-		particles.EnableParticleSystemOnce();
+		ParticleDB.Instance.CreateRowClearParticles(transform.position);
 	}
 }

@@ -18,12 +18,19 @@ public abstract class ShipController {
 		equipmentController = CreateEquipmentController(model, view);
 
 		model.EHealthChanged += UpdateHealth;
+		model.EShieldsChanged += UpdateShields;
+		model.EShieldsGainChanged += UpdateShieldsGain;
 		model.EEnergyChanged += UpdateEnergy;
+		model.EEnergyGainChanged += UpdateEnergyGain;
+		//model.EEquipmentTypeUsed += SwitchToRelevantEquipmentTab;
 
 		view.SetNameAndSprite(model.shipName,model.shipSprite);
 
 		UpdateHealth();
+		UpdateShields();
+		UpdateShieldsGain();
 		UpdateEnergy();
+		UpdateEnergyGain();
 	}
 
 	protected abstract EquipmentListController CreateEquipmentController(ShipModel model, ShipView view);
@@ -32,25 +39,46 @@ public abstract class ShipController {
 	{
 		equipmentController.DisposeController(disposeModel);
 		model.EHealthChanged -= UpdateHealth;
+		model.EShieldsChanged -= UpdateShields;
+		model.EShieldsGainChanged -= UpdateShieldsGain;
 		model.EEnergyChanged -= UpdateEnergy;
+		model.EEnergyGainChanged -= UpdateEnergyGain;
+		//model.EEquipmentTypeUsed -= SwitchToRelevantEquipmentTab;
 
 		if (disposeModel)
 			model.DisposeModel();
 	}
 
-	
+	void SwitchToRelevantEquipmentTab(EquipmentTypes tabType)
+	{
+		equipmentController.ShowEquipmentTypeViews(tabType);
+	}
 
 	protected void UpdateHealth()
 	{
 		view.SetHealth(model.shipHealth,model.shipHealthMax);
 	}
+
+	protected void UpdateShields()
+	{
+		view.SetShields(model.shipShields, model.shipShieldsMax);
+	}
+
+	void UpdateShieldsGain()
+	{
+		view.SetShieldsGain(model.shipShieldsCurrentGain);
+	}
+
 	void UpdateEnergy()
 	{
 		view.SetBlueEnergy(model.shipBlueEnergy,model.shipBlueEnergyMax);
 		view.SetGreenEnergy(model.shipGreenEnergy, model.shipGreenEnergyMax);
 	}
 
-
+	void UpdateEnergyGain()
+	{
+		view.SetEnergyGainLevels(model.blueEnergyGain, model.greenEnergyGain);
+	}
 	
 	
 

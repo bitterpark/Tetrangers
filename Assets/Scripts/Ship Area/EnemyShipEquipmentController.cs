@@ -27,8 +27,9 @@ public class EnemyShipEquipmentController : ShipEquipmentController
 		}
 	}
 
-	protected override void HandleEquipmentButtonAnimationFinish()
+	protected override void HandleEquipmentButtonAnimationFinish(ShipEquipmentView equipmentView)
 	{
+		base.HandleEquipmentButtonAnimationFinish(equipmentView);
 		DoEnemyTurn();
 	}
 

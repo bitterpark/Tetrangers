@@ -27,7 +27,7 @@ public class MissionView : MonoBehaviour {
 	void AddReward(Reward reward)
 	{
 		RewardView newView = Instantiate(rewardViewPrefab);
-		newView.SetDisplayValues(reward.rewardName,reward.rewardSprite,reward.rewardQuantity);
+		newView.SetDisplayValues(reward.rewardName,reward.rewardSprite,reward.rewardQuantity, reward.extraText);
 		newView.transform.SetParent(rewardsGroup);
 	}
 

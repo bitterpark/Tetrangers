@@ -10,20 +10,42 @@ public class RNDModel
 	{
 		currentTopics = new List<ResearchTopic>();
 		currentTopics.Add(new PlasmaCannonTopic());
-		currentTopics.Add(new MissileLauncherTopic());
 		currentTopics.Add(new HeavyLaserTopic());
+		//currentTopics.Add(new MineLayerTopic());
 
-		currentTopics.Add(new MeltdownTriggerTopic());
-		currentTopics.Add(new CoolantInjectorTopic());
-		currentTopics.Add(new BlockEjectorTopic());
+		//currentTopics.Add(new MeltdownTriggerTopic());
+		//currentTopics.Add(new CoolantInjectorTopic());
+		//currentTopics.Add(new BlockEjectorTopic());
 		currentTopics.Add(new ReactiveArmorTopic());
-		currentTopics.Add(new AfterburnerTopic());
-		currentTopics.Add(new ManeuveringJetsTopic());
+		//currentTopics.Add(new AfterburnerTopic());
+		//currentTopics.Add(new ManeuveringJetsTopic());
+		currentTopics.Add(new GreenAmpTopic());
+		currentTopics.Add(new BlueAmpTopic());
+
 	}
 	
 	public void AddTopics(params ResearchTopic[] addedTopics)
 	{
 		currentTopics.AddRange(addedTopics);
+	}
+
+	public bool HasUnresearchedTopics()
+	{
+		foreach (ResearchTopic topic in currentTopics)
+			if (!topic.researched)
+				return true;
+
+		return false;
+	}
+
+	public List<ResearchTopic> GetUnresearchedTopics()
+	{
+		List<ResearchTopic> result = new List<ResearchTopic>();
+		foreach (ResearchTopic topic in currentTopics)
+			if (!topic.researched)
+				result.Add(topic);
+
+		return result;
 	}
 
 }

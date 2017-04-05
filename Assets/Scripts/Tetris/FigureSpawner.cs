@@ -8,13 +8,12 @@ public class FigureSpawner : Singleton<FigureSpawner>
 	public static event UnityEngine.Events.UnityAction EFigureDropped;
     public static event UnityEngine.Events.UnityAction ENoRoomToDropFigure;
 
-	public static bool coolantMode = false;
+	public static bool coolantMode = true;
 
 	public Transform nextFigureDisplay;
 	[SerializeField]
 	List<FigureController> figurePrefabs = new List<FigureController>();
 	
-
 	int spawnedFiguresX;
 	int spawnedFiguresY;
 

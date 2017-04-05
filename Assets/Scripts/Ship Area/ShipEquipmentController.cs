@@ -12,12 +12,14 @@ public abstract class ShipEquipmentController : EquipmentListController
 	{
 		model = shipModel;
 		ShipEquipment.EEquipmentCooldownChanged += UpdateCooldownTime;
+		ShipWeapon.EWeaponLockonTimeChanged += UpdateWeaponLockonTime;
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
 		ShipEquipment.EEquipmentCooldownChanged -= UpdateCooldownTime;
+		ShipWeapon.EWeaponLockonTimeChanged -= UpdateWeaponLockonTime;
 	}
 
 
@@ -40,24 +42,28 @@ public abstract class ShipEquipmentController : EquipmentListController
 		ShipEquipment equipment = GetEquipmentRepresentedByView(buttonView);
 
 		if (equipment != null)
-			HandleEquipmentActivating(equipment);
+			ShowEquipmentTypeViews(equipment.equipmentType);
 	}
-	void HandleEquipmentActivating(ShipEquipment equipment)
-	{
-		ShowEquipmentTypeViews(equipment.equipmentType);
 
-		if (equipment.GetType().BaseType == typeof(ShipWeapon))
-			model.FireWeapon((ShipWeapon)equipment);
-		else
+	protected virtual void HandleEquipmentButtonAnimationFinish(ShipEquipmentView buttonView)
+	{
+		ShipEquipment equipment = GetEquipmentRepresentedByView(buttonView);
+
+		//if (equipment.GetType().BaseType == typeof(ShipWeapon))
+			//model.FireWeapon((ShipWeapon)equipment);
+		//else
 			model.UseEquipment(equipment);
 	}
-	protected abstract void HandleEquipmentButtonAnimationFinish();
 
 	void UpdateCooldownTime(ShipEquipment equipment, int currentCooldownTime)
 	{
 		List<ShipEquipmentView> allViews = new List<ShipEquipmentView>();
 		allViews.AddRange(equipmentViewPairings.Keys);
 
+		ShipEquipmentView view = GetViewRepresentingEquipment(equipment);
+		if (view != null)
+			view.SetCooldownTime(currentCooldownTime, equipment.maxCooldownTime);
+		/*
 		foreach (ShipEquipmentView equipmentView in allViews)
 		{
 			if (equipmentViewPairings.ContainsKey(equipmentView) && equipmentViewPairings[equipmentView] == equipment)
@@ -65,8 +71,19 @@ public abstract class ShipEquipmentController : EquipmentListController
 				equipmentView.SetCooldownTime(currentCooldownTime, equipment.maxCooldownTime);
 				return;
 			}
-		}
+		}*/
 	}
+
+	void UpdateWeaponLockonTime(ShipEquipment equipment, int currentLockonTime)
+	{
+		List<ShipEquipmentView> allViews = new List<ShipEquipmentView>();
+		allViews.AddRange(equipmentViewPairings.Keys);
+
+		ShipEquipmentView view = GetViewRepresentingEquipment(equipment);
+		if (view != null)
+			view.SetLockonTime(currentLockonTime);
+	}
+
 
 }
 

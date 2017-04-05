@@ -48,15 +48,21 @@ public class ResearchTopicView: MonoBehaviour
 
 	void SetDisplayedEquipment(ShipEquipment equipment)
 	{
-		if (equipmentItemViewPosition.GetComponentInChildren<ShipEquipmentView>() == null)
+		if (GetDisplayedEquipmentView() == null)
 		{
 			ShipEquipmentView newEquipmentView = Instantiate(equipmentViewPrefab);
-			newEquipmentView.SetDisplayValues(equipment.blueEnergyCostToUse, equipment.greenEnergyCostToUse, equipment.generatorLevelDelta, equipment.name);
+			newEquipmentView.SetDisplayValues(
+				equipment.blueEnergyCostToUse,
+				equipment.greenEnergyCostToUse,
+				equipment.generatorLevelDelta,
+				equipment.maxCooldownTime,
+				equipment.name);
 			if (equipment.equipmentType == EquipmentTypes.Weapon)
 			{
 				ShipWeapon weapon = equipment as ShipWeapon;
 				newEquipmentView.SetDamage(weapon.damage);
-				newEquipmentView.SetButtonInteractable(false);
+				newEquipmentView.SetLockonTime(weapon.lockOnTimeRemaining);
+				//newEquipmentView.SetButtonInteractable(false);
 			}
 			newEquipmentView.transform.SetParent(equipmentItemViewPosition, false);
 		}
@@ -103,11 +109,16 @@ public class ResearchTopicView: MonoBehaviour
 		
 	}
 
+	public ShipEquipmentView GetDisplayedEquipmentView()
+	{
+		return equipmentItemViewPosition.GetComponentInChildren<ShipEquipmentView>();
+	}
+
 	public void DisposeView()
 	{
 		EResearchOrProduceButtonPressed = null;
 		researchOrProduceButton.onClick.RemoveAllListeners();
-		equipmentItemViewPosition.GetComponentInChildren<ShipEquipmentView>().DisposeView();
+		GetDisplayedEquipmentView().DisposeView();
 
 		GameObject.Destroy(this.gameObject);
 	}

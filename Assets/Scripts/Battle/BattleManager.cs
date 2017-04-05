@@ -78,6 +78,8 @@ public class BattleManager : Singleton<BattleManager> {
 
 		if (EBattleStarted != null)
 			EBattleStarted();
+
+		StartEngagementMode();
 	}
 
 	void ActivateBattleManager()

@@ -32,49 +32,6 @@ namespace StatusEffects
 			effectObject.transform.SetParent(transform);
 
 		}
-		/*
-		void Start()
-		{
-			AddStatusEffectIcon(new DummyTestClass(testStatusEffectSprite));
-		}*/
-
-		class DummyTestClass : IDisplayableStatusEffect
-		{
-			public DummyTestClass(Sprite myIcon)
-			{
-				_testIcon = myIcon;
-			}
-
-			public string description
-			{
-				get
-				{
-					return "This describes the effect of the thing and the stuff";
-				}
-			}
-
-			public Sprite icon
-			{
-				get
-				{
-					return _testIcon;
-				}
-			}
-			Sprite _testIcon;
-
-			public Color color { get { return Color.green;} }
-
-			public string name
-			{
-				get
-				{
-					return "TestName";
-				}
-			}
-
-			public event UnityAction<StatusEffect> EStatusEffectEnded;
-		}
-
 	}
 
 }

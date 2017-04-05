@@ -16,8 +16,30 @@ public abstract class ShipEquipment
 
 	public EquipmentTypes equipmentType { get; protected set; }
 
-	public bool hasDescription { get { return _description != null; } }
-	public string description { get { return _description; } protected set { _description = value; } }
+	public bool hasDescription { get { return _description != null || effectOnSelfDescription!=null; } }
+	public string description
+	{	get
+		{
+			string fullDesc="";
+			if (_description != null)
+				fullDesc += _description;
+			if (effectOnSelfDescription!=null)
+			{
+				if (_description != null)
+					fullDesc += "\n";
+				fullDesc += effectOnSelfDescription;
+			}
+			if (effectOnOpponentDescription!=null)
+			{
+				if (_description != null || effectOnSelfDescription != null)
+					fullDesc += "\n";
+				fullDesc += effectOnOpponentDescription;
+			}
+
+			return fullDesc;
+		}
+		protected set { _description = value+"\n"; }
+	}
 	string _description = null;
 
 	public int maxCooldownTime { get; protected set; }
@@ -33,11 +55,38 @@ public abstract class ShipEquipment
 	}
 	int _cooldownTimeRemaining = 0;
 
-	public bool isUseable { get; protected set; }
+	//public bool isUseable { get; protected set; }
+
+	public StatusEffect onSelfEffect
+	{
+		get { return _onSelfEffect; }
+		protected set
+		{
+			_onSelfEffect = value;
+			if (value != null)
+				effectOnSelfDescription = "Self:" + _onSelfEffect.description;
+		}
+	}
+	StatusEffect _onSelfEffect;
+
+	public StatusEffect onOpponentEffect
+	{
+		get { return _onOpponentEffect; }
+		protected set
+		{
+			_onOpponentEffect = value;
+			if (value != null)
+				effectOnOpponentDescription = "Opponent:"+ _onOpponentEffect.description;
+		}
+	}
+	StatusEffect _onOpponentEffect;
+
+	string effectOnSelfDescription = null;
+	string effectOnOpponentDescription = null;
 
 	public ShipEquipment()
 	{
-		isUseable = true;
+		//isUseable = true;
 		blueEnergyCostToUse = 0;
 		greenEnergyCostToUse = 0;
 		generatorLevelDelta = 0;
@@ -46,6 +95,14 @@ public abstract class ShipEquipment
 	}
 
 	protected abstract void Initialize();
+
+	public virtual bool IsUsableByShip(ShipModel ship)
+	{
+		if (cooldownTimeRemaining == 0)
+			return true;
+		else
+			return false;
+	}
 
 	public virtual void ActivateEquipment(ShipModel activatedOnShip)
 	{
@@ -62,7 +119,7 @@ public abstract class ShipEquipment
 	protected virtual void ExtenderActivation(ShipModel activateOnShip) { }
 
 
-	public void ResetCooldown()
+	public virtual void ResetEquipment()
 	{
 		cooldownTimeRemaining = 0;
 	}
@@ -74,17 +131,17 @@ public class Forcefield : ShipEquipment
 
 	protected override void Initialize()
 	{
-		maxCooldownTime = 2;
-		blueEnergyCostToUse = 0;
-		greenEnergyCostToUse = 50;
+		maxCooldownTime = 3;
+		//blueEnergyCostToUse = 0;
+		greenEnergyCostToUse = 60;
 		healthGain = greenEnergyCostToUse * 2;
 		name = "Forcefield";
-		description = string.Format("Restore {0} health", healthGain);
+		description = string.Format("Restore {0} shields", healthGain);
 	}
 
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
-		activateOnShip.GainHealth(healthGain);
+		activateOnShip.GainShields(healthGain);
 	}
 }
 
@@ -114,8 +171,8 @@ public class BlockEjector :ShipEquipment
 
 	protected override void Initialize()
 	{
-		maxCooldownTime = 1;
-		blueEnergyCostToUse = 50;
+		maxCooldownTime = 4;
+		greenEnergyCostToUse = 60;
 		name = "Eject Blocks";
 		description = string.Format("Clears {0} rows from the bottom", numberOfRowsCleared);
 	}
@@ -143,7 +200,7 @@ public class CoolantInjector : ShipEquipment
 	{
 		maxCooldownTime = 2;
 		generatorLevelDelta = -1;
-		blueEnergyCostToUse = 50;
+		blueEnergyCostToUse = 500;
 		name = "Coolant Injector";
 	}
 }
@@ -165,7 +222,7 @@ public class Afterburner : ShipEquipment
 	protected override void Initialize()
 	{
 		maxCooldownTime = 2;
-		blueEnergyCostToUse = 50;
+		blueEnergyCostToUse = 500;
 		name = "Afterburner";
 		description = string.Format("Catch up to the enemy ship faster, lowering moves until next engagement by {0}", lowerByMoves);
 	}
@@ -189,12 +246,12 @@ public class AfterburnerTopic : ResearchTopic
 
 public class ManeuveringJets : ShipEquipment
 {
-	const int higherByMoves = 5;
+	const int higherByMoves = 4;
 
 	protected override void Initialize()
 	{
-		maxCooldownTime = 2;
-		greenEnergyCostToUse = 25;
+		maxCooldownTime = 3;
+		greenEnergyCostToUse = 30;
 		name = "Maneuvering Jets";
 		description = string.Format("Avoid the enemy ship longer, increasing moves until next engagement by {0}", higherByMoves);
 	}
@@ -215,6 +272,116 @@ public class ManeuveringJetsTopic:ResearchTopic
 		providesEquipment = new ManeuveringJets();
 	}
 }
+
+public class ReactiveArmor : ShipEquipment
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 2;
+		greenEnergyCostToUse = 30;
+
+		name = "Reactive Armor";
+		onSelfEffect = new ReactiveArmorEffect();
+	}
+}
+public class ReactiveArmorTopic : ResearchTopic
+{
+	protected override void InitializeValues()
+	{
+		intelRequired = 100;
+		materialsRequired = 200;
+
+		providesEquipment = new ReactiveArmor();
+	}
+}
+
+public class MeltdownTrigger : ShipEquipment
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 2;
+		generatorLevelDelta = 1;
+		name = "Meltdown Trigger";
+		onSelfEffect = new MeltdownEffect();
+	}
+}
+public class MeltdownTriggerTopic : ResearchTopic
+{
+	protected override void InitializeValues()
+	{
+		intelRequired = 100;
+		materialsRequired = 200;
+
+		providesEquipment = new MeltdownTrigger();
+	}
+}
+
+
+public class GreenAmp : Ability
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 2;
+		blueEnergyCostToUse = 40;
+		//blueEnergyCostToUse = 50;
+		//greenEnergyCostToUse = 50;
+
+		name = "Green Amp";
+		onSelfEffect = new GreenAmplificationEffect();
+		onOpponentEffect = new GreenAmplificationEffect();
+	}
+}
+public class GreenAmpTopic : ResearchTopic
+{
+	protected override void InitializeValues()
+	{
+		intelRequired = 100;
+		materialsRequired = 200;
+
+		providesEquipment = new GreenAmp();
+	}
+}
+
+public class BlueAmp : Ability
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 2;
+		greenEnergyCostToUse = 20;
+		//greenEnergyCostToUse = 25;
+		//greenEnergyCostToUse = 50;
+
+		name = "Blue Amp";
+		onSelfEffect = new BlueAmplificationEffect();
+		onOpponentEffect = new BlueAmplificationEffect();
+	}
+}
+public class BlueAmpTopic : ResearchTopic
+{
+	protected override void InitializeValues()
+	{
+		intelRequired = 100;
+		materialsRequired = 200;
+
+		providesEquipment = new BlueAmp();
+	}
+}
+
+//ENEMIES ONLY
+
+public class Siphon : ShipEquipment
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 2;
+		//blueEnergyCostToUse = 500;
+		greenEnergyCostToUse = 20;
+
+		name = "Siphon";
+		onSelfEffect = new EnergySiphonEffect();
+	}
+}
+
 
 
 

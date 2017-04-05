@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 using System;
 
 public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler {
 
-	public delegate void WeaponButtonPressedDeleg(ShipEquipmentView thisView);
-	public event WeaponButtonPressedDeleg EEquipmentButtonPressed;
-	public event UnityEngine.Events.UnityAction EEquipmentButtonAnimationFinished;
+	public event UnityAction<ShipEquipmentView> EEquipmentButtonPressed;
+	public event UnityAction<ShipEquipmentView> EEquipmentButtonAnimationFinished;
 
-	public event UnityEngine.Events.UnityAction<ShipEquipmentView> EEquipmentMousedOver;
-	public static event UnityEngine.Events.UnityAction EEquipmentMouseoverStopped;
+	public event UnityAction<ShipEquipmentView> EEquipmentMousedOver;
+	public static event UnityAction EEquipmentMouseoverStopped;
 
 	[SerializeField]
 	GameObject damageObject;
@@ -22,6 +22,8 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	GameObject greenEnergyCostObject;
 	[SerializeField]
 	GameObject cooldownTimeObject;
+	[SerializeField]
+	GameObject lockonTimeObject;
 	[SerializeField]
 	GameObject generatorDeltaObject;
 	[SerializeField]
@@ -53,7 +55,7 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 	void AnimatorCallbackOnAnimationFinished()
 	{
-		if (EEquipmentButtonAnimationFinished != null) EEquipmentButtonAnimationFinished();
+		if (EEquipmentButtonAnimationFinished != null) EEquipmentButtonAnimationFinished(this);
 	}
 
 	public void DoButtonPress()
@@ -63,17 +65,13 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		
 	}
 
-	public void SetDisplayValues(int blueEnergyCost, int greenEnergyCost, int generatorDelta, string equipmentName)
-	{
-		SetDisplayValues(0, blueEnergyCost, greenEnergyCost, generatorDelta, equipmentName);
-	}
-
-	public void SetDisplayValues(int damage, int blueEnergyCost, int greenEnergyCost, int generatorDelta, string equipmentName)
+	public void SetDisplayValues(int blueEnergyCost, int greenEnergyCost, int generatorDelta, int maxCooldownTime, string equipmentName)
 	{
 		SetEnergyCost(blueEnergyCost, greenEnergyCost);
 		SetName(equipmentName);
 		SetGeneratorDelta(generatorDelta);
-		SetDamage(damage);
+		SetDamage(0);
+		SetCooldownTime(0, maxCooldownTime);
 	}
 	
 
@@ -138,6 +136,18 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 			cooldownTimeObject.SetActive(false);
 	}
 
+	public void SetLockonTime(int currentTime)
+	{
+		if (currentTime==0)
+			lockonTimeObject.SetActive(false);
+		else
+		{
+			lockonTimeObject.SetActive(true);
+			lockonTimeObject.GetComponentInChildren<Text>().text = currentTime.ToString();
+			
+		}
+	}
+
 	public void SetGeneratorDelta(int delta)
 	{
 		if (delta == 0)
@@ -197,7 +207,7 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 	public void DisposeView()
 	{
-		EEquipmentButtonPressed = null;
+		//EEquipmentButtonPressed = null;
 		EEquipmentButtonAnimationFinished = null;
 		EEquipmentMousedOver = null;
 		fireWeaponButton.onClick.RemoveAllListeners();

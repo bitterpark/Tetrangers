@@ -26,14 +26,16 @@ public class FigureController : MonoBehaviour
 
 	public static bool frozen = false;
 	public static bool accelerated = false;
-
-	const float speedMultiplierChangePerLevel = 2f;
-	float currentSpeedMultiplierModifier
+	
+	
+	const float frequencyModifierChangePerGenLevel = -0.085f;
+	float genFrequencyModifier
 	{
-		get { return TetrisManager.Instance.generatorLevel * speedMultiplierChangePerLevel; }
+		get { return TetrisManager.Instance.generatorLevel * frequencyModifierChangePerGenLevel; }
 	}
 
-	const float acceleratedTimeMultiplier = 15f;
+	//const float acceleratedTimeMultiplier = 15f;
+	const float acceleratedFrequencyModifier = -0.92f;
 
     public TetrominoTypes tetrominoType;
 
@@ -47,7 +49,6 @@ public class FigureController : MonoBehaviour
 
             return blockCoords;
         }
-
     }
 
     float timeSinceDropped = 0;
@@ -65,11 +66,11 @@ public class FigureController : MonoBehaviour
 
 	bool dropped = false;
 
-	float moveDownFrequency = 1f;
-	//made this public and static for status effect testing, change later
-	float moveDownFrequencyModifier;
+	float baseMoveDownFrequency = 1f;
+	float softDropFrequencyModifier= -0.97f;
+	bool softDropToggled = false;
 
-	float moveSidewaysEveryNSeconds = 0.05f;
+	float moveSidewaysEveryNSeconds = 0.04f;
 	bool sidewaysMoveReady = true;
 
 	public void DisplayAsNext()
@@ -84,6 +85,8 @@ public class FigureController : MonoBehaviour
 	public void DropIntoPlay(int startX, int startY)
 	{
 		//Debug.LogFormat("{0} dropped into play", name);
+		
+
 		dropped = true;
 
 		TetrisManager.ETetrisEndClear += DisposeFigure;
@@ -99,13 +102,21 @@ public class FigureController : MonoBehaviour
 
 		StartCoroutine(MoveDownRoutine());
 		StartCoroutine(TimeSinceDroppedRoutine());
+
+		//FloatingText.CreateFloatingText("Figure dropped!", Color.black, 20, 2f, transform);
 	}
 
 	public void Initialize()
 	{
 		myBlocks = new List<FigureBlock>(transform.GetComponentsInChildren<FigureBlock>());
+
+		System.Array blockTypes = System.Enum.GetValues(typeof(BlockType));
+
+		//BlockType randomType = (BlockType)blockTypes.GetValue(Random.Range(0, blockTypes.Length));
+
 		foreach (FigureBlock block in myBlocks)
-			block.GetComponent<Image>().color = figureColor;
+			block.Initialize();
+			//block.GetComponent<Image>().color = figureColor;
 	}
 
 	void DisposeFigure()
@@ -143,19 +154,26 @@ public class FigureController : MonoBehaviour
 		{
 			if (!frozen)
 			{
-				if (timeSinceLastMoveDown >= moveDownFrequency + moveDownFrequencyModifier)
+				float actingFrequencyModifier = 0;
+				if (softDropToggled) actingFrequencyModifier = softDropFrequencyModifier;
+				else
+					if (accelerated) actingFrequencyModifier = acceleratedFrequencyModifier;
+				else
+					actingFrequencyModifier = genFrequencyModifier;
+
+				if (timeSinceLastMoveDown >= baseMoveDownFrequency + actingFrequencyModifier)
 				{
 					TryMove(MoveDirections.Down);
 					timeSinceLastMoveDown = 0;
 				}
-
+				/*
 				float timeMultiplier;
 				if (accelerated)
 					timeMultiplier = acceleratedTimeMultiplier;
 				else
-					timeMultiplier = 1 + currentSpeedMultiplierModifier;
-
-				timeSinceLastMoveDown += TetrisManager.tetrisDeltaTime* timeMultiplier;
+					timeMultiplier = 1 + TetrisManager.Instance.currentSpeedMultiplierModifier;
+					*/
+				timeSinceLastMoveDown += TetrisManager.tetrisDeltaTime;// * timeMultiplier;
 			}
 			yield return new WaitForFixedUpdate();
 		}
@@ -167,16 +185,16 @@ public class FigureController : MonoBehaviour
 	{
 		if (dropped && !TetrisManager.paused)
 		{
-			if (tetrominoType!=TetrominoTypes.Square & Input.GetKeyDown(KeyCode.W))
+			if (Input.GetKeyDown(KeyCode.W))
 				TryRotateFigure();
 
 			if (Input.GetKeyDown(KeyCode.S))
 			{
-				moveDownFrequencyModifier = -0.95f;
+				softDropToggled = true;
 				frozen = false;
 			}
 			if (Input.GetKeyUp(KeyCode.S))
-				moveDownFrequencyModifier = 0;
+				softDropToggled = false;
 
 			if (Input.GetKey(KeyCode.A))
 				if (sidewaysMoveReady)
@@ -227,30 +245,26 @@ public class FigureController : MonoBehaviour
 
 		bool canRotateAfterShift = false;
 		MoveDirections moveDirection = MoveDirections.Left; //Compiler made me assign this
-		int moveDistance = 0;
+		int moveDistance = 0;//Compiler made me assign this
 		for (int checkedDistance = 1; checkedDistance <= 2; checkedDistance++)
 		{
 			moveDistance = checkedDistance;
-			if (checkShiftedRotationPossible.Invoke(MoveDirections.Left, checkedDistance))
-			{
-				moveDirection = MoveDirections.Left;
-				canRotateAfterShift = true;
+
+			canRotateAfterShift = true;
+			moveDirection = MoveDirections.Left;
+			if (checkShiftedRotationPossible.Invoke(moveDirection, checkedDistance))
 				break;
-			}
 			moveDirection = MoveDirections.Right;
-			if (checkShiftedRotationPossible.Invoke(MoveDirections.Right, checkedDistance))
-			{
-				moveDirection = MoveDirections.Right;
-				canRotateAfterShift = true;
+			if (checkShiftedRotationPossible.Invoke(moveDirection, checkedDistance))
 				break;
-			}
 			moveDirection = MoveDirections.Up;
-			if (checkShiftedRotationPossible.Invoke(MoveDirections.Up, checkedDistance))
-			{
-				moveDirection = MoveDirections.Up;
-				canRotateAfterShift = true;
+			if (checkShiftedRotationPossible.Invoke(moveDirection, checkedDistance))
 				break;
-			}
+			moveDirection = MoveDirections.Down;
+			if (checkShiftedRotationPossible.Invoke(moveDirection, checkedDistance))
+				break;
+
+			canRotateAfterShift = false;
 		}
 		if (canRotateAfterShift)
 		{
@@ -340,6 +354,7 @@ public class FigureController : MonoBehaviour
 				figureSettledBlocks.Add(newSettledBlock);
 			
 		}
+
 		if (EFigureSettledTimeClocked != null)
 			EFigureSettledTimeClocked(timeSinceDropped);
 		if (EFigureSettled != null)
@@ -347,4 +362,13 @@ public class FigureController : MonoBehaviour
 		DisposeFigure();
 	}
 
+	void HandlePlayerBlueGainFX(int blueGain)
+	{
+		PlayerShipModel.EPlayerGainedBlueEnergy -= HandlePlayerBlueGainFX;
+		if (blueGain > 0)
+		{
+			FloatingText.CreateFloatingText(blueGain.ToString(), Color.cyan, 40, 1.5f, transform);
+			ParticleDB.Instance.CreateSettledFigureParticles(transform.position);
+		}
+	}
 }

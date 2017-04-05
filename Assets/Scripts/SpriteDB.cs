@@ -14,5 +14,6 @@ class SpriteDB:Singleton<SpriteDB>
 
 	public Sprite intelSprite;
 	public Sprite materialsSprite;
+	public Sprite blueprintSprite;
 }
 

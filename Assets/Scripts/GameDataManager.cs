@@ -48,8 +48,8 @@ public class GameDataManager: Singleton<GameDataManager>
 	}
 	public void ChangeMaterials(int delta)
 	{
-		Debug.Assert(materials - delta >= 0, "Setting materials below zero!");
-		materials += delta;
+		//Debug.Assert(materials - delta >= 0, "Setting materials below zero!");
+		materials = Mathf.Max( materials+delta,0);
 		if (EMaterialsChanged != null) EMaterialsChanged();
 	}
 
@@ -57,6 +57,11 @@ public class GameDataManager: Singleton<GameDataManager>
 	{
 		playerResearch.AddTopics(addedTopics);
 	}
+	/*
+	public List<ResearchTopic> GetUnresearchedTopics()
+	{
+		foreach (ResearchTopic topic in playerResearch.currentTopics)
+	}*/
 
 	public void AddEquipmentToHangar(params ShipEquipment[] addedEquipment)
 	{

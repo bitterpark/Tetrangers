@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 
 
-public class MissionManager : Singleton<MissionManager> 
+public class MissionManager : Singleton<MissionManager>
 {
 	[SerializeField]
 	MissionProgressScreen missionProgressScreen;
@@ -34,17 +34,24 @@ public class MissionManager : Singleton<MissionManager>
 		BattleManager.EBattleLost += FailCurrentMission;
 
 		availableMissions = new List<Mission>();
-		availableMissions.Add(new Mission("Defeat all enemy ships", 3));
-		availableMissions.Add(new Mission("Defeat some enemy ships", 3));
+		GenerateNewMissions();
 	}
 
 	public void OpenNewMission(Mission openedMission)
 	{
 		currentMission = openedMission;
+		GenerateNewMissions();
 		shipsDefeatedInCurrentMission = 0;
+		
 		OpenMissionProgressScreen();
 		if (EMissionStarted != null) EMissionStarted();
+	}
 
+	void GenerateNewMissions()
+	{
+		availableMissions.Clear();
+		availableMissions.Add(new Mission("Defeat all enemy ships", 1));
+		availableMissions.Add(new Mission("Complete a sector patrol", 1));
 	}
 
 	void ProgressCurrentMission()
@@ -76,15 +83,16 @@ public class MissionManager : Singleton<MissionManager>
 		if (EMissionWon != null) EMissionWon();
 		foreach (Reward reward in currentMission.rewards)
 			reward.GainReward();
-		missionWonScreen.OpenSubscreen();
-		missionWonScreen.AddMissionRewards(currentMission.rewards);
+		missionWonScreen.OpenSubscreen(currentMission.rewards.ToArray());
 		MissionSubscreen.EContinuePressed += HandleMissionClosing;
 	}
 	
 	void FailCurrentMission()
 	{
 		if (EMissionFailed != null) EMissionFailed();
-		missionFailedScreen.OpenSubscreen();
+		Reward missionFailurePenalty = Reward.GetLoseMissionPenalty();
+		missionFailurePenalty.GainReward();
+		missionFailedScreen.OpenSubscreen(missionFailurePenalty);
 		MissionSubscreen.EContinuePressed += HandleMissionClosing;
 	}
 
@@ -124,23 +132,47 @@ public struct Mission
 
 	void GenerateRewards()
 	{
-		System.Array rewardsTypes = System.Enum.GetValues(typeof(RewardType));
+		System.Array allRewardTypes = System.Enum.GetValues(typeof(RewardType));
+
 		for (int i = 0; i < 2; i++)
 		{
-			RewardType randomType = (RewardType)rewardsTypes.GetValue(Random.Range(0, rewardsTypes.Length));
+			//Has to do this every iteration to reassess if blueprints are available (if first iteration snags the last eligible researchTopic
+			List<RewardType> availableRewardTypes = new List<RewardType>();
+			foreach (object type in allRewardTypes)
+			{
+				RewardType castType = (RewardType)type;
+				if (Reward.CanGetRewardOfType(castType))
+					availableRewardTypes.Add(castType);
+			}
+
+			RewardType randomType = availableRewardTypes[Random.Range(0, availableRewardTypes.Count)];
 			rewards.Add(Reward.GetRewardOfType(randomType));
 		}
 	}
 }
 
-public enum RewardType { Intel, Materials };
+public enum RewardType { Intel, Materials, Blueprint };
 
 public struct Reward
 {
 	public string rewardName;
+	public string extraText;
 	public Sprite rewardSprite;
 	public int rewardQuantity;
 	System.Action<int> rewardGainAction;
+
+	public static Reward GetLoseMissionPenalty()
+	{
+		return new Reward("Materials", SpriteDB.Instance.materialsSprite, -400,
+			(int quantity)=> { GameDataManager.Instance.ChangeMaterials(quantity); });
+	}
+
+	public static bool CanGetRewardOfType(RewardType type)
+	{
+		if (type == RewardType.Blueprint)
+			return GameDataManager.Instance.playerResearch.HasUnresearchedTopics();
+		else return true;
+	}
 
 	public static Reward GetRewardOfType(RewardType type)
 	{
@@ -148,10 +180,27 @@ public struct Reward
 			return new Reward("Intel", SpriteDB.Instance.intelSprite, 100, (int quantity) => { GameDataManager.Instance.ChangeIntel(quantity); });
 		if (type == RewardType.Materials)
 			return new Reward("Materials", SpriteDB.Instance.materialsSprite, 200, (int quantity) => { GameDataManager.Instance.ChangeMaterials(quantity); });
+		if (type == RewardType.Blueprint)
+			return CreateBlueprintReward();
 
 		return new Reward();
 	}
 
+	static Reward CreateBlueprintReward()
+	{
+		List<ResearchTopic> allUnresearchedTopics = GameDataManager.Instance.playerResearch.GetUnresearchedTopics();
+		if (allUnresearchedTopics.Count>0)
+		{
+			const int blueprintIntelGain = 200;
+
+			ResearchTopic randomTopic = allUnresearchedTopics[Random.Range(0,allUnresearchedTopics.Count)];
+			return new Reward("Blueprint", randomTopic.providesEquipment.name, SpriteDB.Instance.blueprintSprite, blueprintIntelGain,
+				(int quantity) => { randomTopic.InvestIntel(quantity); }
+				);
+		}
+		else
+			return new Reward();
+	}
 
 	Reward(string name, Sprite sprite, int quantity, System.Action<int> gainAction)
 	{
@@ -159,9 +208,17 @@ public struct Reward
 		rewardSprite = sprite;
 		rewardQuantity = quantity;
 		rewardGainAction = gainAction;
+		extraText = "";
 	}
 
-
+	Reward(string name, string extraText, Sprite sprite, int quantity, System.Action<int> gainAction)
+	{
+		rewardName = name;
+		rewardSprite = sprite;
+		rewardQuantity = quantity;
+		rewardGainAction = gainAction;
+		this.extraText = extraText;
+	}
 
 	public void GainReward()
 	{

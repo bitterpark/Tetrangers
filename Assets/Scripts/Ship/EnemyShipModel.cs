@@ -1,13 +1,14 @@
-﻿using System;
+﻿
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public abstract class EnemyShipModel : ShipModel {
 
-	public delegate void WeaponFiredDeleg(int damage);
-	public static event WeaponFiredDeleg EEnemyWeaponFired;
-	public static event UnityEngine.Events.UnityAction EEnemyDied;
+	public static event UnityAction<int> EEnemyWeaponFired;
+	public static event UnityAction<StatusEffect> EEnemyAppliedStatusEffectToPlayer;
+	public static event UnityAction EEnemyDied;
 
 	public bool energyGainForFigureHoverEnabled = false;
 	//readonly int greenEnergyGainPerPlayerMove;
@@ -19,11 +20,8 @@ public abstract class EnemyShipModel : ShipModel {
 
 		EnemyShipModel result = null;
 
-		if (randomValue < 0.5f)
-			result = new AssaultShip();
-		else
-			if (randomValue < 1f)
-				result = new HeavyShip();
+		System.Type[] allShipTypes = {typeof(HeavyShip), typeof(AssaultShip) };
+		result = (EnemyShipModel)System.Activator.CreateInstance(allShipTypes[Random.Range(0,allShipTypes.Length)]);
 
 		return result;
 	}
@@ -44,8 +42,10 @@ public abstract class EnemyShipModel : ShipModel {
 		base.InitializeEventSubscriptions();
 		TetrisManager.ECurrentPlayerMoveDone += GainEnergyOnPlayerMove;
 		PlayerShipModel.EPlayerWeaponFired += TakeDamage;
-		BattleManager.EEngagementModeStarted += GainGreenOnEngagementStart;
+		PlayerShipModel.EPlayerAppliedStatusEffectToEnemy += AddNewStatusEffect;
+		BattleManager.EEngagementModeEnded += GainEnergyOnNewRound;
 		FigureController.EFigureHoveredForOneSecond += GainEnergyOnFigureHover;
+
 	}
 
 	public override void DisposeModel()
@@ -53,20 +53,33 @@ public abstract class EnemyShipModel : ShipModel {
 		base.DisposeModel();
 		TetrisManager.ECurrentPlayerMoveDone -= GainEnergyOnPlayerMove;
 		PlayerShipModel.EPlayerWeaponFired -= TakeDamage;
-		BattleManager.EEngagementModeStarted -= GainGreenOnEngagementStart;
+		PlayerShipModel.EPlayerAppliedStatusEffectToEnemy -= AddNewStatusEffect;
+		BattleManager.EEngagementModeEnded -= GainEnergyOnNewRound;
 		FigureController.EFigureHoveredForOneSecond -= GainEnergyOnFigureHover;
+
+		//EEnemyWeaponFired = null;
+		//EEnemyDied = null;
+		//EEnemyAppliedStatusEffectToPlayer = null;
+	}
+
+	protected override void TryRegenShields()
+	{
+		if (shipShieldsCurrentGain>0)
+			ChangeShields(shipShieldsCurrentGain);
+		base.TryRegenShields();
 	}
 
 	void GainEnergyOnPlayerMove()
 	{
-		GainBlueEnergy();
+		//GainBlueEnergy();
 		//ChangeGreenEnergy(greenEnergyGainPerPlayerMove);
 		
 	}
 
-	void GainGreenOnEngagementStart()
+	void GainEnergyOnNewRound()
 	{
 		GainGreenEnergy();
+		GainBlueEnergy();
 	}
 	
 	void GainEnergyOnFigureHover()
@@ -81,25 +94,65 @@ public abstract class EnemyShipModel : ShipModel {
 			EEnemyWeaponFired(weaponDamage);
 	}
 
+	protected override void ApplyStatusEffectToOpponent(StatusEffect effect)
+	{
+		if (EEnemyAppliedStatusEffectToPlayer != null)
+			EEnemyAppliedStatusEffectToPlayer(effect);
+	}
+
 	protected override void DoDeathEvent()
 	{
 		if (EEnemyDied != null)
 			EEnemyDied();
 	}
-
 }
-
-public class AssaultShip : EnemyShipModel
+/*
+public class BlueFocusShip : EnemyShipModel
 {
 	protected override void InitializeClassStats()
 	{
 		SetStartingStats(BalanceValuesManager.Instance.assaultHealth
+			, 400
+			, BalanceValuesManager.Instance.enemyShieldGain
 			,BalanceValuesManager.Instance.assaultMaxBlue
 			,BalanceValuesManager.Instance.assaultMaxGreen
-			, SpriteDB.Instance.shipsprite,"Assault Ship");
+			, SpriteDB.Instance.shipsprite,"Blue Focus Ship");
+	
 
+		AddWeapons(new LaserGun());
 		AddWeapons(new PlasmaCannon());
-		AddOtherEquipment(new Siphon());
+		if (Random.value < 0.5f)
+			AddOtherEquipment(new Siphon());
+		else
+			AddOtherEquipment(new BlueAmp());
+		//AddOtherEquipment(new BlueAmp());
+	}
+}*/
+
+public class AssaultShip: EnemyShipModel
+{
+	protected override void InitializeClassStats()
+	{
+		const int health = 600;
+
+		SetStartingStats(health
+			, BalanceValuesManager.Instance.assaultShields
+			, BalanceValuesManager.Instance.enemyShieldGain
+			, BalanceValuesManager.Instance.heavyMaxBlue
+			, BalanceValuesManager.Instance.heavyMaxGreen
+			, SpriteDB.Instance.shipsprite, "Assault Ship");
+
+		//shipShieldsGain = ;
+		//SetShieldsGain(0);
+		blueEnergyGain = BalanceValuesManager.Instance.enemyBlueGainPerMove;
+		greenEnergyGain = BalanceValuesManager.Instance.enemyGreenGainPerEngagement;
+
+		AddWeapons(new PlasmaCannon(), new LaserGun());
+		if (Random.value<0.5f)
+			AddOtherEquipment(new BlueAmp());
+		else
+			AddOtherEquipment(new Siphon());
+		//AddOtherEquipment(new BlueAmp());
 	}
 }
 
@@ -108,11 +161,19 @@ public class HeavyShip : EnemyShipModel
 	protected override void InitializeClassStats()
 	{
 		SetStartingStats(BalanceValuesManager.Instance.heavyHealth
+			, BalanceValuesManager.Instance.heavyShields
+			, BalanceValuesManager.Instance.enemyShieldGain
 			, BalanceValuesManager.Instance.heavyMaxBlue
 			, BalanceValuesManager.Instance.heavyMaxGreen
 			, SpriteDB.Instance.shipsprite, "Heavy Ship");
 
-		AddWeapons(new LaserGun(), new PlasmaCannon());
-		AddOtherEquipment(new ReactiveArmor());
+		AddWeapons(new PlasmaCannon());
+		AddOtherEquipment(new ReactiveArmor(), new Forcefield());
+
+		//shipShieldsGain = 10;
+		//SetShieldsGain(10);
+		blueEnergyGain = BalanceValuesManager.Instance.enemyBlueGainPerMove;
+		greenEnergyGain = BalanceValuesManager.Instance.enemyGreenGainPerEngagement;
+		//AddOtherEquipment(new BlueAmp());
 	}
 }

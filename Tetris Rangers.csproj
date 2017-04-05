@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.2f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -101,6 +103,7 @@
     <Compile Include="Assets\Scripts\Battle\BattleResultsView.cs" />
     <Compile Include="Assets\Scripts\DragUITarget.cs" />
     <Compile Include="Assets\Scripts\DraggableUIObject.cs" />
+    <Compile Include="Assets\Scripts\FloatingText.cs" />
     <Compile Include="Assets\Scripts\GameDataManager.cs" />
     <Compile Include="Assets\Scripts\MainMenuManager.cs" />
     <Compile Include="Assets\Scripts\Mission\MissionCompletedScreen.cs" />
@@ -127,7 +130,6 @@
     <Compile Include="Assets\Scripts\Ship\ShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipWeapon.cs" />
     <Compile Include="Assets\Scripts\Ship\StatusEffect.cs" />
-    <Compile Include="Assets\Scripts\Ship\StatusEffectEquipment.cs" />
     <Compile Include="Assets\Scripts\Singleton.cs" />
     <Compile Include="Assets\Scripts\SpriteDB.cs" />
     <Compile Include="Assets\Scripts\Subscreen.cs" />

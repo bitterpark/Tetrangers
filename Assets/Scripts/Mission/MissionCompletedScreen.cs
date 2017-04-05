@@ -13,8 +13,9 @@ public class MissionCompletedScreen: MissionSubscreen
 	[SerializeField]
 	RewardView rewardViewPrefab;
 
-	public void AddMissionRewards(List<Reward> rewards)
+	public void OpenSubscreen(params Reward[] rewards)
 	{
+		base.OpenSubscreen();
 		foreach (Reward reward in rewards)
 			AddReward(reward);
 	}
@@ -22,7 +23,7 @@ public class MissionCompletedScreen: MissionSubscreen
 	void AddReward(Reward reward)
 	{
 		RewardView newView = Instantiate(rewardViewPrefab);
-		newView.SetDisplayValues(reward.rewardName, reward.rewardSprite, reward.rewardQuantity);
+		newView.SetDisplayValues(reward.rewardName, reward.rewardSprite, reward.rewardQuantity, reward.extraText);
 		newView.transform.SetParent(rewardsGroup);
 	}
 

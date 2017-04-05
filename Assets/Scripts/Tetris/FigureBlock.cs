@@ -1,12 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
+public enum BlockType { Blue, Green, Shield }
 
 public class FigureBlock : MonoBehaviour
 {
+	
+	BlockType blockType;
 
-    public Vector2 getBlockOffsets
+	[SerializeField]
+	Color shieldBlockColor;
+	[SerializeField]
+	Color blueBlockColor;
+	[SerializeField]
+	Color greenBlockColor;
+
+	public Vector2 getBlockOffsets
     {
         get { return new Vector2(xOffsetFromZero,yOffsetFromZero); }
 
@@ -17,13 +28,39 @@ public class FigureBlock : MonoBehaviour
 	int yOffsetFromZero;
 	int newXOffsetFromZero;
 	int newYOffsetFromZero;
-	
+
+	public void Initialize()
+	{
+		System.Array blockTypes = System.Enum.GetValues(typeof(BlockType));
+
+		BlockType randomType = (BlockType)blockTypes.GetValue(Random.Range(0, blockTypes.Length));
+		Initialize(randomType);
+	}
+
+	public void Initialize(BlockType assignedType)
+	{
+		blockType = assignedType;
+
+		Image myImage = GetComponent<Image>();
+
+		if (blockType == BlockType.Blue)
+			myImage.color = blueBlockColor;
+		else
+			if (blockType == BlockType.Green)
+			myImage.color = greenBlockColor;
+		else
+			if (blockType == BlockType.Shield)
+			myImage.color = shieldBlockColor;
+
+		//for (int i=0; i<blockTypes.Length; i++)
+	}
+
 	public bool TrySettleBlock(int figureX, int figureY, out SettledBlock settledComponent)
 	{
 		if (figureY+yOffsetFromZero <= Grid.Instance.maxYAllowedForSettling)
 		{
 			settledComponent = gameObject.AddComponent<SettledBlock>();
-			settledComponent.Initialize(figureX+xOffsetFromZero, figureY+yOffsetFromZero);
+			settledComponent.Initialize(figureX + xOffsetFromZero, figureY + yOffsetFromZero, blockType);
 			Destroy(this);
 			return true;
 		}

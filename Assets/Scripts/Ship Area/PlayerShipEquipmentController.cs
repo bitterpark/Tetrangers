@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using UnityEngine;
 
 public class PlayerShipEquipmentController : ShipEquipmentController
 {
@@ -47,6 +47,7 @@ public class PlayerShipEquipmentController : ShipEquipmentController
 
 	void SetAllEquipmentViewButtonsEnabled(bool enabled)
 	{
+		//Debug.Log("Setting player equipment vies to enabled:"+enabled);
 		foreach (ShipEquipmentView weaponView in view.GetEnabledEquipmentViews())
 			weaponView.SetButtonInteractable(enabled);
 	}
@@ -57,8 +58,9 @@ public class PlayerShipEquipmentController : ShipEquipmentController
 		SetAllEquipmentViewButtonsEnabled(false);
 	}
 
-	protected override void HandleEquipmentButtonAnimationFinish()
+	protected override void HandleEquipmentButtonAnimationFinish(ShipEquipmentView equipmentView)
 	{
+		base.HandleEquipmentButtonAnimationFinish(equipmentView);
 		TryEnableEquipmentViewButtons();
 	}
 

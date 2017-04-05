@@ -16,7 +16,7 @@ public class TetrisManager : Singleton<TetrisManager>
 
 	public static bool paused = false;
 
-	const int generatorMaxLevel = 5;
+	const int generatorMaxLevel = 10;
 	public int generatorLevel
 	{
 		get { return _generatorLevel; }
@@ -26,6 +26,12 @@ public class TetrisManager : Singleton<TetrisManager>
 		}
 	}
 	int _generatorLevel;
+	/*
+	const float speedMultChangePerGenLevel = 1;
+	public float currentSpeedMultiplierModifier
+	{
+		get { return generatorLevel * speedMultChangePerGenLevel; }
+	}*/
 
 	[SerializeField]
 	CanvasGroup tetrisPanelGroup;
@@ -93,7 +99,7 @@ public class TetrisManager : Singleton<TetrisManager>
 			yield return null;
 		if (ETetrisStarted != null)
 			ETetrisStarted();
-		ContinueTetris();
+		//ContinueTetris();
 		yield break;
 	}
 
@@ -127,6 +133,7 @@ public class TetrisManager : Singleton<TetrisManager>
 
 	public void EndAndClearTetris()
 	{
+		//Debug.Log("Calling tetris end clear! Disposing all FigureControllers!");
 		if (ETetrisEndClear != null) ETetrisEndClear();
 	}
 

@@ -27,6 +27,8 @@ public abstract class StatusEffect : IDisplayableStatusEffect
 		get; protected set;
 	}
 
+	public int durationRemaining { get; protected set; }
+
 	public event UnityAction<StatusEffect> EStatusEffectEnded;
 
 	public StatusEffect ()
@@ -39,8 +41,15 @@ public abstract class StatusEffect : IDisplayableStatusEffect
 	public void ActivateEffect(ShipModel activateOnShip)
 	{
 		ExtenderActivation(activateOnShip);
+
+		if (activateOnShip.GetType()==typeof(PlayerShipController))
+			EnemyShipEquipmentController.EEnemyTurnFinished += DeactivateEffect;
+		else
+			BattleManager.EEngagementModeStarted += DeactivateEffect;
+
+
 		BattleManager.EBattleFinished += DeactivateEffect;
-		BattleManager.EEngagementModeStarted += DeactivateEffect;
+		
 	}
 
 	protected abstract void ExtenderActivation(ShipModel activateOnShip);
@@ -52,6 +61,7 @@ public abstract class StatusEffect : IDisplayableStatusEffect
 		EStatusEffectEnded = null;
 		
 		BattleManager.EBattleFinished -= DeactivateEffect;
+		EnemyShipEquipmentController.EEnemyTurnFinished -= DeactivateEffect;
 		BattleManager.EEngagementModeStarted -= DeactivateEffect;
 	}
 	protected virtual void ExtenderDeactivation() { }
@@ -86,7 +96,7 @@ public class MeltdownEffect : StatusEffect
 
 public class OverdriveEffect: StatusEffect
 {
-	int blueGainAdded = 0;
+	int blueGainAdded = 65;
 	ShipModel activeOnShip;
 
 	protected override void InitializeValues()
@@ -100,17 +110,16 @@ public class OverdriveEffect: StatusEffect
 
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
-		FigureController.accelerated = true;
-		blueGainAdded = activateOnShip.blueEnergyGain;
-		activateOnShip.blueEnergyGain += blueGainAdded;
+		//FigureController.accelerated = true;
+		//blueGainAdded = activateOnShip.blueEnergyGain;
 		activeOnShip = activateOnShip;
-		//Debug.Log("Overdrive activated!");
+		activeOnShip.ChangeBlueEnergyGain(blueGainAdded);
 	}
 
 	protected override void ExtenderDeactivation()
 	{
-		FigureController.accelerated = false;
-		activeOnShip.blueEnergyGain -= blueGainAdded;
+		//FigureController.accelerated = false;
+		activeOnShip.ChangeBlueEnergyGain(-blueGainAdded);
 		activeOnShip = null;
 	}
 }
@@ -119,6 +128,8 @@ public class CoolantEffect : StatusEffect
 {
 	//int blueGainAdded = 0;
 	//ShipModel activeOnShip;
+	int greenGainAdded = 12;
+	ShipModel activeOnShip;
 
 	protected override void InitializeValues()
 	{
@@ -131,12 +142,15 @@ public class CoolantEffect : StatusEffect
 
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
-		FigureSpawner.coolantMode = true;
+		//FigureSpawner.coolantMode = true;
+		activeOnShip = activateOnShip;
+		activeOnShip.ChangeGreenEnergyGain(greenGainAdded);
 	}
 
 	protected override void ExtenderDeactivation()
 	{
-		FigureSpawner.coolantMode = false;
+		//FigureSpawner.coolantMode = false;
+		activeOnShip.ChangeGreenEnergyGain(-greenGainAdded);
 	}
 }
 
@@ -145,29 +159,39 @@ public class CoolantEffect : StatusEffect
 public class EnergySiphonEffect : StatusEffect
 {
 	//int blueGainAdded = 0;
-	EnemyShipModel activeOnEnemyShip;
+	//EnemyShipModel activeOnEnemyShip;
+	ShipModel activeOnShip;
 
 	protected override void InitializeValues()
 	{
 
 		name = "Energy Siphon";
 		icon = SpriteDB.Instance.siphonEffectSprite;
-		description = "Until next engagement: gain blue energy for every second of figure placement";
+		description = "Until next engagement: gain blue energy every time the opponent does";
 		color = Color.blue;
 	}
 
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
 		Debug.Assert(activateOnShip.GetType().BaseType == typeof(EnemyShipModel), "Activating Siphon effect for player ship!");
-		activeOnEnemyShip = activateOnShip as EnemyShipModel;
-		activeOnEnemyShip.energyGainForFigureHoverEnabled = true;
+		activeOnShip = activateOnShip;
+		PlayerShipModel.EPlayerGainedBlueEnergy += GainEnergy;
+		//activeOnEnemyShip = activateOnShip as EnemyShipModel;
+		//activeOnEnemyShip.energyGainForFigureHoverEnabled = true;
 
+	}
+
+	void GainEnergy(int gain)
+	{
+		activeOnShip.GainBlueEnergy(gain, true);
 	}
 
 	protected override void ExtenderDeactivation()
 	{
-		activeOnEnemyShip.energyGainForFigureHoverEnabled = false;
-		activeOnEnemyShip = null;
+		//activeOnEnemyShip.energyGainForFigureHoverEnabled = false;
+		//activeOnEnemyShip = null;
+		PlayerShipModel.EPlayerGainedBlueEnergy -= GainEnergy;
+		activeOnShip = null;
 	}
 }
 
@@ -180,7 +204,7 @@ public class ReactiveArmorEffect : StatusEffect
 
 	protected override void InitializeValues()
 	{
-		name = "Energy Siphon";
+		name = "Reactive Armor";
 		icon = SpriteDB.Instance.reactiveArmorEffectSprite;
 		description = string.Format("Until next engagement: next damage taken will be reduced by {0}%",(int)(damageReductionPercentage*100));
 		color = Color.green;
@@ -203,6 +227,72 @@ public class ReactiveArmorEffect : StatusEffect
 	protected override void ExtenderDeactivation()
 	{
 		activeOnShip.EActivateDefences -= ReduceDamage;
+		activeOnShip = null;
+	}
+}
+
+public class GreenAmplificationEffect : StatusEffect
+{
+	ShipModel activeOnShip;
+
+	int blueGainDecrease;
+	int greenGainIncrease;
+
+	protected override void InitializeValues()
+	{
+		name = "Green Amplification Field";
+		icon = SpriteDB.Instance.siphonEffectSprite;
+		description = string.Format("Until next engagement: removes all blue energy gain, doubles green energy gain");//, BalanceValuesManager.Instance.bluePointsWorthPerGreenPoint);
+		color = Color.green;
+	}
+
+	protected override void ExtenderActivation(ShipModel activateOnShip)
+	{
+		activeOnShip = activateOnShip;
+
+		blueGainDecrease = activateOnShip.blueEnergyGain;
+		greenGainIncrease = activeOnShip.greenEnergyGain;
+
+		activeOnShip.ChangeEnergyGain(-blueGainDecrease,greenGainIncrease);
+	}
+
+	protected override void ExtenderDeactivation()
+	{
+		activeOnShip.ChangeEnergyGain(blueGainDecrease, -greenGainIncrease);
+		activeOnShip = null;
+	}
+}
+
+public class BlueAmplificationEffect : StatusEffect
+{
+	ShipModel activeOnShip;
+
+	int blueGainIncrease;
+	int greenGainDecrease;
+
+	protected override void InitializeValues()
+	{
+		name = "Blue Amplification Field";
+		icon = SpriteDB.Instance.siphonEffectSprite;
+		description = string.Format("Until next engagement: removes all green energy gain, doubles blue energy gain");
+		color = Color.cyan;
+	}
+
+	protected override void ExtenderActivation(ShipModel activateOnShip)
+	{
+		//Debug.Log("Activating blue amp");
+		activeOnShip = activateOnShip;
+
+		greenGainDecrease = activateOnShip.greenEnergyGain;
+		blueGainIncrease = activeOnShip.blueEnergyGain;//greenGainDecrease*BalanceValuesManager.Instance.bluePointsWorthPerGreenPoint;
+
+		activeOnShip.ChangeEnergyGain(blueGainIncrease, -greenGainDecrease);
+	}
+
+	protected override void ExtenderDeactivation()
+	{
+		//Debug.Log("Deactivating blue amp");
+		activeOnShip.ChangeEnergyGain(-blueGainIncrease, greenGainDecrease);
 		activeOnShip = null;
 	}
 }

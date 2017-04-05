@@ -37,13 +37,18 @@ public class EquipmentListController
 
 	protected virtual void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
 	{
-		newView.SetDisplayValues(equipment.blueEnergyCostToUse, equipment.greenEnergyCostToUse, equipment.generatorLevelDelta, equipment.name);
+		newView.SetDisplayValues(
+			equipment.blueEnergyCostToUse, 
+			equipment.greenEnergyCostToUse,
+			equipment.generatorLevelDelta, 
+			equipment.maxCooldownTime, 
+			equipment.name);
 		if (equipment.equipmentType == EquipmentTypes.Weapon)
 		{
 			ShipWeapon weapon = equipment as ShipWeapon;
 			newView.SetDamage(weapon.damage);
+			newView.SetLockonTime(weapon.lockOnTimeRemaining);
 		}
-		newView.SetCooldownTime(equipment.cooldownTimeRemaining, equipment.maxCooldownTime);
 		newView.SetButtonInteractable(false);
 		newView.EEquipmentMousedOver += HandleEquipmentMouseover;
 		
@@ -64,7 +69,7 @@ public class EquipmentListController
 		ShowEquipmentTypeViews(EquipmentTypes.Skill);
 	}
 
-	protected virtual void ShowEquipmentTypeViews(EquipmentTypes showType)
+	public void ShowEquipmentTypeViews(EquipmentTypes showType)
 	{
 			foreach (ShipEquipmentView view in equipmentViewPairings.Keys)
 			{
