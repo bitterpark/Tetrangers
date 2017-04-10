@@ -124,6 +124,7 @@
     <Compile Include="Assets\Scripts\Ship Area\StatusEffectIcon.cs" />
     <Compile Include="Assets\Scripts\Ship Area\StatusEffectView.cs" />
     <Compile Include="Assets\Scripts\Ship\Ability.cs" />
+    <Compile Include="Assets\Scripts\Ship\BattleAI.cs" />
     <Compile Include="Assets\Scripts\Ship\EnemyShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\PlayerShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipEquipment.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Assets\Scripts\Tetris\Powerup.cs" />
     <Compile Include="Assets\Scripts\Tetris\PowerupActivator.cs" />
     <Compile Include="Assets\Scripts\Tetris\PowerupBlock.cs" />
+    <Compile Include="Assets\Scripts\Tetris\PowerupInBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\PowerupSpawner.cs" />
     <Compile Include="Assets\Scripts\Tetris\SettledBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\StaticBlock.cs" />

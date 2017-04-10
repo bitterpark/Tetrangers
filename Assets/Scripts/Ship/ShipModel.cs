@@ -12,6 +12,7 @@ public abstract class ShipModel: IEquipmentListModel
 	public event UnityAction EShieldsGainChanged;
 	public event UnityAction EShieldsDamaged;
 	public event UnityAction EEnergyChanged;
+	public event UnityAction EGeneratorLevelChanged;
 	public event UnityAction EEnergyGainChanged;
 	public event UnityAction<StatusEffect> EStatusEffectGained;
 
@@ -29,6 +30,14 @@ public abstract class ShipModel: IEquipmentListModel
 	public int shipShieldsMax { get; protected set; }
 	protected int shipShieldsGain;
 	public int shipShieldsCurrentGain { get; protected set; }
+
+	public int generatorLevel
+	{
+		get { return _generatorLevel; }
+		set {_generatorLevel = Mathf.Clamp(value,1,2);}
+	}
+
+	int _generatorLevel = 1;
 
 	public int shipBlueEnergy { get; protected set; }
 	public int shipBlueEnergyMax { get; protected set; }
@@ -101,10 +110,12 @@ public abstract class ShipModel: IEquipmentListModel
 		if (EShieldsChanged != null) EShieldsChanged();
 		if (EShieldsGainChanged != null) EShieldsGainChanged();
 
+		generatorLevel = 1;
+		if (EGeneratorLevelChanged != null) EGeneratorLevelChanged();
+
 		shipBlueEnergy = 0;
 		shipGreenEnergy = 0;
-		if (EEnergyChanged != null)
-			EEnergyChanged();
+		if (EEnergyChanged != null) EEnergyChanged();
 	}
 
 	void ResetAllCooldowns()
@@ -176,6 +187,7 @@ public abstract class ShipModel: IEquipmentListModel
 		EShieldsChanged = null;
 		EShieldsDamaged = null;
 		EEnergyChanged = null;
+		EGeneratorLevelChanged = null;
 		EActivateDefences = null;
 		activeStatusEffects.Clear();
 		BattleManager.EEngagementModeEnded -= DoRoundoverGains;
@@ -184,13 +196,12 @@ public abstract class ShipModel: IEquipmentListModel
 
 	public bool TryGetAllUsableEquipment(out List<ShipEquipment> allEquipment)
 	{
-		allEquipment = new List<ShipEquipment>();
-		List<ShipWeapon> weapons;
-		if (TryGetActivatableWeapons(out weapons))
-			allEquipment.AddRange(weapons.ToArray());
-		List<ShipEquipment> equipment;
-		if (TryGetUseableEquipment(out equipment))
-			allEquipment.AddRange(equipment);
+		return TryGetAllUsableEquipment(out allEquipment, true);
+	}
+
+	public bool TryGetAllUsableEquipment(out List<ShipEquipment> allEquipment, bool checkEnergy)
+	{
+		allEquipment = GetAllUsableEquipment(checkEnergy);
 
 		if (allEquipment.Count > 0)
 			return true;
@@ -199,14 +210,27 @@ public abstract class ShipModel: IEquipmentListModel
 
 	}
 
-	public bool TryGetActivatableWeapons(out List<ShipWeapon> weapons)
+	public List<ShipEquipment> GetAllUsableEquipment(bool checkEnergy)
+	{
+		List<ShipEquipment> allEquipment = new List<ShipEquipment>();
+		List<ShipWeapon> weapons;
+		if (TryGetActivatableWeapons(out weapons, checkEnergy))
+			allEquipment.AddRange(weapons.ToArray());
+		List<ShipEquipment> equipment;
+		if (TryGetUseableEquipment(out equipment, checkEnergy))
+			allEquipment.AddRange(equipment);
+
+		return allEquipment;
+	}
+
+	public bool TryGetActivatableWeapons(out List<ShipWeapon> weapons, bool checkEnergy)
 	{
 		weapons = new List<ShipWeapon>();
 		ShipWeapon weapon;
 		for(int i=0; i<shipWeapons.Count; i++)
 		{
 			weapon = shipWeapons[i];
-			if (WeaponUsable(weapon))
+			if (WeaponUsable(weapon, checkEnergy))
 				weapons.Add(weapon);
 		}
 
@@ -216,7 +240,7 @@ public abstract class ShipModel: IEquipmentListModel
 			return false;
 	}
 
-	public bool TryGetUseableEquipment(out List<ShipEquipment> equipment)
+	public bool TryGetUseableEquipment(out List<ShipEquipment> equipment, bool checkEnergy)
 	{
 		equipment = new List<ShipEquipment>();
 
@@ -224,7 +248,7 @@ public abstract class ShipModel: IEquipmentListModel
 		for (int i = 0; i < shipOtherEquipment.Count; i++)
 		{
 			equipmentUnit = shipOtherEquipment[i];
-			if (EquipmentUsable(equipmentUnit))
+			if (EquipmentUsable(equipmentUnit, checkEnergy))
 					equipment.Add(equipmentUnit);
 		}
 		if (equipment.Count > 0)
@@ -233,23 +257,22 @@ public abstract class ShipModel: IEquipmentListModel
 			return false;
 	}
 
-	bool WeaponUsable(ShipWeapon weapon)
+	bool WeaponUsable(ShipWeapon weapon, bool checkEnergy)
 	{
 		if (weapon.lockedOn)
-			return EquipmentUsable(weapon);
+			return EquipmentUsable(weapon, checkEnergy);
 		else
 			return (weapon.IsUsableByShip(this));
 	}
 
-	bool EquipmentUsable(ShipEquipment equipment)
+	bool EquipmentUsable(ShipEquipment equipment, bool checkEnergy)
 	{
-		if (equipment.blueEnergyCostToUse <= shipBlueEnergy && equipment.greenEnergyCostToUse <= shipGreenEnergy 
-			&& equipment.IsUsableByShip(this))
-			return true;
-		else
-			return false;
+		return ((EnoughEnergyToUseEquipment(equipment) || !checkEnergy) && equipment.IsUsableByShip(this));
 	}
-	
+	public bool EnoughEnergyToUseEquipment(ShipEquipment equipment)
+	{
+		return (equipment.blueEnergyCostToUse <= shipBlueEnergy && equipment.greenEnergyCostToUse <= shipGreenEnergy);
+	}
 	
 
 	/*
@@ -363,23 +386,25 @@ public abstract class ShipModel: IEquipmentListModel
 		return spilloverHealthDamage;
 	}
 
-	public void GainShields()
+	public int GainShields()
 	{
-		GainShields(shipShieldsCurrentGain);
+		return ChangeShields(shipShieldsCurrentGain);
 	}
 
-	public void GainShields(int gain)
+	public int GainShields(int gain)
 	{
-		ChangeShields(gain);
+		return ChangeShields(gain);
 	}
 
-	public void ChangeShields(int delta)
+	public int ChangeShields(int delta)
 	{
 		shipShields = Mathf.Clamp(shipShields + delta, 0, shipShieldsMax);
 		if (delta > 0 && EShieldsChanged != null) EShieldsChanged();
 		else
 			if (delta < 0 && EShieldsDamaged != null)
 				EShieldsDamaged();
+
+		return delta;
 	}
 
 	void ChangeHealth(int delta)
@@ -406,6 +431,12 @@ public abstract class ShipModel: IEquipmentListModel
 		}
 	}
 
+	public void ChangeGeneratorLevel(int delta)
+	{
+		generatorLevel += delta;
+		if (EGeneratorLevelChanged != null) EGeneratorLevelChanged();
+	}
+
 	public void ChangeBlueEnergyGain(int blueDelta)
 	{
 		ChangeEnergyGain(blueDelta, 0);
@@ -423,67 +454,73 @@ public abstract class ShipModel: IEquipmentListModel
 		if (EEnergyGainChanged != null) EEnergyGainChanged();
 	}
 
-	protected void GainBlueEnergy()
+	protected int GainBlueEnergy()
 	{
-		GainBlueEnergy(1,false);
+		return GainBlueEnergy(1,false);
 	}
-	protected void GainBlueEnergy(int gains)
+	protected int GainBlueEnergy(int gains)
 	{
-		GainBlueEnergy(gains, false);
-	}
-	public virtual void GainBlueEnergy(int gains, bool absoluteValue)
-	{
-		TryGainBlueEnergy(gains,absoluteValue);
+		return GainBlueEnergy(gains, false);
 	}
 
-	protected int TryGainBlueEnergy(int gains, bool absoluteValue)
+	public virtual int GainBlueEnergy(int gains, bool absoluteValue)
 	{
 		if (gains > 0)
 		{
-			int delta;
-			if (absoluteValue)
-				delta = gains;
-			else
-				delta = gains * blueEnergyGain;
-			ChangeBlueEnergy(delta);
-			return delta;
+			if (!absoluteValue)
+				gains = gains * blueEnergyGain;
+
+			gains *= generatorLevel;
+			return ChangeBlueEnergy(gains);
+		}
+		return gains;
+	}
+	/*
+	public virtual void GainGreenEnergy(int gains, bool absoluteValue)
+	{
+		TryGainGreenEnergy(gains, absoluteValue);
+	}*/
+
+	protected int GainGreenEnergy()
+	{
+		return GainGreenEnergy(1,false);
+	}
+	protected int GainGreenEnergy(int gains)
+	{
+		return GainGreenEnergy(gains, false);
+	}
+	public int GainGreenEnergy(int gains, bool absoluteValue)
+	{
+		if (gains > 0)
+		{
+			if (!absoluteValue)
+				gains = gains * greenEnergyGain;
+
+			gains *= generatorLevel;
+
+			return ChangeGreenEnergy(gains);
 		}
 		return gains;
 	}
 
-	protected void GainGreenEnergy()
+	protected int ChangeBlueEnergy(int delta)
 	{
-		GainGreenEnergy(1,false);
-	}
-	protected void GainGreenEnergy(int gains)
-	{
-		GainGreenEnergy(gains, false);
-	}
-	public void GainGreenEnergy(int gains, bool absoluteValue)
-	{
-		if (gains > 0)
-		{
-			int delta;
-			if (absoluteValue)
-				delta = gains;
-			else
-				delta = gains * greenEnergyGain;
-			ChangeGreenEnergy(delta);
-		}
-	}
-
-	protected void ChangeBlueEnergy(int delta)
-	{
+		int startingEnergy = shipBlueEnergy;
 		shipBlueEnergy = Mathf.Clamp(shipBlueEnergy+delta,0,shipBlueEnergyMax);
 		if (EEnergyChanged != null)
 			EEnergyChanged();
+
+		return shipBlueEnergy - startingEnergy;
 	}
 
-	protected void ChangeGreenEnergy(int delta)
+	protected int ChangeGreenEnergy(int delta)
 	{
+		int shipStartingEnergy = shipGreenEnergy;
 		shipGreenEnergy = Mathf.Clamp(shipGreenEnergy + delta, 0, shipGreenEnergyMax);
 		if (EEnergyChanged != null)
 			EEnergyChanged();
+
+		return shipGreenEnergy - shipStartingEnergy;
 	}
 
 	public List<ShipEquipment> GetStoredEquipment()

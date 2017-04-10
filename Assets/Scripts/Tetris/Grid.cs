@@ -10,6 +10,8 @@ public class Grid : Singleton<Grid>
 	//public static event UnityAction EOverstacked;
 	public static event UnityAction<Rect> ENewFigureSettled;
 	public static event UnityAction<int> ERowsCleared;
+	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks);
+	public static event BlocksClearDeleg EBlocksCleared;
 
 	public static bool gridReady = false;
 
@@ -54,6 +56,7 @@ public class Grid : Singleton<Grid>
 	{
 		TetrisManager.ETetrisEndClear += ClearGrid;
 		FigureController.EFigureSettled += NewSettledFigureHandler;
+		SettledBlock.EBlockDespawnedFromCell += ClearCellAtCoords;
 		StartCoroutine(WaitForCanvasToSetupRoutine());
 	}
 
@@ -128,22 +131,55 @@ public class Grid : Singleton<Grid>
 
 	void NewSettledFigureHandler(List<SettledBlock> figureBlocks)
 	{
-		Rect figureDimensions = FillInSettledFigure(figureBlocks);
+		//Consider consolidating figureDimensions and GetRowsAndCols
+		SettledFigureInfo figureInfo = FillInSettledFigure(figureBlocks);
 
 		//Might be some doubling here if a row gets cleared and then gets checked for matches anyway
-		List<int> figureRows = GetSettledFiguresRows(figureBlocks);
+		List<int> figureRows;
+		List<int> figureCols;
+		GetSettledFigureRowsAndCols(figureBlocks, out figureRows, out figureCols);
 
 		HandleFilledUpRows(figureRows);
-		HandleHorizontalMatches(figureRows);
-		if (ENewFigureSettled != null) ENewFigureSettled(figureDimensions);
+		HandleMatches(figureRows,figureCols);
+		if (ENewFigureSettled != null) ENewFigureSettled(figureInfo.dimensions);
+
+		//Lower any remaining parts of the figure floating in the air
+		List<Cell> settledFigureCells = figureInfo.settledBlockCells;
+
+		System.Comparison<Cell> bottomCellsFirstOrderer = (Cell cell1, Cell cell2) =>
+		{
+			if (cell1.yCoord < cell2.yCoord)
+				return -1;
+			if (cell1.yCoord > cell2.yCoord)
+				return 1;
+
+			return 0;
+		};
+
+		settledFigureCells.Sort(bottomCellsFirstOrderer);
+		foreach (Cell cell in figureInfo.settledBlockCells)
+			TryLowerBlockInCell(cell.xCoord,cell.yCoord,true);
 	}
 
-	Rect FillInSettledFigure(List<SettledBlock> settledBlocks)
+	struct SettledFigureInfo
+	{
+		public Rect dimensions;
+		public List<Cell> settledBlockCells;
+
+		public SettledFigureInfo(Rect dimensions, List<Cell> settledBlockCells)
+		{
+			this.dimensions = dimensions;
+			this.settledBlockCells = settledBlockCells;
+		}
+	}
+
+	SettledFigureInfo FillInSettledFigure(List<SettledBlock> settledBlocks)
 	{
 		Rect settledFigureDimensions = new Rect();
 		settledFigureDimensions.min = new Vector2(100,100);
 		settledFigureDimensions.max = new Vector2(-1,-1);
 		//bool overStacked = false;
+		List<Cell> filledCells=new List<Cell>();
 		foreach (SettledBlock block in settledBlocks)
 		{
 			int xCoord = block.currentX;
@@ -157,27 +193,39 @@ public class Grid : Singleton<Grid>
 			settledFigureDimensions.xMax = Mathf.Max(settledFigureDimensions.xMax, xCoord);
 			settledFigureDimensions.yMax = Mathf.Max(settledFigureDimensions.yMax, yCoord);
 
-			cells[xCoord, yCoord].FillCell(block, false);
+			Cell filledCell = cells[xCoord, yCoord];
+			filledCell.FillCell(block, false);
+			filledCells.Add(filledCell);
+
 		}
-		return settledFigureDimensions;
+		
+
+		return new SettledFigureInfo(settledFigureDimensions,filledCells);
 	}
 
-	List<int> GetSettledFiguresRows(List<SettledBlock> settledBlocks)
+	void GetSettledFigureRowsAndCols(List<SettledBlock> settledBlocks, out List<int> rowNumbers, out List<int> colNumbers)
 	{
-		List<int> rowNumbers = new List<int>();
+		rowNumbers = new List<int>();
+		colNumbers = new List<int>();
 		foreach (SettledBlock block in settledBlocks)
 		{
 			int rowNum = block.currentY;
+			int colNum = block.currentX;
 			if (!rowNumbers.Contains(rowNum))
 				rowNumbers.Add(rowNum);
+			if (!colNumbers.Contains(colNum))
+				colNumbers.Add(colNum);
 		}
-		return rowNumbers;
 	}
 
-	void HandleHorizontalMatches(List<int> checkedRowNumbers)
+	void HandleMatches(List<int> checkedRows, List<int> checkedCols)
 	{
-		ClearHorizontalMatches(FindHorizontalMatches(checkedRowNumbers, minMatchSize));
+		List<Cell> allMatches = FindHorizontalMatches(checkedRows, minMatchSize);
+		allMatches.AddRange(FindVerticalMatches(checkedCols,minMatchSize));
+
+		ClearMatches(allMatches);
 	}
+
 
 	//OPTIMIZE THIS A BIT LATER??
 	List<Cell> FindHorizontalMatches(List<int> checkedRowNumbers, int minimalMatchCount)
@@ -187,41 +235,50 @@ public class Grid : Singleton<Grid>
 		List<Cell> matchingBlockCells = new List<Cell>();
 		foreach (int rowNum in checkedRowNumbers)
 		{
-			int matchingSoFar = 0;
 			BlockType cursorBlockType = BlockType.Blue;
+			List<Cell> matchingCellsFoundSoFar = new List<Cell>();
 			for (int i = 0; i < gridHorSize; i++)
 			{
 				Cell exploredCell = cells[i, rowNum];
-
-				if (matchingSoFar == 0 || exploredCell.isUnoccupied || exploredCell.settledBlockInCell.blockType != cursorBlockType)
+				
+				if (exploredCell.isUnoccupied)
 				{
-					if (matchingSoFar >= minimalMatchCount)
-						for (int j = 1; j <= matchingSoFar; j++)
-							matchingBlockCells.Add(cells[i - j,rowNum]);
-
-					if (exploredCell.isUnoccupied)
+					if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
 					{
-						matchingSoFar = 0;
-						cursorBlockType = BlockType.Blue;
+						if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+							matchingBlockCells.AddRange(matchingCellsFoundSoFar.ToArray());
 					}
-					else
-					{
-						cursorBlockType = exploredCell.settledBlockInCell.blockType;
-						matchingSoFar = 1;
-					}
+					matchingCellsFoundSoFar.Clear();
+					cursorBlockType = BlockType.Blue;
 				}
 				else
-					matchingSoFar++;
+				{
+					if (exploredCell.settledBlockInCell.blockType != cursorBlockType && exploredCell.settledBlockInCell.blockType != BlockType.Powerup)
+					{
+						if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+								matchingBlockCells.AddRange(matchingCellsFoundSoFar.ToArray());
+
+						Cell previousCell = i > 0 ? cells[i-1, rowNum] : null;
+
+						matchingCellsFoundSoFar.Clear();
+						if (previousCell != null && !previousCell.isUnoccupied && previousCell.settledBlockInCell.blockType == BlockType.Powerup)
+							matchingCellsFoundSoFar.Add(previousCell);
+					}
+
+					if (exploredCell.settledBlockInCell.blockType != BlockType.Powerup)
+						cursorBlockType = exploredCell.settledBlockInCell.blockType;
+
+					matchingCellsFoundSoFar.Add(exploredCell);
+				}
 			}
-			if (matchingSoFar >= minimalMatchCount)
-				for (int j = 1; j <= matchingSoFar; j++)
-					matchingBlockCells.Add(cells[gridHorSize - j, rowNum]);
+			if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+				matchingBlockCells.AddRange(matchingCellsFoundSoFar.ToArray());
 		}
 
 		return matchingBlockCells;
 	}
 
-	void ClearHorizontalMatches(List<Cell> matchingBlockCells)
+	void ClearMatches(List<Cell> matchingBlockCells)
 	{
 		if (matchingBlockCells.Count > 0)
 		{
@@ -229,6 +286,57 @@ public class Grid : Singleton<Grid>
 			//foreach (Cell matchingBlockCell in matchingBlockCells)
 				//ClearCell(matchingBlockCell);
 		}
+	}
+
+	List<Cell> FindVerticalMatches(List<int> checkedColNumbers, int minimalMatchCount)
+	{
+		//checkedRowNumbers.Sort();
+		//checkedRowNumbers.Reverse();
+		List<Cell> matchingBlockCells = new List<Cell>();
+		foreach (int colNum in checkedColNumbers)
+		{
+			BlockType cursorBlockType = BlockType.Blue;
+			List<Cell> matchingCellsFoundSoFar = new List<Cell>();
+			//Watch out, this might require to go top-down and not bottom-up
+			for (int i = 0; i < gridVertSize; i++)
+			{
+				Cell exploredCell = cells[colNum, i];
+
+				if (exploredCell.isUnoccupied)
+				{
+					if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+					{
+						if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+							matchingBlockCells.AddRange(matchingCellsFoundSoFar.ToArray());
+					}
+					matchingCellsFoundSoFar.Clear();
+					cursorBlockType = BlockType.Blue;
+				}
+				else
+				{
+					if (exploredCell.settledBlockInCell.blockType != cursorBlockType && exploredCell.settledBlockInCell.blockType != BlockType.Powerup)
+					{
+						if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+							matchingBlockCells.AddRange(matchingCellsFoundSoFar.ToArray());
+
+						Cell previousCell = i > 0 ? cells[colNum, i-1] : null;
+
+						matchingCellsFoundSoFar.Clear();
+						if (previousCell != null && !previousCell.isUnoccupied && previousCell.settledBlockInCell.blockType == BlockType.Powerup)
+							matchingCellsFoundSoFar.Add(previousCell);
+					}
+
+					if (exploredCell.settledBlockInCell.blockType != BlockType.Powerup)
+						cursorBlockType = exploredCell.settledBlockInCell.blockType;
+
+					matchingCellsFoundSoFar.Add(exploredCell);
+				}
+			}
+			if (matchingCellsFoundSoFar.Count >= minimalMatchCount)
+				matchingBlockCells.AddRange(matchingCellsFoundSoFar.ToArray());
+		}
+
+		return matchingBlockCells;
 	}
 
 	void HandleFilledUpRows(List<int> checkedRowNumbers)
@@ -246,8 +354,8 @@ public class Grid : Singleton<Grid>
 			if (!checkedRowNumbers.Contains(rowNum))
 				checkedRowNumbers.Add(rowNum);
 		}*/
-		
-		List<int> result = new List<int>();
+
+		List <int> result = new List<int>();
 
 		foreach (int rowNum in checkedRowNumbers)
 		{
@@ -270,43 +378,12 @@ public class Grid : Singleton<Grid>
 		if (filledUpRows.Count > 0)
 		{
 			ClearRows(filledUpRows);
-			/*
-			filledUpRows.Sort();
-
-			int highestClearedRowNum = -1;
-			foreach (int filledUpRowNum in filledUpRows)
-			{
-				if (filledUpRowNum > highestClearedRowNum)
-					highestClearedRowNum = filledUpRowNum;
-				ClearRow(filledUpRowNum);
-			}*/
-			/*
-			UnityEngine.Events.UnityAction<int> createFloatingTextHandler = null;
-			createFloatingTextHandler = (int energyGain) =>
-			{
-				//GetCellWorldPosition(maxX / 2, highestClearedRowNum);
-				CreateGreenEnergyGainText(energyGain);
-				PlayerShipModel.EPlayerGainedGreenEnergy -= createFloatingTextHandler;
-				//Debug.Log("Floating text handler fired!");
-			};*/
-
-			//PlayerShipModel.EPlayerGainedGreenEnergy += CreateGreenEnergyGainText;
 
 			if (ERowsCleared != null) ERowsCleared(filledUpRows.Count);
-			/*
-			if (highestClearedRowNum != -1)
-			{
-				for (int i = highestClearedRowNum + 1; i <= maxY; i++)
-					LowerRow(i, filledUpRows.Count);
-			}*/
 		}
 	}
 
-	void CreateGreenEnergyGainText(int gain)
-	{
-		PlayerShipModel.EPlayerGainedGreenEnergy -= CreateGreenEnergyGainText;
-		FloatingText.CreateFloatingText(gain.ToString(), Color.green, 40, 1.5f, gridGroup);
-	}
+
 
 	public void ClearBottomRows(int numberOfRows)
 	{
@@ -316,11 +393,6 @@ public class Grid : Singleton<Grid>
 			rowIndeces.Add(i);
 
 		ClearRows(rowIndeces);
-		//for (int i = numberOfRows-1; i >=0 ; i--)
-			//ClearArea(0, i, maxX, i);
-		//ClearRow(i);
-		//for (int i = numberOfRows; i <= maxY; i++)
-		//LowerRow(i, numberOfRows);
 	}
 
 	void ClearRows(params int[] rows)
@@ -334,14 +406,8 @@ public class Grid : Singleton<Grid>
 
 		for (int i = rows.Count - 1; i >= 0; i--)
 			ClearArea(0, rows[i], maxX, rows[i]);
-		//ClearRow(i);
 
 	}
-	/*
-	void ClearRow(int rowIndex)
-	{
-		ClearArea(0,rowIndex,maxX,rowIndex);
-	}*/
 
 	public void ClearArea(int leftX, int bottomY, int rightX, int topY)
 	{
@@ -363,17 +429,12 @@ public class Grid : Singleton<Grid>
 			for (j = leftX; j <= rightX; j++)
 				clearedCells.Add(cells[j, i]);
 
-		/*
-	{
-		Cell cell = cells[j, i];
-		cell.ClearCell();
-		for (int k = cell.yCoord + 1; k < this.maxY; k++)
-			if (TryLowerCell(cell.xCoord, k, 1))
-				if (!rowsWithNewlyLoweredCells.Contains(k - 1))
-					rowsWithNewlyLoweredCells.Add(k - 1);
-	}*/
 		ClearCells(clearedCells);
-		//HandleHorizontalMatches(rowsWithNewlyLoweredCells);
+	}
+
+	public void ClearCellAtCoords(int xCoord, int yCoord)
+	{
+		ClearCells(GetCell(xCoord,yCoord));
 	}
 
 	void ClearCells(params Cell[] clearedCells)
@@ -384,64 +445,128 @@ public class Grid : Singleton<Grid>
 	void ClearCells(List<Cell> clearedCells)
 	{
 		//This should ensure that the cells at the top always go first
-		System.Comparison<Cell> cellSortComparer = (Cell cell1, Cell cell2) => 
+		System.Comparison<Cell> topLeftCellsFirstOrderer = (Cell cell1, Cell cell2) => 
 		{
 			if (cell1.yCoord > cell2.yCoord)
 				return -1;
 			if (cell1.yCoord < cell2.yCoord)
 				return 1;
+			if (cell1.yCoord==cell2.yCoord)
+			{
+				if (cell1.xCoord < cell2.xCoord)
+					return -1;
+				if (cell1.xCoord > cell2.xCoord)
+					return 1;
+			}
 			return 0;	
 		};
-		clearedCells.Sort(cellSortComparer);
+		clearedCells.Sort(topLeftCellsFirstOrderer);
 
-		List<int> rowsWithNewlyLoweredCells = new List<int>();
+		
+		int greenBlocksCleared = 0;
+		int blueBlocksCleared = 0;
+		int shieldBlocksCleared = 0;
+		List<int> newlyLoweredCellRows = new List<int>();
+		List<int> newlyLoweredCellCols = new List<int>();
 		foreach (Cell cell in clearedCells)
 		{
-			//Cell cell = cells[j, i];
-			cell.ClearCell();
-			for (int k = cell.yCoord + 1; k < maxY; k++)
-				if (TryLowerCell(cell.xCoord, k, 1))
-					if (!rowsWithNewlyLoweredCells.Contains(k - 1))
-						rowsWithNewlyLoweredCells.Add(k - 1);
+			if (!cell.isUnoccupied)
+			{
+				SettledBlock blockInCell = cell.settledBlockInCell;
+				if (blockInCell.blockType == BlockType.Blue)
+					blueBlocksCleared++;
+				else if (blockInCell.blockType == BlockType.Green)
+					greenBlocksCleared++;
+				else if (blockInCell.blockType == BlockType.Shield)
+					shieldBlocksCleared++;
+
+				cell.ClearCell();
+				for (int k = cell.yCoord + 1; k < maxY; k++)
+					if (TryLowerBlockInCell(cell.xCoord, k, true))
+					{
+						if (!newlyLoweredCellRows.Contains(k - 1))
+							newlyLoweredCellRows.Add(k - 1);
+						if (!newlyLoweredCellCols.Contains(cell.xCoord))
+							newlyLoweredCellCols.Add(cell.xCoord);
+					}
+			}
 		}
-		HandleHorizontalMatches(rowsWithNewlyLoweredCells);
+
+		Cell middleCell = clearedCells[Mathf.Clamp(clearedCells.Count/2,0,clearedCells.Count-1)];
+		Vector3 middleCellPos = GetCellWorldPosition(middleCell.xCoord, middleCell.yCoord);
+
+		if (EBlocksCleared != null)
+		{
+			PlayerShipModel.TotalEnergyGain totalGain = EBlocksCleared(blueBlocksCleared, greenBlocksCleared, shieldBlocksCleared);
+			TryCreateEnergyGainText(totalGain.blueGain, Color.cyan, middleCellPos);
+			TryCreateEnergyGainText(totalGain.greenGain, Color.green, middleCellPos);
+			TryCreateEnergyGainText(totalGain.shieldGain, Color.blue, middleCellPos);
+		}
+
+		HandleMatches(newlyLoweredCellRows, newlyLoweredCellCols);
 	}
 
-	/*
-	void ClearCell(int cellX, int cellY)
-	{
-		ClearCell(cells[cellX,cellY]);
-	}
 
-	void ClearCell(Cell cell)
+	/*System.Comparison<Cell> cellSortComparer = (Cell cell1, Cell cell2) => 
+		{
+			if (cell1.yCoord > cell2.yCoord)
+				return -1;
+			if (cell1.yCoord < cell2.yCoord)
+				return 1;
+			if (cell1.yCoord==cell2.yCoord)
+			{
+				if (cell1.xCoord < cell2.xCoord)
+					return -1;
+				if (cell1.xCoord > cell2.xCoord)
+					return 1;
+			}
+			return 0;	
+		};*/
+	/*
+	bool TryFallDownBlockInCell(int cellX, int cellY)
 	{
-		cell.ClearCell();
-		for (int i = cell.yCoord + 1; i < maxY; i++)
-			TryLowerCell(cell.xCoord, i, 1);
+		Cell fallingCell = cells[cellX, cellY];
+		if (fallingCell.isUnoccupied) return false;
+
+		bool cellFell = false;
+		while (TryLowerBlockInCell(fallingCell.xCoord, fallingCell.yCoord, 1)) { cellFell = true; }
+		return cellFell;
 	}*/
 
-	/*
-	void LowerRow(int rowIndex, int lowerByN)
+	bool TryLowerBlockInCell(int cellX, int cellY, bool lowerAllTheWay)
 	{
-		for (int i = 0; i <= maxX; i++)
-		{
-			LowerCell(i,rowIndex,lowerByN);
+		if (cellY - 1 < 0) return false;
 
-		}
-	}*/
-
-	bool TryLowerCell(int cellX, int cellY, int lowerByN)
-	{
-		SettledBlock block = cells[cellX, cellY].ExtractBlockFromCell();
-		if (block != null)
+		Cell startCell = cells[cellX, cellY];
+		Cell endCell = cells[cellX, cellY - 1];
+		if (!startCell.isUnoccupied && endCell.isUnoccupied)
 		{
-			block.MoveToGridCell(cellX, cellY - lowerByN);
-			cells[cellX, cellY - lowerByN].FillCell(block, true);
+			SettledBlock block = startCell.ExtractBlockFromCell();
+			block.MoveToGridCell(endCell.xCoord, endCell.yCoord);
+			endCell.FillCell(block, true);
+			if (lowerAllTheWay)
+				TryLowerBlockInCell(endCell.xCoord,endCell.yCoord,true);
+
 			return true;
 		}
 		else
 			return false;
 	}
+
+	void TryCreateEnergyGainText(int gain, Color color, Vector3 worldPosition)
+	{
+		//Debug.Log("Creating energy gain text");
+		worldPosition.x += Random.Range(-20, 21);
+		if (gain>0)
+			FloatingText.CreateFloatingText(gain.ToString(), color, 40, 1.5f, gridGroup, worldPosition);
+	}
+
+	/*
+	void CreateGreenEnergyGainText(int gain)
+	{
+		PlayerShipModel.EPlayerGainedGreenEnergy -= CreateGreenEnergyGainText;
+		FloatingText.CreateFloatingText(gain.ToString(), Color.green, 40, 1.5f, gridGroup);
+	}*/
 
 	Grid() { }
 

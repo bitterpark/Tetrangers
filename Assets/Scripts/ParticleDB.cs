@@ -5,7 +5,11 @@ using UnityEngine;
 public class ParticleDB : Singleton<ParticleDB> {
 
 	[SerializeField]
-	ParticleController figureSettledParticles;
+	ParticleController blueClearedBlockParticles;
+	[SerializeField]
+	ParticleController greenClearedBlockParticles;
+	[SerializeField]
+	ParticleController shieldClearedBlockParticles;
 	[SerializeField]
 	ParticleController shipGotHitParticles;
 	[SerializeField]
@@ -16,9 +20,18 @@ public class ParticleDB : Singleton<ParticleDB> {
 		CreateParticles(shipGotHitParticles, worldPosition);
 	}
 
-	public void CreateSettledFigureParticles(Vector3 worldPosition)
+	public void CreateClearedBlockParticles(Vector3 worldPosition, BlockType blockType)
 	{
-		CreateParticles(figureSettledParticles,worldPosition);
+		ParticleController particles = null;
+		if (blockType == BlockType.Blue)
+			particles = blueClearedBlockParticles;
+		if (blockType == BlockType.Green)
+			particles = greenClearedBlockParticles;
+		if (blockType == BlockType.Shield)
+			particles = shieldClearedBlockParticles;
+
+		Debug.Assert(particles != null, "Could not find the right cleared block particles!");
+		CreateParticles(particles, worldPosition);
 	}
 
 	public void CreateRowClearParticles(Vector3 worldPosition)

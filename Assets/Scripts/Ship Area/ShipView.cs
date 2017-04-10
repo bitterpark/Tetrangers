@@ -20,6 +20,9 @@ public class ShipView : EquipmentListView {
 	RectTransform healthBar;
 
 	[SerializeField]
+	Text generatorLevelText;
+
+	[SerializeField]
 	Transform shieldBarObject;
 	Text shieldText;
 	RectTransform shieldBar;
@@ -104,6 +107,11 @@ public class ShipView : EquipmentListView {
 			barPercentage = 1;
 
 		greenEnergyBar.anchorMax = new Vector2(barPercentage, greenEnergyBar.anchorMax.y);
+	}
+
+	public void SetGenLevel(int level)
+	{
+		generatorLevelText.text = "x"+level;
 	}
 
 	public void SetEnergyGainLevels(int blueEnergyGain, int greenEnergyGain)

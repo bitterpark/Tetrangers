@@ -43,7 +43,7 @@ public abstract class StatusEffect : IDisplayableStatusEffect
 		ExtenderActivation(activateOnShip);
 
 		if (activateOnShip.GetType()==typeof(PlayerShipController))
-			EnemyShipEquipmentController.EEnemyTurnFinished += DeactivateEffect;
+			BattleAI.EAITurnFinished += DeactivateEffect;
 		else
 			BattleManager.EEngagementModeStarted += DeactivateEffect;
 
@@ -61,7 +61,7 @@ public abstract class StatusEffect : IDisplayableStatusEffect
 		EStatusEffectEnded = null;
 		
 		BattleManager.EBattleFinished -= DeactivateEffect;
-		EnemyShipEquipmentController.EEnemyTurnFinished -= DeactivateEffect;
+		BattleAI.EAITurnFinished -= DeactivateEffect;
 		BattleManager.EEngagementModeStarted -= DeactivateEffect;
 	}
 	protected virtual void ExtenderDeactivation() { }

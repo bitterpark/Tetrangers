@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum BlockType { Blue, Green, Shield }
+public enum BlockType { Blue, Green, Shield, Powerup }
 
 public class FigureBlock : MonoBehaviour
 {
@@ -16,6 +16,8 @@ public class FigureBlock : MonoBehaviour
 	Color blueBlockColor;
 	[SerializeField]
 	Color greenBlockColor;
+	[SerializeField]
+	Color powerupBlockColor;
 
 	public Vector2 getBlockOffsets
     {
@@ -29,11 +31,22 @@ public class FigureBlock : MonoBehaviour
 	int newXOffsetFromZero;
 	int newYOffsetFromZero;
 
+	PowerupInBlock attachedPowerup = null;
+
 	public void Initialize()
 	{
 		System.Array blockTypes = System.Enum.GetValues(typeof(BlockType));
 
-		BlockType randomType = (BlockType)blockTypes.GetValue(Random.Range(0, blockTypes.Length));
+		List<BlockType> regularTypes = new List<BlockType>();
+		for (int i=0; i<blockTypes.Length; i++)
+			regularTypes.Add((BlockType)blockTypes.GetValue(i));
+
+		regularTypes.Remove(BlockType.Powerup);
+		BlockType randomType = regularTypes[Random.Range(0,regularTypes.Count)];
+
+		if (PowerupSpawner.Instance.CanCreateNewPowerup() && Random.value < BalanceValuesManager.Instance.powerupSpawnChancePerMove)
+			randomType = BlockType.Powerup;
+
 		Initialize(randomType);
 	}
 
@@ -45,13 +58,17 @@ public class FigureBlock : MonoBehaviour
 
 		if (blockType == BlockType.Blue)
 			myImage.color = blueBlockColor;
-		else
-			if (blockType == BlockType.Green)
+		else if (blockType == BlockType.Green)
 			myImage.color = greenBlockColor;
-		else
-			if (blockType == BlockType.Shield)
+		else if (blockType == BlockType.Shield)
 			myImage.color = shieldBlockColor;
+		else if (blockType == BlockType.Powerup)
+		{
+			myImage.color = powerupBlockColor;
 
+			attachedPowerup = PowerupSpawner.Instance.CreateNewPowerup();
+			attachedPowerup.transform.SetParent(transform, false);
+		}
 		//for (int i=0; i<blockTypes.Length; i++)
 	}
 
@@ -60,13 +77,15 @@ public class FigureBlock : MonoBehaviour
 		if (figureY+yOffsetFromZero <= Grid.Instance.maxYAllowedForSettling)
 		{
 			settledComponent = gameObject.AddComponent<SettledBlock>();
-			settledComponent.Initialize(figureX + xOffsetFromZero, figureY + yOffsetFromZero, blockType);
+			settledComponent.Initialize(figureX + xOffsetFromZero, figureY + yOffsetFromZero, blockType, attachedPowerup);
+			
 			Destroy(this);
 			return true;
 		}
 		else
 		{
 			settledComponent = null;
+			
 			Destroy(this.gameObject);
 			return false;
 		}
@@ -116,6 +135,7 @@ public class FigureBlock : MonoBehaviour
 
 	bool CanRotateAroundPoint(int pointX, int pointY, out int newXOffset, out int newYOffset)
 	{
+		/*
 		float directionFromZerothCoord = Mathf.Atan2(yOffsetFromZero, xOffsetFromZero) * Mathf.Rad2Deg;
 		directionFromZerothCoord = Mathf.MoveTowardsAngle(directionFromZerothCoord, directionFromZerothCoord - 90, 90);
 		directionFromZerothCoord *= Mathf.Deg2Rad;
@@ -123,6 +143,12 @@ public class FigureBlock : MonoBehaviour
 		float distanceFromZerothCoord = new Vector2(xOffsetFromZero, yOffsetFromZero).magnitude;
 		newXOffset = Mathf.RoundToInt(Mathf.Cos(directionFromZerothCoord) * distanceFromZerothCoord);
 		newYOffset = Mathf.RoundToInt(Mathf.Sin(directionFromZerothCoord) * distanceFromZerothCoord);
+		*/
+		int x = yOffsetFromZero; //this y - center point y
+		int y = xOffsetFromZero;//this x - center point x
+		newXOffset = x; //center point x - found x
+		newYOffset = -y; //center point y + found y
+		//int x = newYOffsetFromZero;
 
 		if (Grid.Instance.CellExistsIsUnoccupied(pointX + newXOffset, pointY + newYOffset))
 			return true;

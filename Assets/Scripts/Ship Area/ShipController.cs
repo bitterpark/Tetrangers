@@ -22,6 +22,7 @@ public abstract class ShipController {
 		model.EShieldsGainChanged += UpdateShieldsGain;
 		model.EEnergyChanged += UpdateEnergy;
 		model.EEnergyGainChanged += UpdateEnergyGain;
+		model.EGeneratorLevelChanged += UpdateGenerator;
 		//model.EEquipmentTypeUsed += SwitchToRelevantEquipmentTab;
 
 		view.SetNameAndSprite(model.shipName,model.shipSprite);
@@ -29,6 +30,7 @@ public abstract class ShipController {
 		UpdateHealth();
 		UpdateShields();
 		UpdateShieldsGain();
+		UpdateGenerator();
 		UpdateEnergy();
 		UpdateEnergyGain();
 	}
@@ -43,6 +45,7 @@ public abstract class ShipController {
 		model.EShieldsGainChanged -= UpdateShieldsGain;
 		model.EEnergyChanged -= UpdateEnergy;
 		model.EEnergyGainChanged -= UpdateEnergyGain;
+		model.EGeneratorLevelChanged -= UpdateGenerator;
 		//model.EEquipmentTypeUsed -= SwitchToRelevantEquipmentTab;
 
 		if (disposeModel)
@@ -67,6 +70,11 @@ public abstract class ShipController {
 	void UpdateShieldsGain()
 	{
 		view.SetShieldsGain(model.shipShieldsCurrentGain);
+	}
+
+	void UpdateGenerator()
+	{
+		view.SetGenLevel(model.generatorLevel);
 	}
 
 	void UpdateEnergy()

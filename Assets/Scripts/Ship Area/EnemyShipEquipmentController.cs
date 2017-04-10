@@ -3,18 +3,27 @@ using UnityEngine;
 
 public class EnemyShipEquipmentController : ShipEquipmentController
 {
-	public static event UnityEngine.Events.UnityAction EEnemyTurnFinished;
+	//public static event UnityEngine.Events.UnityAction EEnemyTurnFinished;
+	public static event UnityEngine.Events.UnityAction EEnemyEquipmentUseFinished;
 
 	public EnemyShipEquipmentController(ShipModel shipModel, EquipmentListView equipmentView) : base(shipModel, equipmentView)
 	{
-		BattleManager.EEngagementModeStarted += DoEnemyTurn;
+		//BattleManager.EEngagementModeStarted += DoEnemyTurn;
+		BattleAI.EAIUsedEquipment += HandleEquipmentUse;
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
-		BattleManager.EEngagementModeStarted -= DoEnemyTurn;
-		EEnemyTurnFinished = null;
+		BattleAI.EAIUsedEquipment -= HandleEquipmentUse;
+		//BattleManager.EEngagementModeStarted -= DoEnemyTurn;
+		EEnemyEquipmentUseFinished = null;
+		//EEnemyTurnFinished = null;
+	}
+
+	void HandleEquipmentUse(ShipEquipment equipment)
+	{
+		GetViewRepresentingEquipment(equipment).DoButtonPress();
 	}
 
 	void DoEnemyTurn()
@@ -22,7 +31,7 @@ public class EnemyShipEquipmentController : ShipEquipmentController
 		//Debug.Log("Doing enemy turn");
 		if (!TryActivateBestEquipment())
 		{
-			if (EEnemyTurnFinished != null) EEnemyTurnFinished();
+			//if (EEnemyTurnFinished != null) EEnemyTurnFinished();
 			//Debug.Log("Enemy turn finished");
 		}
 	}
@@ -30,7 +39,8 @@ public class EnemyShipEquipmentController : ShipEquipmentController
 	protected override void HandleEquipmentButtonAnimationFinish(ShipEquipmentView equipmentView)
 	{
 		base.HandleEquipmentButtonAnimationFinish(equipmentView);
-		DoEnemyTurn();
+		if (EEnemyEquipmentUseFinished != null) EEnemyEquipmentUseFinished();
+		//DoEnemyTurn();
 	}
 
 	bool TryActivateBestEquipment()
@@ -58,7 +68,6 @@ public class EnemyShipEquipmentController : ShipEquipmentController
 		else
 			return false;
 	}
-
 	
 }
 

@@ -18,7 +18,7 @@ public class GameDataManager: Singleton<GameDataManager>
 
 	void Awake()
 	{
-		playerShip = PlayerShipModel.GetPlayerShipModelInstance();
+		playerShip = PlayerShipModel.CreatePlayerShipModelInstance();
 		playerHangar = new HangarModel();
 		playerResearch = new RNDModel();
 

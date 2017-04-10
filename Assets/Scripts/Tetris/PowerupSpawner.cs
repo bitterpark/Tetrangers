@@ -5,7 +5,7 @@ using UnityEngine;
 public class PowerupSpawner : Singleton<PowerupSpawner> {
 
 	[SerializeField]
-	PowerupBlock powerupPrefab;
+	PowerupInBlock powerupPrefab;
 
 	float chanceToSpawnPowerupOnPlayerMove;
 
@@ -33,10 +33,11 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 		for (int i = 0; i < types.Length; i++)
 		{
 			PowerupType type = (PowerupType)types.GetValue(i);
-			powerupTypesNotInUse.Add(type);
+			if (type!=PowerupType.Freeze) //<- debug
+				powerupTypesNotInUse.Add(type);
 		}
 	}
-
+	//remove later
 	void TriggerChanceToSpawn()
 	{
 		//Debug.Log("Triggering chance to spawn powerup");
@@ -47,8 +48,8 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 	void SpawnPowerupInRandomSpot()
 	{
 		List<Cell> potentialCells = FindPotentialSpawnCells();
-		if (potentialCells.Count>0)
-			SpawnPowerup(potentialCells[Random.Range(0,potentialCells.Count)]);
+		//if (potentialCells.Count>0)
+			//SpawnPowerup(potentialCells[Random.Range(0,potentialCells.Count)]);
 	}
 
 	List<Cell> FindPotentialSpawnCells()
@@ -62,32 +63,49 @@ public class PowerupSpawner : Singleton<PowerupSpawner> {
 				if (i == 0 || (!Grid.Instance.GetCell(j, i - 1).isUnoccupied ))
 				{
 					if (!checkedCell.hasPowerup)
-					{
 						potentialCells.Add(checkedCell);
-						break;
-					}
+					break;
 				}
 			}
 		}
 		return potentialCells;
 	}
-
+	/*
 	void SpawnPowerup(Cell spawnInCell)
 	{
-		PowerupBlock newPowerup = Instantiate(powerupPrefab);
+		PowerupInBlock newPowerup = Instantiate(powerupPrefab);
 		//Cell spawnInCell = Grid.Instance.GetCell(gridX, gridY);
 		newPowerup.Initialize(spawnInCell.xCoord, spawnInCell.yCoord);
 
 		PowerupType randomType = powerupTypesNotInUse[Random.Range(0,powerupTypesNotInUse.Count)];
 		powerupTypesNotInUse.Remove(randomType);
 
-		randomType = PowerupType.Change;//debug
+		//randomType = PowerupType.Change;//debug
 
 		newPowerup.AssignPowerupType(randomType);
 		spawnInCell.powerupInCell = newPowerup;
+	}*/
+
+	public bool CanCreateNewPowerup()
+	{
+		return powerupTypesNotInUse.Count > 0;
 	}
 
-	void FreeUpPowerupType(PowerupType type)
+	public PowerupInBlock CreateNewPowerup()
+	{
+		PowerupInBlock newPowerup = Instantiate(powerupPrefab);
+		//Cell spawnInCell = Grid.Instance.GetCell(gridX, gridY);
+		//newPowerup.Initialize(spawnInCell.xCoord, spawnInCell.yCoord);
+
+		PowerupType randomType = powerupTypesNotInUse[Random.Range(0, powerupTypesNotInUse.Count)];
+		powerupTypesNotInUse.Remove(randomType);
+
+		newPowerup.AssignPowerupType(randomType);
+		return newPowerup;
+		//spawnInCell.powerupInCell = newPowerup;
+	}
+
+	public void FreeUpPowerupType(PowerupType type)
 	{
 		if (!powerupTypesNotInUse.Contains(type))
 			powerupTypesNotInUse.Add(type);

@@ -30,6 +30,7 @@ public abstract class ShipWeapon: ShipEquipment
 	public ShipWeapon()
 	{
 		equipmentType = EquipmentTypes.Weapon;
+		equipmentGoal = Goal.Attack;
 		//maxCooldownTime = 0;
 		lockOnTimeRemaining = lockOnTimeRequired;
 	}
@@ -92,6 +93,7 @@ public class LaserGun : ShipWeapon
 		//lockOnTimeRequired = 1;
 		maxCooldownTime = 1;
 		damage = 60;
+		//generatorLevelDelta = 1;
 
 		//onSelfEffect = new ReactiveArmorEffect();
 		//onOpponentEffect = new EnergySiphonEffect();

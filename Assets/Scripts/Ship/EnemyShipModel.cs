@@ -11,6 +11,7 @@ public abstract class EnemyShipModel : ShipModel {
 	public static event UnityAction EEnemyDied;
 
 	public bool energyGainForFigureHoverEnabled = false;
+	BattleAI myAI;
 	//readonly int greenEnergyGainPerPlayerMove;
 	//readonly int blueEnergyGainPerSecondOfHover;
 
@@ -21,8 +22,8 @@ public abstract class EnemyShipModel : ShipModel {
 		EnemyShipModel result = null;
 
 		System.Type[] allShipTypes = {typeof(HeavyShip), typeof(AssaultShip) };
-		result = (EnemyShipModel)System.Activator.CreateInstance(allShipTypes[Random.Range(0,allShipTypes.Length)]);
-
+		//result = (EnemyShipModel)System.Activator.CreateInstance(allShipTypes[Random.Range(0,allShipTypes.Length)]);
+		result = new HeavyShip();
 		return result;
 	}
 
@@ -34,6 +35,7 @@ public abstract class EnemyShipModel : ShipModel {
 
 	public void ActivateModel()
 	{
+		myAI = new BattleAI(this);
 		InitializeEventSubscriptions();
 	}
 
@@ -57,6 +59,8 @@ public abstract class EnemyShipModel : ShipModel {
 		BattleManager.EEngagementModeEnded -= GainEnergyOnNewRound;
 		FigureController.EFigureHoveredForOneSecond -= GainEnergyOnFigureHover;
 
+		myAI.Dispose();
+		myAI = null;
 		//EEnemyWeaponFired = null;
 		//EEnemyDied = null;
 		//EEnemyAppliedStatusEffectToPlayer = null;
@@ -147,7 +151,7 @@ public class AssaultShip: EnemyShipModel
 		blueEnergyGain = BalanceValuesManager.Instance.enemyBlueGainPerMove;
 		greenEnergyGain = BalanceValuesManager.Instance.enemyGreenGainPerEngagement;
 
-		AddWeapons(new PlasmaCannon(), new LaserGun());
+		AddWeapons(new HeavyLaser(), new LaserGun());
 		if (Random.value<0.5f)
 			AddOtherEquipment(new BlueAmp());
 		else

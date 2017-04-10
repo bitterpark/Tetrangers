@@ -30,6 +30,7 @@ public class FloatingText : MonoBehaviour
 	public static void CreateFloatingText(string text, Color textColor, int fontSize, float lifetime, Transform originTransform, Vector3 originWorldPosition)
 	{
 		FloatingText newFloatingText = new GameObject().AddComponent<FloatingText>();
+		newFloatingText.name = "Floating Text";
 		newFloatingText.gameObject.AddComponent<ContentSizeFitter>().horizontalFit=ContentSizeFitter.FitMode.PreferredSize;
 		newFloatingText.Initialize(text,lifetime, originTransform);
 		newFloatingText.myText.color = textColor;

@@ -6,14 +6,14 @@ public class PlayerShipEquipmentController : ShipEquipmentController
 {
 	public PlayerShipEquipmentController(ShipModel shipModel, EquipmentListView equipmentView) : base(shipModel, equipmentView)
 	{
-		EnemyShipEquipmentController.EEnemyTurnFinished += TryEnableEquipmentViewButtons;
+		BattleAI.EAITurnFinished += TryEnableEquipmentViewButtons;
 		BattleManager.EEngagementModeEnded += DisableEquipmentViewButtons;
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
-		EnemyShipEquipmentController.EEnemyTurnFinished -= TryEnableEquipmentViewButtons;
+		BattleAI.EAITurnFinished -= TryEnableEquipmentViewButtons;
 		BattleManager.EEngagementModeEnded -= DisableEquipmentViewButtons;
 	}
 

@@ -15,6 +15,7 @@ public abstract class ShipEquipment
 	public string name { get; set; }
 
 	public EquipmentTypes equipmentType { get; protected set; }
+	public Goal equipmentGoal { get; protected set; }
 
 	public bool hasDescription { get { return _description != null || effectOnSelfDescription!=null; } }
 	public string description
@@ -91,6 +92,7 @@ public abstract class ShipEquipment
 		greenEnergyCostToUse = 0;
 		generatorLevelDelta = 0;
 		equipmentType = EquipmentTypes.Equipment;
+		equipmentGoal = Goal.Defence;
 		Initialize();
 	}
 
@@ -107,8 +109,9 @@ public abstract class ShipEquipment
 	public virtual void ActivateEquipment(ShipModel activatedOnShip)
 	{
 		SetCooldown();
-		if (generatorLevelDelta!=0)
-			TetrisManager.Instance.ChangeGeneratorLevel(generatorLevelDelta);
+		if (generatorLevelDelta != 0)
+			activatedOnShip.ChangeGeneratorLevel(generatorLevelDelta);
+			//TetrisManager.Instance.ChangeGeneratorLevel(generatorLevelDelta);
 		ExtenderActivation(activatedOnShip);
 	}
 

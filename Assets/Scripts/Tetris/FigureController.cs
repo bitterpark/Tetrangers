@@ -361,7 +361,7 @@ public class FigureController : MonoBehaviour
 			EFigureSettled(figureSettledBlocks);
 		DisposeFigure();
 	}
-
+	/*
 	void HandlePlayerBlueGainFX(int blueGain)
 	{
 		PlayerShipModel.EPlayerGainedBlueEnergy -= HandlePlayerBlueGainFX;
@@ -370,5 +370,5 @@ public class FigureController : MonoBehaviour
 			FloatingText.CreateFloatingText(blueGain.ToString(), Color.cyan, 40, 1.5f, transform);
 			ParticleDB.Instance.CreateSettledFigureParticles(transform.position);
 		}
-	}
+	}*/
 }
