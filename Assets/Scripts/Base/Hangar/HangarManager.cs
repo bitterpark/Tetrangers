@@ -8,8 +8,7 @@ public class HangarManager: BaseSubscreen
 	[SerializeField]
 	ShipView playerShipView;
 	[SerializeField]
-	EquipmentListView equipmentListView;
-
+	TabbedEquipmentListView equipmentListView;
 
 	ShipController playerHangarShipController;
 	EquipmentListController equipmentListController;

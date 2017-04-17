@@ -24,11 +24,17 @@ public class MainMenuManager : Singleton<MainMenuManager>
 	void StartNewGame()
 	{
 		menuPanelGameobject.SetActive(false);
-		//GetComponent<MissionManager>().InitializeMissionManager();
 		baseScreen.OpenBaseScreen();
 	}
 
 	//EXPERIMENTAL STUFF
+	public event UnityEngine.Events.UnityAction CalledEvent;
+	public event UnityEngine.Events.UnityAction EmbeddedEvent
+	{
+		add { CalledEvent += value; }
+		remove { CalledEvent -= value; }
+	}
+
 	/*
 	private void Update()
 	{
@@ -69,6 +75,6 @@ public class MainMenuManager : Singleton<MainMenuManager>
 		return arg;
 	}
 	*/
-	
+
 
 }

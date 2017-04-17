@@ -53,11 +53,8 @@ public class BattleAI
 			if (currentList.Count > 0)
 			{
 				ShipEquipment mostExpensiveEligibleEquipment = GetMostExpensiveEligibleEquipment(currentList, getBlueEnergyEquipment);
-				if (!getBlueEnergyEquipment)
-				{
 
-				}
-				if (myShipModel.EnoughEnergyToUseEquipment(mostExpensiveEligibleEquipment))
+				if (myShipModel.equipmentUser.EnoughEnergyToUseEquipment(mostExpensiveEligibleEquipment))
 					return mostExpensiveEligibleEquipment;
 				else
 					return null;
@@ -91,7 +88,7 @@ public class BattleAI
 	{
 		int modifier = 0;
 
-		if (goal == Goal.Defence && myShipModel.shipShields < myShipModel.shipShieldsMax / 2)
+		if (goal == Goal.Defence && myShipModel.healthManager.shields < myShipModel.healthManager.shieldsMax / 2)
 			modifier += 1;
 		return defaultGoalPriorities[goal] + modifier;
 	}
@@ -105,7 +102,7 @@ public class BattleAI
 		for (int i = 0; i < allGoals.Length; i++)
 			resultDict.Add((Goal)allGoals.GetValue(i),new List<ShipEquipment>());
 
-		foreach (ShipEquipment equipment in myShipModel.GetAllUsableEquipment(false))
+		foreach (ShipEquipment equipment in myShipModel.shipEquipment.GetAllUsableEquipment(false))
 		{
 			if (blue && equipment.blueEnergyCostToUse > 0)
 				resultDict[equipment.equipmentGoal].Add(equipment);

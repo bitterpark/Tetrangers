@@ -21,7 +21,7 @@ public class BattleManager : Singleton<BattleManager> {
 	Text engagementStatusText;
 
 	[SerializeField]
-	ShipView playerShipView;
+	PlayerShipViewProvider playerShipView;
 	[SerializeField]
 	ShipView enemyShipView;
 
@@ -65,7 +65,8 @@ public class BattleManager : Singleton<BattleManager> {
 		if (!gameObject.activeSelf)
 			ActivateBattleManager();
 
-		enemyShip.ActivateModel();
+		enemyShip.TryInitializeForBattle();
+		playerShip.TryInitializeForBattle();
 		//if (playerShipController==null)
 			DisplayPlayerShip(playerShip);
 		//if (enemyShipController==null)
@@ -93,6 +94,11 @@ public class BattleManager : Singleton<BattleManager> {
 	void DisplayPlayerShip(ShipModel playerShipModel)
 	{
 		//ShipModel playerShipModel = new PlayerShipModel(100, 100, 250, tempShipSprite, "Player Ship");
+
+		//IShipViewProvider fuckShitBalls = playerShipView;
+		//PlayerShipViewProvider recast = fuckShitBalls as PlayerShipViewProvider;
+		//Debug.Assert(recast.sectorEquipmentLists.Count > 0, "Fail fuck!");
+
 		playerShipController = new PlayerShipController(playerShipModel, playerShipView);
 	}
 	void ClearPlayerShip(bool clearModel)

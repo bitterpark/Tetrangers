@@ -113,13 +113,13 @@ public class OverdriveEffect: StatusEffect
 		//FigureController.accelerated = true;
 		//blueGainAdded = activateOnShip.blueEnergyGain;
 		activeOnShip = activateOnShip;
-		activeOnShip.ChangeBlueEnergyGain(blueGainAdded);
+		activeOnShip.energyManager.blueEnergyGain += blueGainAdded;
 	}
 
 	protected override void ExtenderDeactivation()
 	{
 		//FigureController.accelerated = false;
-		activeOnShip.ChangeBlueEnergyGain(-blueGainAdded);
+		activeOnShip.energyManager.blueEnergyGain -= blueGainAdded;
 		activeOnShip = null;
 	}
 }
@@ -144,13 +144,13 @@ public class CoolantEffect : StatusEffect
 	{
 		//FigureSpawner.coolantMode = true;
 		activeOnShip = activateOnShip;
-		activeOnShip.ChangeGreenEnergyGain(greenGainAdded);
+		activeOnShip.energyManager.greenEnergyGain +=  greenGainAdded;
 	}
 
 	protected override void ExtenderDeactivation()
 	{
 		//FigureSpawner.coolantMode = false;
-		activeOnShip.ChangeGreenEnergyGain(-greenGainAdded);
+		activeOnShip.energyManager.greenEnergyGain -= greenGainAdded;
 	}
 }
 
@@ -175,7 +175,7 @@ public class EnergySiphonEffect : StatusEffect
 	{
 		Debug.Assert(activateOnShip.GetType().BaseType == typeof(EnemyShipModel), "Activating Siphon effect for player ship!");
 		activeOnShip = activateOnShip;
-		PlayerShipModel.EPlayerGainedBlueEnergy += GainEnergy;
+		PlayerShipModel.main.energyManager.EBlueEnergyGained += GainEnergy;
 		//activeOnEnemyShip = activateOnShip as EnemyShipModel;
 		//activeOnEnemyShip.energyGainForFigureHoverEnabled = true;
 
@@ -183,14 +183,14 @@ public class EnergySiphonEffect : StatusEffect
 
 	void GainEnergy(int gain)
 	{
-		activeOnShip.GainBlueEnergy(gain, true);
+		activeOnShip.energyManager.blueEnergy+=gain;
 	}
 
 	protected override void ExtenderDeactivation()
 	{
 		//activeOnEnemyShip.energyGainForFigureHoverEnabled = false;
 		//activeOnEnemyShip = null;
-		PlayerShipModel.EPlayerGainedBlueEnergy -= GainEnergy;
+		PlayerShipModel.main.energyManager.EBlueEnergyGained -= GainEnergy;
 		activeOnShip = null;
 	}
 }
@@ -213,7 +213,7 @@ public class ReactiveArmorEffect : StatusEffect
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
 		activeOnShip = activateOnShip;
-		activeOnShip.EActivateDefences += ReduceDamage;
+		activeOnShip.healthManager.EActivateDefences += ReduceDamage;
 
 	}
 
@@ -226,7 +226,7 @@ public class ReactiveArmorEffect : StatusEffect
 
 	protected override void ExtenderDeactivation()
 	{
-		activeOnShip.EActivateDefences -= ReduceDamage;
+		activeOnShip.healthManager.EActivateDefences -= ReduceDamage;
 		activeOnShip = null;
 	}
 }
@@ -250,15 +250,17 @@ public class GreenAmplificationEffect : StatusEffect
 	{
 		activeOnShip = activateOnShip;
 
-		blueGainDecrease = activateOnShip.blueEnergyGain;
-		greenGainIncrease = activeOnShip.greenEnergyGain;
+		blueGainDecrease = activateOnShip.energyManager.blueEnergyGain;
+		activeOnShip.energyManager.blueEnergyGain -= blueGainDecrease;
+		greenGainIncrease = activateOnShip.energyManager.greenEnergyGain;
+		activeOnShip.energyManager.blueEnergyGain += greenGainIncrease;
 
-		activeOnShip.ChangeEnergyGain(-blueGainDecrease,greenGainIncrease);
 	}
 
 	protected override void ExtenderDeactivation()
 	{
-		activeOnShip.ChangeEnergyGain(blueGainDecrease, -greenGainIncrease);
+		activeOnShip.energyManager.blueEnergyGain += blueGainDecrease;
+		activeOnShip.energyManager.blueEnergyGain -= greenGainIncrease;
 		activeOnShip = null;
 	}
 }
@@ -283,16 +285,18 @@ public class BlueAmplificationEffect : StatusEffect
 		//Debug.Log("Activating blue amp");
 		activeOnShip = activateOnShip;
 
-		greenGainDecrease = activateOnShip.greenEnergyGain;
-		blueGainIncrease = activeOnShip.blueEnergyGain;//greenGainDecrease*BalanceValuesManager.Instance.bluePointsWorthPerGreenPoint;
+		greenGainDecrease = activateOnShip.energyManager.greenEnergyGain;
+		blueGainIncrease = activateOnShip.energyManager.blueEnergyGain;
+		activeOnShip.energyManager.blueEnergyGain += blueGainIncrease;
+		activeOnShip.energyManager.blueEnergyGain -= greenGainDecrease;
 
-		activeOnShip.ChangeEnergyGain(blueGainIncrease, -greenGainDecrease);
 	}
 
 	protected override void ExtenderDeactivation()
 	{
 		//Debug.Log("Deactivating blue amp");
-		activeOnShip.ChangeEnergyGain(-blueGainIncrease, greenGainDecrease);
+		activeOnShip.energyManager.blueEnergyGain -= blueGainIncrease;
+		activeOnShip.energyManager.blueEnergyGain += greenGainDecrease;
 		activeOnShip = null;
 	}
 }

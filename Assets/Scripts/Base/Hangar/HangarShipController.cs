@@ -11,9 +11,9 @@ public class HangarShipController : ShipController
 
 	}
 
-	protected override EquipmentListController CreateEquipmentController(ShipModel model, ShipView view)
+	protected override EquipmentListController CreateEquipmentController(ShipEquipmentModel model, IShipViewProvider viewProvider)
 	{
-		return new HangarEquipmentController(model,view);
+		return new HangarEquipmentController(model, viewProvider.shipView.equipmentListView);
 	}
 
 }

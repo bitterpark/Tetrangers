@@ -144,7 +144,7 @@ public class Forcefield : ShipEquipment
 
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
-		activateOnShip.GainShields(healthGain);
+		activateOnShip.healthManager.shields += healthGain;
 	}
 }
 
@@ -164,7 +164,7 @@ public class Interface : ShipEquipment
 
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
-		activateOnShip.GainBlueEnergy(blueGain, true);
+		activateOnShip.energyManager.blueEnergy += blueGain;
 	}
 }
 

@@ -63,9 +63,9 @@ public class BlitzMode : Ability
 	protected override void ExtenderActivation(ShipModel activateOnShip)
 	{
 		base.ExtenderActivation(activateOnShip);
-		int shieldLoss = activateOnShip.shipShields/2;
-		activateOnShip.ChangeShields(-shieldLoss);
-		activateOnShip.GainBlueEnergy(shieldLoss, true);
+		int shieldLoss = activateOnShip.healthManager.shields / 2;
+		activateOnShip.healthManager.shields-=shieldLoss;
+		activateOnShip.energyManager.blueEnergy+=shieldLoss;
 	}
 }
 

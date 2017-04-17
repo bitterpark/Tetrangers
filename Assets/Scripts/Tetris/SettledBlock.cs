@@ -18,11 +18,11 @@ public class SettledBlock : StaticBlock {
 
 		blockType = type;
 
-		if (blockType == BlockType.Blue)
-			PlayerShipModel.EPlayerBlueGainChanged += SetColorBasedOnPlayerEnergyGain;
+		//if (blockType == BlockType.Blue)
+			//PlayerShipModel.main.blueEnergyModel.EEnergyGainChanged += SetColorBasedOnPlayerEnergyGain;
 
-		if (blockType == BlockType.Green)
-			PlayerShipModel.EPlayerGreenGainChanged += SetColorBasedOnPlayerEnergyGain;
+		//if (blockType == BlockType.Green)
+			//PlayerShipModel.EPlayerGreenGainChanged += SetColorBasedOnPlayerEnergyGain;
 
 		if (blockType == BlockType.Shield)
 			PlayerShipModel.EPlayerShieldGainChanged += SetColorBasedOnPlayerEnergyGain;
@@ -54,6 +54,13 @@ public class SettledBlock : StaticBlock {
 		if (EBlockDespawnedFromCell!=null) EBlockDespawnedFromCell(currentX, currentY);
 	}
 
+	public IEnumerator AnimateMoveToGridCell(int cellX, int cellY)
+	{
+		yield return new WaitForSeconds(0.1f);
+		MoveToGridCell(cellX, cellY);
+		yield break;
+	}
+
 	public void ClearBlock()
 	{
 		//Debug.Log("Clearing "+blockType+" block!");
@@ -62,10 +69,10 @@ public class SettledBlock : StaticBlock {
 
 		EThisBlockCleared = null;
 
-		if (blockType == BlockType.Blue)
-			PlayerShipModel.EPlayerBlueGainChanged -= SetColorBasedOnPlayerEnergyGain;
-		if (blockType == BlockType.Green)
-			PlayerShipModel.EPlayerGreenGainChanged -= SetColorBasedOnPlayerEnergyGain;
+		//if (blockType == BlockType.Blue)
+			//PlayerShipModel.EPlayerBlueGainChanged -= SetColorBasedOnPlayerEnergyGain;
+		//if (blockType == BlockType.Green)
+			//PlayerShipModel.EPlayerGreenGainChanged -= SetColorBasedOnPlayerEnergyGain;
 		if (blockType == BlockType.Shield)
 			PlayerShipModel.EPlayerShieldGainChanged -= SetColorBasedOnPlayerEnergyGain;
 

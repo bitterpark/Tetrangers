@@ -96,5 +96,7 @@ public class BaseScreen: MonoBehaviour
 		GameDataManager.EMaterialsChanged -= UpdateMaterialsText;
 	}
 
+	//Debug
+
 }
 

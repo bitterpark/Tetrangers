@@ -55,7 +55,7 @@ public class FigureSpawner : Singleton<FigureSpawner>
 
 	public void DropInCurrentFigure()
 	{
-		Debug.Log("Dropping figure");
+		//Debug.Log("Dropping figure");
 		FigureController currentFigure = nextFigureDisplay.GetComponentInChildren<FigureController>();
 		if (currentFigure == null)
 			currentFigure = CreateRandomFigure();

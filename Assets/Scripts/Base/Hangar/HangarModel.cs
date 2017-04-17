@@ -9,7 +9,7 @@ public class HangarModel: IEquipmentListModel
 	
 	public HangarModel()
 	{
-		//AddEquipment(new LaserGun(),new LaserGun(),new Siphon());
+		AddEquipment(new LaserGun(),new LaserGun(),new Siphon());
 	}
 
 	public void AddEquipment(params ShipEquipment[] addedEquipment)

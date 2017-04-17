@@ -159,7 +159,7 @@ public class TetrisManager : Singleton<TetrisManager>
 		BattleManager.EBattleManagerDeactivated += EndAndClearTetris;
 		BattleManager.EBattleStarted += StartTetris;
 		BattleManager.EBattleFinished += PauseTetris;
-		Grid.ENewFigureSettled += HandleFinishedPlayerMove;
+		FigureSettler.ENewFigureSettled += HandleFinishedPlayerMove;
 		FigureSpawner.ENoRoomToDropFigure += HandleGridOverstack;
 	}
 

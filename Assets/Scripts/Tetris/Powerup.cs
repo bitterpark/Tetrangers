@@ -55,14 +55,14 @@ public class Bomb : Powerup
 	void ActivateBomb()
 	{
 		FigureSpawner.EFigureDropped -= ActivateBomb;
-		Grid.ENewFigureSettled += DetonateBomb;
+		FigureSettler.ENewFigureSettled += DetonateBomb;
 	}
 
 	protected override void DeinitializePowerup()
 	{
 		base.DeinitializePowerup();
 		FigureSpawner.EFigureDropped -= ActivateBomb;
-		Grid.ENewFigureSettled -= DetonateBomb;
+		FigureSettler.ENewFigureSettled -= DetonateBomb;
 	}
 
 	public override IEnumerator GetPowerupRoutine()
@@ -76,7 +76,7 @@ public class Bomb : Powerup
 
 	void DetonateBomb(Rect bombFigureDimensions)
 	{
-		Grid.ENewFigureSettled -= DetonateBomb;
+		FigureSettler.ENewFigureSettled -= DetonateBomb;
 
 		int bombStartX = Mathf.Clamp((int)bombFigureDimensions.xMin - 1, 0,Grid.Instance.maxX);
 		int bombStartY = Mathf.Clamp((int)bombFigureDimensions.yMin - 1, 0, Grid.Instance.maxY);

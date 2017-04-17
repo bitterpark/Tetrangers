@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using DraggableUIObjects;
 
-public class HangarEquipmentController : EquipmentListController
+public class HangarEquipmentController : TabbedEquipmentListController
 {
 	public static event UnityEngine.Events.UnityAction<Transform, ShipEquipmentView, ShipEquipment> EEquipmentDroppedIntoList;
 
-	static event UnityEngine.Events.UnityAction<EquipmentTypes> EGlobalTabSwitch;
-
-	public HangarEquipmentController(IEquipmentListModel equipmentListModel, EquipmentListView equipmentView) : base(equipmentListModel, equipmentView)
+	public HangarEquipmentController(IEquipmentListModel equipmentListModel, TabbedEquipmentListView equipmentView) 
+		: base(equipmentListModel, equipmentView)
 	{
-		//DraggableUIObject.EDroppedOnNewTarget += HandleEquipmentDropEvent;
 		EEquipmentDroppedIntoList += HandleEquipmentDropEvent;
-		EGlobalTabSwitch += ShowEquipmentTypeViews;
+	}
+
+	protected override TabController CreateTabController(TabButtonsView tabsView)
+	{
+		return new HangarTabController(tabsView, this);
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
 		EEquipmentDroppedIntoList -= HandleEquipmentDropEvent;
-		EGlobalTabSwitch -= ShowEquipmentTypeViews;
-		//DraggableUIObject.EDroppedOnNewTarget -= HandleEquipmentDropEvent;
 	}
 
 	protected override void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
@@ -36,40 +36,9 @@ public class HangarEquipmentController : EquipmentListController
 		view.GetComponent<DraggableUIObject>().EInstanceDroppedOnNewTarget -= HandleEquipmentDraggedAway;
 	}
 
-	protected override void ShowEquipmentTab()
-	{
-		if (EGlobalTabSwitch != null)
-		{
-			EGlobalTabSwitch -= ShowEquipmentTypeViews;
-			EGlobalTabSwitch(EquipmentTypes.Equipment);
-			EGlobalTabSwitch += ShowEquipmentTypeViews;
-		}
-		base.ShowEquipmentTab();
-	}
-	protected override void ShowSkillsTab()
-	{
-		if (EGlobalTabSwitch != null)
-		{
-			EGlobalTabSwitch -= ShowEquipmentTypeViews;
-			EGlobalTabSwitch(EquipmentTypes.Skill);
-			EGlobalTabSwitch += ShowEquipmentTypeViews;
-		}
-		base.ShowSkillsTab();
-	}
-	protected override void ShowWeaponsTab()
-	{
-		if (EGlobalTabSwitch != null)
-		{
-			EGlobalTabSwitch -= ShowEquipmentTypeViews;
-			EGlobalTabSwitch(EquipmentTypes.Weapon);
-			EGlobalTabSwitch += ShowEquipmentTypeViews;
-		}
-		base.ShowWeaponsTab();
-	}
-
 	void HandleEquipmentDropEvent(Transform droppedIntoTransform,ShipEquipmentView droppedView, ShipEquipment droppedEquipment)
 	{
-		if (droppedIntoTransform==view.GetEquipmentAreaTransform())
+		if (droppedIntoTransform == view.GetEquipmentAreaTransform())
 		{
 			model.AddEquipment(droppedEquipment);
 			SetupEquipmentView(droppedView, droppedEquipment);
