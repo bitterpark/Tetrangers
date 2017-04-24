@@ -8,11 +8,10 @@ public abstract class Ability : ShipEquipment
 	//public static event UnityEngine.Events.UnityAction<ShipModel> EAbilityUsed;
 	static List<ShipModel> disabledForShips = new List<ShipModel>();
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		base.ExtenderActivation(activateOnShip);
-		DisableAbilitiesForShip(activateOnShip);
-		//if (EAbilityUsed != null) EAbilityUsed(activateOnShip);
+		DisableAbilitiesForShip(installedOnShip);
+		//if (EAbilityUsed != null) EAbilityUsed(installedOnShip);
 	}
 
 	static void DisableAbilitiesForShip(ShipModel ship)
@@ -60,12 +59,12 @@ public class BlitzMode : Ability
 		description = "Reduce shields by half. Gain blue energy equal to lost shields.";
 	}
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		base.ExtenderActivation(activateOnShip);
-		int shieldLoss = activateOnShip.healthManager.shields / 2;
-		activateOnShip.healthManager.shields-=shieldLoss;
-		activateOnShip.energyManager.blueEnergy+=shieldLoss;
+		base.ExtenderActivation();
+		int shieldLoss = installedOnShip.healthManager.shields / 2;
+		installedOnShip.healthManager.shields-=shieldLoss;
+		installedOnShip.energyManager.blueEnergy+=shieldLoss;
 	}
 }
 

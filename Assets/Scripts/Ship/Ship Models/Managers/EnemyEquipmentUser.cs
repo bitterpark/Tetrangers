@@ -27,14 +27,14 @@ public class EnemyEquipmentUser: EquipmentUser
 
 	public override void InitializeForBattle()
 	{
-		PlayerEquipmentUser.EPlayerWeaponFired += healthManager.TakeDamage;
-		PlayerEquipmentUser.EPlayerAppliedStatusEffectToEnemy += statusEffectManager.AddNewStatusEffect;
+		//PlayerEquipmentUser.EPlayerWeaponFired += healthManager.TakeDamage;
+		//PlayerEquipmentUser.EPlayerAppliedStatusEffectToEnemy += statusEffectManager.AddNewStatusEffect;
 	}
 
 	public override void Dispose()
 	{
-		PlayerEquipmentUser.EPlayerWeaponFired -= healthManager.TakeDamage;
-		PlayerEquipmentUser.EPlayerAppliedStatusEffectToEnemy -= statusEffectManager.AddNewStatusEffect;
+		//PlayerEquipmentUser.EPlayerWeaponFired -= healthManager.TakeDamage;
+		//PlayerEquipmentUser.EPlayerAppliedStatusEffectToEnemy -= statusEffectManager.AddNewStatusEffect;
 	}
 }
 

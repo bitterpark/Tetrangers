@@ -122,7 +122,12 @@
     <Compile Include="Assets\Scripts\ParticleDB.cs" />
     <Compile Include="Assets\Scripts\Ship\Ability.cs" />
     <Compile Include="Assets\Scripts\Ship\BattleAI.cs" />
+    <Compile Include="Assets\Scripts\Ship\EnemyShipStatusEffect.cs" />
+    <Compile Include="Assets\Scripts\Ship\PassiveShipEquipment.cs" />
+    <Compile Include="Assets\Scripts\Ship\PassiveShipSectorEquipment.cs" />
+    <Compile Include="Assets\Scripts\Ship\PlayerShipStatusEffect.cs" />
     <Compile Include="Assets\Scripts\Ship\PlayerShipViewProvider.cs" />
+    <Compile Include="Assets\Scripts\Ship\SectorStatusEffect.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\EnemyShipController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\PlayerShipController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\Ship Equipment Controllers\EnemyShipEquipmentController.cs" />
@@ -133,10 +138,12 @@
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\ShipController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\ShipEnergyController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\ShipSectorController.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Controllers\StatusEffectController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\EnemyShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\EnemyEquipmentUser.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\EquipmentUser.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\PlayerEquipmentUser.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\SectorEnergyManager.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\ShipSectorModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\ShipEnergyManager.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\ShipEnergyModel.cs" />
@@ -155,6 +162,7 @@
     <Compile Include="Assets\Scripts\Ship\Ship Views\ShipView.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Views\StatusEffectView.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipEquipment.cs" />
+    <Compile Include="Assets\Scripts\Ship\ShipStatusEffect.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipWeapon.cs" />
     <Compile Include="Assets\Scripts\Ship\StatusEffect.cs" />
     <Compile Include="Assets\Scripts\Singleton.cs" />
@@ -170,10 +178,8 @@
     <Compile Include="Assets\Scripts\Tetris\GridSegment.cs" />
     <Compile Include="Assets\Scripts\Tetris\Matcher.cs" />
     <Compile Include="Assets\Scripts\Tetris\Powerup.cs" />
-    <Compile Include="Assets\Scripts\Tetris\PowerupActivator.cs" />
-    <Compile Include="Assets\Scripts\Tetris\PowerupBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\PowerupInBlock.cs" />
-    <Compile Include="Assets\Scripts\Tetris\PowerupSpawner.cs" />
+    <Compile Include="Assets\Scripts\Tetris\PowerupInBlockSpawner.cs" />
     <Compile Include="Assets\Scripts\Tetris\SettledBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\StaticBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\TetrisManager.cs" />

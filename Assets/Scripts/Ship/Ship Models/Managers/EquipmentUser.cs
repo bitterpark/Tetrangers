@@ -1,4 +1,4 @@
-﻿using System;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +10,9 @@ public interface ICanUseEquipment
 
 public abstract class EquipmentUser
 {
+	public delegate void StatusEffectToShipSectorDeleg (StatusEffect appliedEffect, int sectorIndex);
+	public static event StatusEffectToShipSectorDeleg EAppliedStatusEffectToPlayerShipSector;
+
 	protected StatusEffectManager statusEffectManager;
 	protected ShipEnergyManager energyManager;
 	protected ShipHealthManager healthManager;
@@ -30,6 +33,8 @@ public abstract class EquipmentUser
 	{
 		if (equipment.onSelfEffect != null)
 			statusEffectManager.AddNewStatusEffect(equipment.onSelfEffect);
+		if (equipment.onSectorEffect != null)
+			ApplyStatusEffectToPlayerShipSector(equipment.onSectorEffect);
 		if (equipment.onOpponentEffect != null)
 			ApplyStatusEffectToOpponent(equipment.onOpponentEffect);
 
@@ -37,7 +42,7 @@ public abstract class EquipmentUser
 		{
 			ShipWeapon weapon = equipment as ShipWeapon;
 			//Debug.Assert(shipWeapons.Contains(weapon), "Fired weapon : " + weapon.name + " not found in ship's weapons list!");
-			int damage = weapon.ActivateWeapon(parentShip);
+			int damage = weapon.ActivateWeapon();
 
 			energyManager.blueEnergy -= equipment.blueEnergyCostToUse;
 			energyManager.greenEnergy -= equipment.greenEnergyCostToUse;
@@ -48,10 +53,17 @@ public abstract class EquipmentUser
 		{
 			energyManager.blueEnergy -= equipment.blueEnergyCostToUse;
 			energyManager.greenEnergy -= equipment.greenEnergyCostToUse;
-			equipment.ActivateEquipment(parentShip);
+			equipment.ActivateEquipment();
 		}
 
 	}
+
+	void ApplyStatusEffectToPlayerShipSector(StatusEffect effect)
+	{
+		int sectorIndex = Random.Range(0, Grid.segmentCount);
+		EAppliedStatusEffectToPlayerShipSector(effect, sectorIndex);
+	}
+
 	protected abstract void ApplyStatusEffectToOpponent(StatusEffect effect);
 	protected abstract void DoWeaponFireEvent(int weaponDamage);
 

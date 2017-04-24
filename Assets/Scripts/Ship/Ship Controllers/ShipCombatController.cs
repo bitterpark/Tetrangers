@@ -6,10 +6,12 @@ using StatusEffects;
 public abstract	class ShipCombatController: ShipController
 {
 
+	StatusEffectController effectsController;
+
 	public ShipCombatController(ShipModel model, IShipViewProvider viewProvider):base(model, viewProvider)
 	{
 		//ShipEquipment.EEquipmentCooldownChanged += UpdateCooldownTime;
-		model.statusEffectManager.EStatusEffectGained += HandleStatusEffectAdding;
+		effectsController = new StatusEffectController(viewProvider.shipView.statusEffectDisplayer, model.statusEffectManager);
 		model.healthManager.EHealthDamaged += DisplayHealthDamage;
 		model.healthManager.EShieldsDamaged += DisplayShieldsDamage;
 	}
@@ -17,15 +19,9 @@ public abstract	class ShipCombatController: ShipController
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
-		//ShipEquipment.EEquipmentCooldownChanged -= UpdateCooldownTime;
-		model.statusEffectManager.EStatusEffectGained -= HandleStatusEffectAdding;
+		effectsController.Dispose();
 		model.healthManager.EHealthDamaged -= DisplayHealthDamage;
 		model.healthManager.EShieldsDamaged -= DisplayShieldsDamage;
-	}
-
-	void HandleStatusEffectAdding(IDisplayableStatusEffect effect)
-	{
-		view.statusEffectDisplayer.ShowStatusEffect(effect);
 	}
 
 	void DisplayShieldsDamage()

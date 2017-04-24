@@ -129,35 +129,36 @@ public class Matcher
 		return matchingBlockCells;
 	}
 
-	public void HandleFilledUpRows(List<int> checkedRowNumbers)
+	public IEnumerator HandleFilledUpRows(List<int> checkedRowNumbers)
 	{
-		Grid.Instance.ClearFilledUpRows(CheckForFilledUpRows(checkedRowNumbers));
+		return Grid.Instance.ClearFilledUpRows(CheckForFilledUpRows(checkedRowNumbers));
 	}
 
-	List<int> CheckForFilledUpRows(List<int> checkedRowNumbers)
+	List<List<Cell>> CheckForFilledUpRows(List<int> checkedRowNumbers)
 	{
-		/*
-		List<int> checkedRowNumbers = new List<int>();
-		foreach (SettledBlock block in settledBlocks)
-		{
-			int rowNum = block.currentY;
-			if (!checkedRowNumbers.Contains(rowNum))
-				checkedRowNumbers.Add(rowNum);
-		}*/
 
-		List<int> result = new List<int>();
+		List<List<Cell>> result = new List<List<Cell>>();
 
-		foreach (int rowNum in checkedRowNumbers)
+		foreach (GridSegment segment in Grid.Instance.GridSegments)
 		{
-			bool rowFilledUp = true;
-			for (int i = 0; i < Grid.Instance.gridHorSize; i++)
-				if (Grid.Instance.GetCell(i, rowNum).isUnoccupied)
+			foreach (int rowNum in checkedRowNumbers)
+			{
+				bool rowFilledUp = true;
+				List<Cell> filledRowCells = new List<Cell>();
+				for (int i = segment.minX; i <= segment.maxX; i++)
 				{
-					rowFilledUp = false;
-					break;
+					Cell checkedCell = Grid.Instance.GetCell(i, rowNum);
+					if (checkedCell.isUnoccupied)
+					{
+						rowFilledUp = false;
+						break;
+					}
+					else filledRowCells.Add(checkedCell);
 				}
-			if (rowFilledUp)
-				result.Add(rowNum);
+
+				if (rowFilledUp)
+					result.Add(filledRowCells);
+			}
 		}
 
 		return result;

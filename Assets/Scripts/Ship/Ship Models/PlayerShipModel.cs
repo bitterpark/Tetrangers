@@ -35,7 +35,10 @@ public class PlayerShipModel : ShipModel {
 	{
 		main = this;
 
+		FigureSettler.EOverflowingBlocks += HandleOverflowDamage;
 		healthManager.EShieldsGainChanged += HandleShieldGainChange;
+
+		shipEquipment.AddEquipment(new Forcefield());
 
 		int sectorCount = Grid.segmentCount;
 		shipSectors = new ShipSectorModel[sectorCount];
@@ -44,14 +47,19 @@ public class PlayerShipModel : ShipModel {
 
 		shipSectors[0].sectorEquipment.AddEquipment(new LaserGun(), new ReactiveArmor());
 		shipSectors[1].sectorEquipment.AddEquipment(new PlasmaCannon(), new Forcefield());
-		shipSectors[2].sectorEquipment.AddEquipment(new HeavyLaser());
+		shipSectors[2].sectorEquipment.AddEquipment(new HeavyLaser(), new BlueEnergyTransmitter());
+	}
+
+	void HandleOverflowDamage(int overflowingBlocks)
+	{
+		healthManager.TakeDamage(overflowingBlocks * 25);
 	}
 
 	protected override void InitializeForBattle()
 	{
 		base.InitializeForBattle();
-		//Grid.ERowsCleared += GainEnergyOnRowClears;
-		//FigureController.EFigureSettledTimeClocked += GainEnergyOnFigureSettle;
+		EnemyEquipmentUser.EEnemyWeaponFired += HandleTakingDamage;
+		EnemyEquipmentUser.EEnemyAppliedStatusEffectToPlayer += statusEffectManager.AddNewStatusEffect;
 
 		BattleManager.EBattleFinished += ResetToStartingStatsKeepHealth;
 		MissionManager.EMissionStarted += ResetToStartingStats;
@@ -62,6 +70,23 @@ public class PlayerShipModel : ShipModel {
 		Grid.EBlocksCleared += HandleDestroyedBlocks;
 		Grid.EBlocksCleared += HandleDestroyedBlocks;
 
+	}
+
+	void HandleTakingDamage(int damage)
+	{
+		GetWeakestSectorHealthManager().TakeDamage(damage);
+	}
+
+	ShipHealthManager GetWeakestSectorHealthManager()
+	{
+		ShipHealthManager weakestManager = shipSectors[0].healthManager;
+		foreach (ShipSectorModel sector in shipSectors)
+		{
+			if (!sector.isDamaged)
+				if (sector.healthManager.health + sector.healthManager.shields < weakestManager.health + weakestManager.shields)
+					weakestManager = sector.healthManager;
+		}
+		return weakestManager;
 	}
 
 	protected override void InitializeClassStats()
@@ -100,8 +125,8 @@ public class PlayerShipModel : ShipModel {
 	public override void DisposeModel()
 	{
 		base.DisposeModel();
-		//Grid.ERowsCleared -= GainEnergyOnRowClears;
-		//FigureController.EFigureSettledTimeClocked -= GainEnergyOnFigureSettle;
+		EnemyEquipmentUser.EEnemyWeaponFired -= HandleTakingDamage;
+		EnemyEquipmentUser.EEnemyAppliedStatusEffectToPlayer -= statusEffectManager.AddNewStatusEffect;
 
 		BattleManager.EBattleFinished -= ResetToStartingStatsKeepHealth;
 		MissionManager.EMissionStarted -= ResetToStartingStats;
@@ -110,6 +135,7 @@ public class PlayerShipModel : ShipModel {
 		Grid.EBlocksCleared -= HandleDestroyedBlocks;
 		Grid.EBlocksCleared -= HandleDestroyedBlocks;
 
+		FigureSettler.EOverflowingBlocks -= HandleOverflowDamage;
 	}
 
 	TotalEnergyGain HandleDestroyedBlocks(int blueBlocks, int greenBlocks, int shieldBlocks)

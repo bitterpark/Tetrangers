@@ -44,7 +44,7 @@ public class FigureBlock : MonoBehaviour
 		regularTypes.Remove(BlockType.Powerup);
 		BlockType randomType = regularTypes[Random.Range(0,regularTypes.Count)];
 
-		if (PowerupSpawner.Instance.CanCreateNewPowerup() && Random.value < BalanceValuesManager.Instance.powerupSpawnChancePerMove)
+		if (Random.value < BalanceValuesManager.Instance.powerupSpawnChancePerMove)
 			randomType = BlockType.Powerup;
 
 		Initialize(randomType);
@@ -66,29 +66,18 @@ public class FigureBlock : MonoBehaviour
 		{
 			myImage.color = powerupBlockColor;
 
-			attachedPowerup = PowerupSpawner.Instance.CreateNewPowerup();
+			attachedPowerup = PowerupInBlockSpawner.Instance.GetRandomPowerupGameobject();
 			attachedPowerup.transform.SetParent(transform, false);
 		}
 		//for (int i=0; i<blockTypes.Length; i++)
 	}
 
-	public bool TrySettleBlock(int figureX, int figureY, out SettledBlock settledComponent)
+	public void SettleBlock(int figureX, int figureY, out SettledBlock settledComponent)
 	{
-		if (figureY+yOffsetFromZero <= Grid.Instance.maxYAllowedForSettling)
-		{
-			settledComponent = gameObject.AddComponent<SettledBlock>();
-			settledComponent.Initialize(figureX + xOffsetFromZero, figureY + yOffsetFromZero, blockType, attachedPowerup);
+		settledComponent = gameObject.AddComponent<SettledBlock>();
+		settledComponent.Initialize(figureX + xOffsetFromZero, figureY + yOffsetFromZero, blockType, attachedPowerup);
 			
-			Destroy(this);
-			return true;
-		}
-		else
-		{
-			settledComponent = null;
-			
-			Destroy(this.gameObject);
-			return false;
-		}
+		Destroy(this);
 	}
 
 	public void SnapToParent()

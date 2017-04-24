@@ -350,9 +350,8 @@ public class FigureController : MonoBehaviour
 		foreach (FigureBlock block in myBlocks)
 		{
 			SettledBlock newSettledBlock;
-			if (block.TrySettleBlock(currentX,currentY,out newSettledBlock))
-				figureSettledBlocks.Add(newSettledBlock);
-			
+			block.SettleBlock(currentX, currentY, out newSettledBlock);
+			figureSettledBlocks.Add(newSettledBlock);
 		}
 
 		if (EFigureSettledTimeClocked != null)

@@ -9,10 +9,12 @@ public class GridSegment
 	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks, int segmentIndex);
 	public event BlocksClearDeleg EBlocksCleared;
 
-	int minX;
-	int minY;
-	int maxX;
-	int maxY;
+	public int minX { get; private set; }
+	public int minY { get; private set; }
+	public int maxX { get; private set; }
+	public int maxY { get; private set; }
+
+	public bool isUsable = true;
 
 	int segmentIndex;
 
@@ -20,6 +22,7 @@ public class GridSegment
 
 	public GridSegment(int minX, int minY, int maxX, int maxY, int segmentIndex, Transform gridGroup)
 	{
+
 		this.segmentIndex = segmentIndex;
 
 		this.minX = minX;
@@ -54,6 +57,121 @@ public class GridSegment
 		public int greenBlocksCount = 0;
 		public int shieldBlocksCount = 0;
 		public List<Cell> clearedCellsBelongingToSegment = new List<Cell>();
+	}
+
+
+	public List<SettledBlock> GetGroundedBlocksInSegment()
+	{
+		List<SettledBlock> groundedBlocks = GetGroundedBlocks();
+		return groundedBlocks;
+	}
+
+	List<SettledBlock> GetGroundedBlocks()
+	{
+		List<SettledBlock> groundedBlocksInSegment = new List<SettledBlock>();
+		foreach (SettledBlock block in SettledBlock.existingBlocks)
+		{
+			if (!block.isIsolated && CellCoordsAreWithinSegment(block.currentX, block.currentY))
+				groundedBlocksInSegment.Add(block);
+		}
+		return groundedBlocksInSegment;
+	}
+
+	public void SetGroundedBlocksInSegment()
+	{
+		for (int i = minX; i <= maxX; i++)
+			ScanlineFloodFillGroundedBlocks(i, 0);
+	}
+
+	void ScanlineFloodFillGroundedBlocks(int x, int y)
+	{
+		int x1;
+
+		//draw current scanline from start position to the right
+		x1 = x;
+		Cell currentCell = Grid.Instance.GetCell(x1, y);
+
+		if (currentCell.isUnoccupied || !currentCell.settledBlockInCell.isIsolated) return;
+
+		while (x1 <= maxX && (!currentCell.isUnoccupied && currentCell.settledBlockInCell.isIsolated))
+		{
+			currentCell.settledBlockInCell.isIsolated = false;
+			x1++;
+			currentCell = Grid.Instance.GetCell(x1, y);
+		}
+
+		//draw current scanline from start position to the left
+		x1 = x - 1;
+		if (x1 > 0)
+		{
+			currentCell = Grid.Instance.GetCell(x1, y);
+			while (x1 >= 0 && (!currentCell.isUnoccupied && currentCell.settledBlockInCell.isIsolated))
+			{
+				currentCell.settledBlockInCell.isIsolated = false;
+				x1--;
+				currentCell = Grid.Instance.GetCell(x1, y);
+			}
+		}
+		//test for new scanlines above
+		x1 = x;
+		currentCell = Grid.Instance.GetCell(x1, y);
+		if (y > 0)
+		{
+			while (x1 <= maxX && (!currentCell.isUnoccupied && !currentCell.settledBlockInCell.isIsolated))
+			{
+				Cell aboveCell = Grid.Instance.GetCell(x1, y - 1);
+				if (!aboveCell.isUnoccupied && aboveCell.settledBlockInCell.isIsolated)
+					ScanlineFloodFillGroundedBlocks(x1, y - 1);
+				x1++;
+				currentCell = Grid.Instance.GetCell(x1, y);
+			}
+		}
+		if (x - 1 >= 0)
+		{
+			x1 = x - 1;
+			currentCell = Grid.Instance.GetCell(x1, y);
+			if (y > 0)
+			{
+				while (x1 >= 0 && (!currentCell.isUnoccupied && !currentCell.settledBlockInCell.isIsolated))
+				{
+					Cell aboveCell = Grid.Instance.GetCell(x1, y - 1);
+					if (!aboveCell.isUnoccupied && aboveCell.settledBlockInCell.isIsolated)
+						ScanlineFloodFillGroundedBlocks(x1, y - 1);
+					x1--;
+					currentCell = Grid.Instance.GetCell(x1, y);
+				}
+			}
+		}
+		//test for new scanlines below
+		x1 = x;
+		currentCell = Grid.Instance.GetCell(x1, y);
+		if (y < maxY)
+		{
+			while (x1 <= maxX && (!currentCell.isUnoccupied && !currentCell.settledBlockInCell.isIsolated))
+			{
+				Cell belowCell = Grid.Instance.GetCell(x1, y + 1);
+				if (!belowCell.isUnoccupied && belowCell.settledBlockInCell.isIsolated)
+					ScanlineFloodFillGroundedBlocks(x1, y + 1);
+				x1++;
+				currentCell = Grid.Instance.GetCell(x1, y);
+			}
+		}
+		x1 = x - 1;
+		if (x1 > 0)
+		{
+			currentCell = Grid.Instance.GetCell(x1, y);
+			if (y < maxY)
+			{
+				while (x1 >= 0 && (!currentCell.isUnoccupied && !currentCell.settledBlockInCell.isIsolated))
+				{
+					Cell belowCell = Grid.Instance.GetCell(x1, y + 1);
+					if (!belowCell.isUnoccupied && belowCell.settledBlockInCell.isIsolated)
+						ScanlineFloodFillGroundedBlocks(x1, y + 1);
+					x1--;
+					currentCell = Grid.Instance.GetCell(x1, y);
+				}
+			}
+		}
 	}
 
 }

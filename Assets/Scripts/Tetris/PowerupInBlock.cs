@@ -11,36 +11,25 @@ public class PowerupInBlock:MonoBehaviour
 	[SerializeField]
 	Image powerupImage;
 
-	[SerializeField]
-	Sprite freezeSprite;
-	[SerializeField]
-	Sprite bombSprite;
-	[SerializeField]
-	Sprite changeSprite;
+	
 
 	PowerupType myPowerupType;
 
-	//SettledBlock parentBlock = null;
+	SettledBlock parentBlock = null;
 
 	int lifetimeInEngagements = 2;
 
 	public void AssignPowerupType(PowerupType type)
 	{
 		myPowerupType = type;
-
-		if (myPowerupType == PowerupType.Freeze)
-			powerupImage.sprite = freezeSprite;
-		if (myPowerupType == PowerupType.Bomb)
-			powerupImage.sprite = bombSprite;
-		if (myPowerupType == PowerupType.Change)
-			powerupImage.sprite = changeSprite;
+		powerupImage.sprite = Powerup.GetPowerupSprite(type);
 	}
 
 	public void Initialize(SettledBlock parentBlock)
 	{
-		//this.parentBlock = parentBlock;
+		this.parentBlock = parentBlock;
 		parentBlock.EThisBlockCleared += TogglePowerup;
-		BattleManager.EEngagementModeStarted += HandleLifetimeDecrease;
+		//BattleManager.EEngagementModeStarted += HandleLifetimeDecrease;
 	}
 
 	void HandleLifetimeDecrease()
@@ -66,15 +55,16 @@ public class PowerupInBlock:MonoBehaviour
 	public void DisposePowerup()
 	{
 		EBlockDespawning = null;
-		BattleManager.EEngagementModeStarted -= HandleLifetimeDecrease;
+		//BattleManager.EEngagementModeStarted -= HandleLifetimeDecrease;
 
-		PowerupSpawner.Instance.FreeUpPowerupType(myPowerupType);
+		//PowerupSpawner.Instance.FreeUpPowerupType(myPowerupType);
 		GameObject.Destroy(this.gameObject);
 	}
 
 	public void TogglePowerup()
 	{
-		PowerupActivator.Instance.ActivatePowerup(myPowerupType);
+		Powerup.PreparePowerup(myPowerupType, parentBlock.currentX, parentBlock.currentY);
+		//PowerupActivator.ActivatePowerup(myPowerupType);
 		DisposePowerup();
 	}
 }

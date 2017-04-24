@@ -17,12 +17,12 @@ public class ShipEquipmentModel : IEquipmentListModel
 	}
 	List<ShipEquipment> _otherEquipment = new List<ShipEquipment>();
 
-	ICanUseEquipment equipmentSource;
+	ICanUseEquipment equipmentOwner;
 	ShipModel parentShip;
 
 	public ShipEquipmentModel(ShipModel parentShip, ICanUseEquipment equipmentUser)
 	{
-		this.equipmentSource = equipmentUser;
+		this.equipmentOwner = equipmentUser;
 		this.parentShip = parentShip;
 	}
 
@@ -47,10 +47,13 @@ public class ShipEquipmentModel : IEquipmentListModel
 	public void AddEquipment(params ShipEquipment[] equipment)
 	{
 		foreach (ShipEquipment equipmentUnit in equipment)
+		{
 			if (equipmentUnit.equipmentType == EquipmentTypes.Weapon)
 				AddWeapons(equipmentUnit);
 			else
 				AddOtherEquipment(equipmentUnit);
+			equipmentUnit.SetOwner(equipmentOwner);
+		}
 	}
 
 	protected void AddWeapons(params ShipEquipment[] addedWeapons)
@@ -82,6 +85,11 @@ public class ShipEquipmentModel : IEquipmentListModel
 
 	public void DisposeModel()
 	{
+		foreach (ShipWeapon weapon in shipWeapons)
+			weapon.Dispose();
+		foreach (ShipEquipment equipment in shipOtherEquipment)
+			equipment.Dispose();
+
 		BattleManager.EEngagementModeEnded -= DoRoundoverGains;
 	}
 
@@ -158,7 +166,7 @@ public class ShipEquipmentModel : IEquipmentListModel
 
 	protected bool EquipmentUsable(ShipEquipment equipment, bool checkEnergy)
 	{
-		return ((equipmentSource.equipmentUser.EnoughEnergyToUseEquipment(equipment) || !checkEnergy) 
+		return ((equipmentOwner.equipmentUser.EnoughEnergyToUseEquipment(equipment) || !checkEnergy) 
 			&& equipment.IsUsableByShip(parentShip));
 	}
 
@@ -175,7 +183,7 @@ public class ShipEquipmentModel : IEquipmentListModel
 
 	public void UseEquipment(ShipEquipment equipment)
 	{
-		equipmentSource.equipmentUser.UseEquipment(equipment);
+		equipmentOwner.equipmentUser.UseEquipment(equipment);
 	}
 
 	void DoRoundoverGains()

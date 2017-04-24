@@ -16,7 +16,7 @@ namespace StatusEffects
 		event UnityEngine.Events.UnityAction<StatusEffect> EStatusEffectEnded;
 	}
 
-	[RequireComponent(typeof(HorizontalLayoutGroup))]
+	[RequireComponent(typeof(LayoutGroup))]
 	public class StatusEffectView : MonoBehaviour
 	{
 

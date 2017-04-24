@@ -8,6 +8,8 @@ public abstract class EnemyShipModel : ShipModel {
 
 	public static event UnityAction EEnemyDied;
 
+	public static EnemyShipModel currentlyActive = null;
+
 	public bool energyGainForFigureHoverEnabled = false;
 	BattleAI myAI;
 	//readonly int greenEnergyGainPerPlayerMove;
@@ -51,20 +53,27 @@ public abstract class EnemyShipModel : ShipModel {
 
 	protected override void InitializeForBattle()
 	{
+		currentlyActive = this;
 		myAI = new BattleAI(this);
 		base.InitializeForBattle();
 		TetrisManager.ECurrentPlayerMoveDone += GainEnergyOnPlayerMove;
 		BattleManager.EEngagementModeEnded += GainEnergyOnNewRound;
+		PlayerEquipmentUser.EPlayerWeaponFired += healthManager.TakeDamage;
+		PlayerEquipmentUser.EPlayerAppliedStatusEffectToEnemy += statusEffectManager.AddNewStatusEffect;
 	}
 
 	public override void DisposeModel()
 	{
+		
 		base.DisposeModel();
 		TetrisManager.ECurrentPlayerMoveDone -= GainEnergyOnPlayerMove;
 		BattleManager.EEngagementModeEnded -= GainEnergyOnNewRound;
+		PlayerEquipmentUser.EPlayerWeaponFired -= healthManager.TakeDamage;
+		PlayerEquipmentUser.EPlayerAppliedStatusEffectToEnemy -= statusEffectManager.AddNewStatusEffect;
 
 		myAI.Dispose();
 		myAI = null;
+		currentlyActive = null;
 		//EEnemyWeaponFired = null;
 		//EEnemyDied = null;
 		//EEnemyAppliedStatusEffectToPlayer = null;
@@ -154,8 +163,9 @@ public class HeavyShip : EnemyShipModel
 			, BalanceValuesManager.Instance.heavyMaxGreen
 			, SpriteDB.Instance.shipsprite, "Heavy Ship");
 
-		shipEquipment.AddEquipment(new PlasmaCannon());
-		shipEquipment.AddEquipment(new ReactiveArmor(), new Forcefield());
+		//shipEquipment.AddEquipment(new PlasmaCannon());
+		//shipEquipment.AddEquipment(new ReactiveArmor(), new Forcefield());
+		shipEquipment.AddEquipment(new Siphon(), new Forcefield());
 
 		//shipShieldsGain = 10;
 		//SetShieldsGain(10);

@@ -17,7 +17,7 @@ public abstract class ShipEquipment
 	public EquipmentTypes equipmentType { get; protected set; }
 	public Goal equipmentGoal { get; protected set; }
 
-	public bool hasDescription { get { return _description != null || effectOnSelfDescription!=null; } }
+	public bool hasDescription { get { return _description != null || effectOnSelfDescription != null || effectOnSectorDescription != null; } }
 	public string description
 	{	get
 		{
@@ -30,9 +30,15 @@ public abstract class ShipEquipment
 					fullDesc += "\n";
 				fullDesc += effectOnSelfDescription;
 			}
-			if (effectOnOpponentDescription!=null)
+			if (effectOnSectorDescription != null)
 			{
 				if (_description != null || effectOnSelfDescription != null)
+					fullDesc += "\n";
+				fullDesc += effectOnSectorDescription;
+			}
+			if (effectOnOpponentDescription!=null)
+			{
+				if (_description != null || effectOnSelfDescription != null || effectOnSectorDescription!=null)
 					fullDesc += "\n";
 				fullDesc += effectOnOpponentDescription;
 			}
@@ -70,6 +76,18 @@ public abstract class ShipEquipment
 	}
 	StatusEffect _onSelfEffect;
 
+	public StatusEffect onSectorEffect
+	{
+		get { return _onSectorEffect; }
+		protected set
+		{
+			_onSectorEffect = value;
+			if (value != null)
+				effectOnSectorDescription = "Sector:" + _onSectorEffect.description;
+		}
+	}
+	StatusEffect _onSectorEffect;
+
 	public StatusEffect onOpponentEffect
 	{
 		get { return _onOpponentEffect; }
@@ -83,7 +101,11 @@ public abstract class ShipEquipment
 	StatusEffect _onOpponentEffect;
 
 	string effectOnSelfDescription = null;
+	string effectOnSectorDescription = null;
 	string effectOnOpponentDescription = null;
+
+	protected ShipModel installedOnShip;
+	protected ShipSectorModel installedInSector;
 
 	public ShipEquipment()
 	{
@@ -106,26 +128,41 @@ public abstract class ShipEquipment
 			return false;
 	}
 
-	public virtual void ActivateEquipment(ShipModel activatedOnShip)
+	public virtual void SetOwner(object ownerObject)
+	{
+		installedOnShip = ownerObject as ShipModel;
+		if (installedOnShip == null)
+		{
+			installedInSector = ownerObject as ShipSectorModel;
+			Debug.Assert(installedInSector != null, "Cannot cast passed ownerObject as ShipModel!");
+			installedOnShip = PlayerShipModel.main;
+		}
+		
+	}
+
+	public virtual void ActivateEquipment()
 	{
 		SetCooldown();
 		if (generatorLevelDelta != 0)
-			activatedOnShip.ChangeGeneratorLevel(generatorLevelDelta);
+			installedOnShip.ChangeGeneratorLevel(generatorLevelDelta);
 			//TetrisManager.Instance.ChangeGeneratorLevel(generatorLevelDelta);
-		ExtenderActivation(activatedOnShip);
+		ExtenderActivation();
 	}
 
 	protected void SetCooldown()
 	{
 		cooldownTimeRemaining = maxCooldownTime;
 	}
-	protected virtual void ExtenderActivation(ShipModel activateOnShip) { }
+	protected virtual void ExtenderActivation() { }
 
 
 	public virtual void ResetEquipment()
 	{
 		cooldownTimeRemaining = 0;
 	}
+
+	public virtual void Dispose() { }
+
 }
 
 public class Forcefield : ShipEquipment
@@ -142,9 +179,9 @@ public class Forcefield : ShipEquipment
 		description = string.Format("Restore {0} shields", healthGain);
 	}
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		activateOnShip.healthManager.shields += healthGain;
+		installedOnShip.healthManager.shields += healthGain;
 	}
 }
 
@@ -162,9 +199,9 @@ public class Interface : ShipEquipment
 		description = string.Format("Gain {0} blue energy", blueGain);
 	}
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		activateOnShip.energyManager.blueEnergy += blueGain;
+		installedOnShip.energyManager.blueEnergy += blueGain;
 	}
 }
 
@@ -180,9 +217,9 @@ public class BlockEjector :ShipEquipment
 		description = string.Format("Clears {0} rows from the bottom", numberOfRowsCleared);
 	}
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		base.ExtenderActivation(activateOnShip);
+		base.ExtenderActivation();
 		Grid.Instance.ClearBottomRows(numberOfRowsCleared);
 	}
 }
@@ -230,9 +267,8 @@ public class Afterburner : ShipEquipment
 		description = string.Format("Catch up to the enemy ship faster, lowering moves until next engagement by {0}", lowerByMoves);
 	}
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		base.ExtenderActivation(activateOnShip);
 		BattleManager.Instance.ChangeTurnsForNextEngagement(-lowerByMoves);
 	}
 }
@@ -259,9 +295,8 @@ public class ManeuveringJets : ShipEquipment
 		description = string.Format("Avoid the enemy ship longer, increasing moves until next engagement by {0}", higherByMoves);
 	}
 
-	protected override void ExtenderActivation(ShipModel activateOnShip)
+	protected override void ExtenderActivation()
 	{
-		base.ExtenderActivation(activateOnShip);
 		BattleManager.Instance.ChangeTurnsForNextEngagement(higherByMoves);
 	}
 }
@@ -381,7 +416,7 @@ public class Siphon : ShipEquipment
 		greenEnergyCostToUse = 20;
 
 		name = "Siphon";
-		onSelfEffect = new EnergySiphonEffect();
+		onSectorEffect = new DisableEffect();//EnergySiphonEffect();
 	}
 }
 

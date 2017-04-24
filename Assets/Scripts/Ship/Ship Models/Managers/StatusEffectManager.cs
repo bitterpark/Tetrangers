@@ -13,17 +13,17 @@ public class StatusEffectManager
 	public event UnityAction<StatusEffect> EStatusEffectGained;
 
 	List<StatusEffect> activeStatusEffects = new List<StatusEffect>();
-	ShipModel parentModel;
+	object effectSubject;
 
-	public StatusEffectManager (ShipModel parentModel)
+	public StatusEffectManager (object effectSubject)
 	{
-		this.parentModel = parentModel;
+		this.effectSubject = effectSubject;
 	}
 
 	public void AddNewStatusEffect(StatusEffect effect)
 	{
 		activeStatusEffects.Add(effect);
-		effect.ActivateEffect(parentModel);
+		effect.ActivateEffect(effectSubject);
 		effect.EStatusEffectEnded += HandleStatusEffectDeactivation;
 		if (EStatusEffectGained != null) EStatusEffectGained(effect);
 	}

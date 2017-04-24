@@ -8,8 +8,10 @@ public class ShipSectorController
 {
 	PlayerShipEquipmentController equipmentController;
 	ShipEnergyController energyController;
+	StatusEffectController effectsController;
 	ShipSectorModel model;
 	SectorView view;
+
 
 	public ShipSectorController(ShipSectorModel model, SectorView view)
 	{
@@ -18,6 +20,7 @@ public class ShipSectorController
 
 		equipmentController = new PlayerShipEquipmentController(model.sectorEquipment, view.equipmentListView);
 		energyController = new ShipEnergyController(view.energyView, model.energyManager);
+		effectsController = new StatusEffectController(view.statusEffectDisplayer,model.effectsManager);
 	}
 
 
@@ -26,6 +29,7 @@ public class ShipSectorController
 	{
 		equipmentController.DisposeController(false);
 		energyController.DisposeController();
+		effectsController.Dispose();
 	}
 }
 

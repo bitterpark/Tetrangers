@@ -112,7 +112,7 @@ public class TetrisManager : Singleton<TetrisManager>
 
 	}
 
-	void HandleFinishedPlayerMove(Rect dummySettledBlockArg)
+	void HandleFinishedPlayerMove()
 	{
 		if (ECurrentPlayerMoveDone != null) ECurrentPlayerMoveDone();
 		if (ETransitionFromCurrentToNextMove != null) ETransitionFromCurrentToNextMove();

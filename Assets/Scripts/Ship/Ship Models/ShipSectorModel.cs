@@ -8,29 +8,54 @@ public class ShipSectorModel: ICanUseEquipment, IHasEnergy
 	public ShipEnergyManager energyManager { get; private set; }
 	public ShipEquipmentModel sectorEquipment;
 	public EquipmentUser equipmentUser { get; private set; }
+	public StatusEffectManager effectsManager { get; private set;}
+	public ShipHealthManager healthManager { get; private set; }
 
-	int index;
+	public int index { get; private set; }
+
+	public bool isDamaged { get; private set; }
+
+	const int sectorHealth = 150;
+	const int sectorShields = 150;
+	//const int sectorShieldsGain = 50;
 
 	public ShipSectorModel(ShipModel parentShip, int index)
 	{
 		this.index = index;
-		energyManager = new ShipEnergyManager
+		energyManager = new SectorEnergyManager
 			(
-			BalanceValuesManager.Instance.playerBlueGain
+			0//BalanceValuesManager.Instance.playerBlueGain
 			,BalanceValuesManager.Instance.playerBlueMax
-			,BalanceValuesManager.Instance.playerGreenGain
+			,0//BalanceValuesManager.Instance.playerGreenGain
 			,BalanceValuesManager.Instance.playerGreenMax
 			);
 		equipmentUser = new PlayerEquipmentUser(parentShip, this);
+		effectsManager = new StatusEffectManager(this);
 		sectorEquipment = new ShipEquipmentModel(parentShip, this);
-		//sectorEquipment.AddEquipment(new LaserGun(), new BlockEjector(), new Overdrive());
+		healthManager = new ShipHealthManager(sectorHealth, sectorShields, parentShip.healthManager.shieldsCurrentGain);
 
+		//sectorEquipment.AddEquipment(new LaserGun(), new BlockEjector(), new Overdrive());
+		healthManager.EHealthDepleted += HandleHealthRunningOut;
+
+	}
+
+	void HandleHealthRunningOut()
+	{
+		isDamaged = true;
+		Grid.Instance.GridSegments[index].isUsable = false;
 		
+	}
+
+	void HandleSectorStatusEffectApplication(StatusEffect effect, int appliesToSectorIndex)
+	{
+		if (index == appliesToSectorIndex)
+			effectsManager.AddNewStatusEffect(effect);
 	}
 
 	public void InitializeForBattle()
 	{
 		Grid.Instance.GridSegments[index].EBlocksCleared += HandleDestroyedBlocks;
+		EquipmentUser.EAppliedStatusEffectToPlayerShipSector += HandleSectorStatusEffectApplication;
 		sectorEquipment.InitializeForBattle();
 	}
 
@@ -59,9 +84,14 @@ public class ShipSectorModel: ICanUseEquipment, IHasEnergy
 
 	public void Dispose()
 	{
+		healthManager.EHealthDepleted -= HandleHealthRunningOut;
+
 		Grid.Instance.GridSegments[index].EBlocksCleared -= HandleDestroyedBlocks;
+		EquipmentUser.EAppliedStatusEffectToPlayerShipSector -= HandleSectorStatusEffectApplication;
 		energyManager.Dispose();
 		sectorEquipment.DisposeModel();
+		healthManager.Dispose();
+		equipmentUser.Dispose();
 	}
 
 }

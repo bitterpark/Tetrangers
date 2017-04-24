@@ -1,51 +1,88 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public interface IPowerup
 {
-	IEnumerator GetPowerupRoutine();
+	//IEnumerator GetPowerupRoutine();
+	void UsePowerup();
 }
+
+public enum PowerupType {Bomb, Change, LineClear, Damage};
 
 public abstract class Powerup: IPowerup
 {
+	protected int x;
+	protected int y;
 
-	public abstract IEnumerator GetPowerupRoutine();
-	//USE THIS FOR SIGNING ACTIVE POWERUPS UP TO EVENTS, TO MAKE SURE THEY CAN UNSUBSCRIBE EVEN IF THE POWERUP ACTIVATOR STOPS THEM FROM FINISHING
-	protected  virtual void InitializePowerup()
+	public static void PreparePowerup(PowerupType type, int powerupX, int powerupY)
 	{
-		PowerupActivator.EDeactivateAllPowerupRoutines += DeinitializePowerup;
-	}
-	protected virtual void DeinitializePowerup()
-	{
-		PowerupActivator.EDeactivateAllPowerupRoutines -= DeinitializePowerup;
+		Powerup powerup = GetPowerupInstance(type);
+		powerup.x = powerupX;
+		powerup.y = powerupY;
 	}
 
-}
-
-public class FreezeTime : Powerup
-{
-	const float freezeTime = 5f;
-
-	public override IEnumerator GetPowerupRoutine()
+	static Powerup GetPowerupInstance(PowerupType type)
 	{
-		float timePassed = 0;
-		
-		FigureController.frozen = true;
-		while (timePassed < freezeTime && FigureController.frozen)
+		switch (type)
 		{
-			timePassed += TetrisManager.tetrisDeltaTime;
-			yield return new WaitForFixedUpdate();
+			case PowerupType.Bomb: return new Bomb();
+			case PowerupType.Change: return new Change();
+			case PowerupType.Damage: return new Damage();
+			case PowerupType.LineClear: return new LineClear();
 		}
-		FigureController.frozen = false;
-		yield break;
+
+		Debug.LogErrorFormat("Could not get powerup instance from type {0}", type);
+		return null;
 	}
+
+	public static Sprite GetPowerupSprite(PowerupType type)
+	{
+		switch (type)
+		{
+			case PowerupType.Bomb: return SpriteDB.Instance.bombSprite;
+			case PowerupType.Change: return SpriteDB.Instance.changeSprite;
+			case PowerupType.Damage: return SpriteDB.Instance.damageSprite;
+			case PowerupType.LineClear: return SpriteDB.Instance.lineClearSprite;
+		}
+		return null;
+	}
+
+	public Powerup()
+	{
+		FigureSettler.ETogglePowerupEffects += ActivatePowerup;
+	}
+
+	void ActivatePowerup()
+	{
+		FigureSettler.ETogglePowerupEffects -= ActivatePowerup;
+		UsePowerup();
+	}
+
+	public abstract void UsePowerup();
+
+	
 }
+
 
 public class Bomb : Powerup
 {
-	bool bombDetonated = false;
+	//bool bombDetonated = false;
 
+	public override void UsePowerup()
+	{
+		//FigureSettler.ENewFigureSettled -= DetonateBomb;
+
+		int bombStartX = Mathf.Clamp((int)x - 1, 0, Grid.Instance.maxX);
+		int bombStartY = Mathf.Clamp((int)y - 1, 0, Grid.Instance.maxY);
+		int bombEndX = Mathf.Clamp((int)x + 1, 0, Grid.Instance.maxX);
+		int bombEndY = Mathf.Clamp((int)y + 1, 0, Grid.Instance.maxY);
+
+		Grid.Instance.ClearArea(bombStartX, bombStartY, bombEndX, bombEndY);
+		//bombDetonated = true;
+	}
+	/*
 	protected override void InitializePowerup()
 	{
 		base.InitializePowerup();
@@ -86,14 +123,32 @@ public class Bomb : Powerup
 		Grid.Instance.ClearArea(bombStartX,bombStartY,bombEndX,bombEndY);
 		bombDetonated = true;
 	}
-
+	*/
 }
 
 public class Change : Powerup
 {
-	public override IEnumerator GetPowerupRoutine()
+	public override void UsePowerup()
 	{
 		FigureSpawner.Instance.ChangeNextFigure();
-		yield break;
+	}
+
+}
+
+public class Damage: Powerup
+{
+	int damage = 100;
+
+	public override void UsePowerup()
+	{
+		PlayerShipModel.main.healthManager.TakeDamage(damage);
+	}
+}
+
+public class LineClear : Powerup
+{
+	public override void UsePowerup()
+	{
+		Grid.Instance.ClearRows(y);
 	}
 }

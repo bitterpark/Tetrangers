@@ -70,13 +70,13 @@ public class ShipEnergyManager
 
 	public int blueEnergyGain
 	{
-		get { return blueEnergyModel.energyGain; }
-		set { blueEnergyModel.energyGain = value; }
+		get { return GetBlueGainPropertyCalled(); }
+		set { SetBlueGainPropertyCalled(value); }
 	}
 	public int greenEnergyGain
 	{
-		get { return greenEnergyModel.energyGain; }
-		set { greenEnergyModel.energyGain = value; }
+		get { return GetGreenGainPropertyCalled(); }
+		set { SetGreenGainPropertyCalled(value); }
 	}
 
 	public ShipEnergyModel blueEnergyModel { get; protected set; }
@@ -149,5 +149,23 @@ public class ShipEnergyManager
 	{
 		return greenEnergyModel.GetActualDelta(attemptedDelta, absolute);
 	}
+
+	protected virtual int GetBlueGainPropertyCalled()
+	{
+		return blueEnergyModel.energyGain;
+	}
+	protected virtual int GetGreenGainPropertyCalled()
+	{
+		return greenEnergyModel.energyGain;
+	}
+	protected virtual void SetBlueGainPropertyCalled(int value)
+	{
+		blueEnergyModel.energyGain = value;
+	}
+	protected virtual void SetGreenGainPropertyCalled(int value)
+	{
+		greenEnergyModel.energyGain = value;
+	}
+
 }
 

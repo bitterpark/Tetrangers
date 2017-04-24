@@ -35,9 +35,9 @@ public abstract class ShipWeapon: ShipEquipment
 		lockOnTimeRemaining = lockOnTimeRequired;
 	}
 
-	public int ActivateWeapon(ShipModel activatedByShip)
+	public int ActivateWeapon()
 	{
-		base.ActivateEquipment(activatedByShip);
+		base.ActivateEquipment();
 		return damage;
 	}
 

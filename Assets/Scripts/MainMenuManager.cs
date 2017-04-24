@@ -27,13 +27,11 @@ public class MainMenuManager : Singleton<MainMenuManager>
 		baseScreen.OpenBaseScreen();
 	}
 
+
+
+	//TestStruct foo;
+
 	//EXPERIMENTAL STUFF
-	public event UnityEngine.Events.UnityAction CalledEvent;
-	public event UnityEngine.Events.UnityAction EmbeddedEvent
-	{
-		add { CalledEvent += value; }
-		remove { CalledEvent -= value; }
-	}
 
 	/*
 	private void Update()

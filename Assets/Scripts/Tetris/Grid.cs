@@ -44,9 +44,9 @@ public class Grid : Singleton<Grid>
 		get { return _gridVertSize - 1; }
 	}
 
-	public int maxYAllowedForSettling
+	public int maxSegmentY
 	{
-		get { return maxY; }
+		get { return _gridVertSize - 5; }
 	}
 
 	const int minMatchSize = 3;
@@ -81,7 +81,7 @@ public class Grid : Singleton<Grid>
 			int segmentMinX = segmentWidth * i;
 			int segmentMinY = 0;
 			int segmentMaxX = segmentMinX + segmentWidth-1;
-			int segmentMaxY = maxY;
+			int segmentMaxY = maxSegmentY;
 			gridSegments[i] = new GridSegment(segmentMinX, segmentMinY, segmentMaxX, segmentMaxY, i, gridGroup);
 		}
 	}
@@ -158,14 +158,20 @@ public class Grid : Singleton<Grid>
 	}
 
 
-	public void ClearFilledUpRows(List<int> filledUpRows)
+	public IEnumerator ClearFilledUpRows(List<List<Cell>> filledUpRows)
 	{
 		if (filledUpRows.Count > 0)
 		{
-			ClearRows(filledUpRows);
+			int coroutineGroupIndex = CoroutineExtension.GetLatestAvailableIndex();
+			foreach (List<Cell> cellsInRow in filledUpRows)
+				ClearCells(cellsInRow).LaunchInParallelCoroutinesGroup(this, coroutineGroupIndex.ToString());
+
+			while (CoroutineExtension.GroupIsProcessing(coroutineGroupIndex.ToString()))
+				yield return null;
 
 			if (ERowsCleared != null) ERowsCleared(filledUpRows.Count);
 		}
+		yield break;
 	}
 
 
@@ -210,12 +216,11 @@ public class Grid : Singleton<Grid>
 		int i = 0;
 		int j = 0;
 
-
 		for (i = topY; i >= bottomY; i--)
 			for (j = leftX; j <= rightX; j++)
 				clearedCells.Add(cells[j, i]);
 
-		ClearCells(clearedCells);
+		StartCoroutine(ClearCells(clearedCells));
 	}
 
 	public void ClearCellAtCoords(int xCoord, int yCoord)
@@ -265,26 +270,30 @@ public class Grid : Singleton<Grid>
 
 				globalClearInfo.clearedCellsBelongingToSegment.Add(cell);
 
-				if (blockInCell.blockType == BlockType.Blue)
-					globalClearInfo.blueBlocksCount++;
-				else if (blockInCell.blockType == BlockType.Green)
-					globalClearInfo.greenBlocksCount++;
-				else if (blockInCell.blockType == BlockType.Shield)
-					globalClearInfo.shieldBlocksCount++;
-
 				foreach (GridSegment segment in gridSegments)
 					if (segment.CellCoordsAreWithinSegment(cell.xCoord,cell.yCoord))
 					{
-						GridSegment.ClearedCellsInfo segmentInfo = clearInfo[segment];
-						segmentInfo.clearedCellsBelongingToSegment.Add(cell);
+						if (segment.isUsable)
+						{
+							GridSegment.ClearedCellsInfo segmentInfo = clearInfo[segment];
+							segmentInfo.clearedCellsBelongingToSegment.Add(cell);
 
-						if (blockInCell.blockType == BlockType.Blue)
-							segmentInfo.blueBlocksCount++;
-						else if (blockInCell.blockType == BlockType.Green)
-							segmentInfo.greenBlocksCount++;
-						else if (blockInCell.blockType == BlockType.Shield)
-							segmentInfo.shieldBlocksCount++;
-
+							if (blockInCell.blockType == BlockType.Blue)
+							{
+								segmentInfo.blueBlocksCount++;
+								globalClearInfo.blueBlocksCount++;
+							}
+							else if (blockInCell.blockType == BlockType.Green)
+							{
+								segmentInfo.greenBlocksCount++;
+								globalClearInfo.greenBlocksCount++;
+							}
+							else if (blockInCell.blockType == BlockType.Shield)
+							{
+								segmentInfo.shieldBlocksCount++;
+								globalClearInfo.shieldBlocksCount++;
+							}
+						}
 						break;
 					}
 
@@ -333,6 +342,9 @@ public class Grid : Singleton<Grid>
 
 	bool CanLowerBlockInCell(int cellX, int cellY)
 	{
+		//debug, change this later
+		return false;
+
 
 		if (cellY - 1 < 0) return false;
 		Cell startCell = cells[cellX, cellY];
@@ -342,18 +354,7 @@ public class Grid : Singleton<Grid>
 		else
 			return false;
 	}
-	/*
-	void LowerBlockInCell(int cellX, int cellY, bool lowerAllTheWay)
-	{
-		Cell startCell = cells[cellX, cellY];
-		Cell endCell = cells[cellX, cellY - 1];
-		SettledBlock block = startCell.ExtractBlockFromCell();
-		block.MoveToGridCell(endCell.xCoord, endCell.yCoord);
-		endCell.FillCell(block, true);
-		if (lowerAllTheWay)
-			LowerBlockInCell(endCell.xCoord,endCell.yCoord,true);
-	}
-	*/
+
 	IEnumerator LowerBlockInCell(int cellX, int cellY, bool lowerAllTheWay)
 	{
 		//Debug, change this later
