@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum BlockType { Blue, Green, Shield, Powerup }
+public enum BlockType { Blue, Green, Shield, ShipEnergy, Powerup }
 
 public class FigureBlock : MonoBehaviour
 {
@@ -16,6 +16,8 @@ public class FigureBlock : MonoBehaviour
 	Color blueBlockColor;
 	[SerializeField]
 	Color greenBlockColor;
+	[SerializeField]
+	Color shipBlockColor;
 	[SerializeField]
 	Color powerupBlockColor;
 
@@ -62,6 +64,8 @@ public class FigureBlock : MonoBehaviour
 			myImage.color = greenBlockColor;
 		else if (blockType == BlockType.Shield)
 			myImage.color = shieldBlockColor;
+		else if (blockType == BlockType.ShipEnergy)
+			myImage.color = shipBlockColor;
 		else if (blockType == BlockType.Powerup)
 		{
 			myImage.color = powerupBlockColor;

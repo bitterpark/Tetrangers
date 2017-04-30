@@ -1,14 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class SectorView : MonoBehaviour
 {
-	public SectorEquipmentListView equipmentListView;
-	public ShipEnergyView energyView;
+	public EquipmentListView equipmentListView;
+	public SectorEnergyView energyView;
 	public StatusEffectDisplayer statusEffectDisplayer;
+	public HealthView healthView;
+	public int sectorIndex;
 
 	public void ClearView()
 	{
-		equipmentListView.ClearView();
+		if (equipmentListView!=null)
+			equipmentListView.ClearView();
 	}
+
 }

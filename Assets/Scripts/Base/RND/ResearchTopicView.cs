@@ -52,11 +52,12 @@ public class ResearchTopicView: MonoBehaviour
 		{
 			ShipEquipmentView newEquipmentView = Instantiate(equipmentViewPrefab);
 			newEquipmentView.SetDisplayValues(
-				equipment.blueEnergyCostToUse,
-				equipment.greenEnergyCostToUse,
-				equipment.generatorLevelDelta,
-				equipment.maxCooldownTime,
-				equipment.name);
+				equipment.blueEnergyCostToUse
+				,equipment.greenEnergyCostToUse
+				,equipment.shipEnergyCostToUse
+				,equipment.generatorLevelDelta
+				,equipment.maxCooldownTime
+				,equipment.name);
 			if (equipment.equipmentType == EquipmentTypes.Weapon)
 			{
 				ShipWeapon weapon = equipment as ShipWeapon;

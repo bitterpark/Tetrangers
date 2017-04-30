@@ -123,8 +123,8 @@ public class SettledBlock : StaticBlock {
 		//PlayerShipModel.EPlayerBlueGainChanged -= SetColorBasedOnPlayerEnergyGain;
 		//if (blockType == BlockType.Green)
 		//PlayerShipModel.EPlayerGreenGainChanged -= SetColorBasedOnPlayerEnergyGain;
-		if (blockType == BlockType.Shield)
-			PlayerShipModel.EPlayerShieldGainChanged -= SetColorBasedOnPlayerEnergyGain;
+		//if (blockType == BlockType.Shield)
+			//PlayerShipModel.EPlayerShieldGainChanged -= SetColorBasedOnPlayerEnergyGain;
 
 		EThisBlockCleared = null;
 

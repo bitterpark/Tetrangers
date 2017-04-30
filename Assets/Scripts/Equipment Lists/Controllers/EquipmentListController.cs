@@ -22,24 +22,18 @@ public class EquipmentListController : IEquipmentListController
 	{
 		this.model = equipmentListModel;
 		this.view = equipmentView;
-		//shipController = new ShipController(playerShip,playerShipView);
 
 		ShipEquipmentView.EEquipmentMouseoverStopped += HandleEquipmentMouseoverStop;
 
 		List<ShipEquipment> storedEquipment = model.GetStoredEquipment();
 
-		Debug.Assert(view != null, "view is null!");
-
-		
+		Debug.Assert(view != null, "view is null!");		
 
 		foreach (ShipEquipment equipment in storedEquipment)
 		{
 			ShipEquipmentView newView = view.CreateEquipmentView();
 			SetupEquipmentView(newView,equipment);
 		}
-
-		
-
 	}
 
 	protected virtual void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
@@ -47,6 +41,7 @@ public class EquipmentListController : IEquipmentListController
 		newView.SetDisplayValues(
 			equipment.blueEnergyCostToUse, 
 			equipment.greenEnergyCostToUse,
+			equipment.shipEnergyCostToUse,
 			equipment.generatorLevelDelta, 
 			equipment.maxCooldownTime, 
 			equipment.name);

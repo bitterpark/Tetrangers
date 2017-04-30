@@ -9,11 +9,11 @@ public class BattleAI
 	public static UnityAction<ShipEquipment> EAIUsedEquipment;
 	public static UnityAction EAITurnFinished;
 
-	ShipModel myShipModel;
+	EnemyShipModel myShipModel;
 	//ShipModel opponentShipModel;
 	Dictionary<Goal, int> defaultGoalPriorities = new Dictionary<Goal, int>();
 
-	public BattleAI(ShipModel myShipModel)
+	public BattleAI(EnemyShipModel myShipModel)
 	{
 		this.myShipModel = myShipModel;
 

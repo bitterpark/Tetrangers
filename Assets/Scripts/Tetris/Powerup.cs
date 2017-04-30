@@ -141,7 +141,7 @@ public class Damage: Powerup
 
 	public override void UsePowerup()
 	{
-		PlayerShipModel.main.healthManager.TakeDamage(damage);
+		//PlayerShipModel.main.TakeDamage(damage);
 	}
 }
 

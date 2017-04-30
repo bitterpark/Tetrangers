@@ -39,12 +39,12 @@ public class MeltdownEffect : PlayerShipStatusEffect
 	protected override void CastExtenderActivation(PlayerShipModel activateOnShip)
 	{
 		//Debug.Assert(activateOnShip.GetType() == typeof(PlayerShipModel), "Trying to activate player ship ability on an enemy ship!");
-		PlayerShipModel.energyGainPerSecondsSavedEnabled = true;
+		//PlayerShipModel.energyGainPerSecondsSavedEnabled = true;
 	}
 
 	protected override void ExtenderDeactivation()
 	{
-		PlayerShipModel.energyGainPerSecondsSavedEnabled = false;
+		//PlayerShipModel.energyGainPerSecondsSavedEnabled = false;
 	}
 }
 

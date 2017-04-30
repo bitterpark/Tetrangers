@@ -8,16 +8,36 @@ public class EnemyShipController : ShipCombatController
 
 	//public delegate void EmptyDeleg();
 	//public static event EmptyDeleg EEnemyTurnFinished;
+	//EnemyShipSectorController sectorController;
+	SectorEnergyController energyController;
+	HealthController healthController;
 
-	public EnemyShipController(ShipModel model, IShipViewProvider viewProvider)
-		: base(model, viewProvider.shipView)
+	public EnemyShipController(EnemyShipModel model, EnemyShipViewProvider viewProvider)
+		: base(model, viewProvider)
 	{
 		//BattleManager.EEngagementModeStarted += DoEnemyTurn;
+		//CreateSectorController(viewProvider);
+		energyController = new SectorEnergyController(viewProvider.energyView, model.energyManager);
+		healthController = new HealthController(viewProvider.healthView, model.healthManager);
 	}
 
 	protected override EquipmentListController CreateEquipmentController(ShipEquipmentModel model, IShipViewProvider viewProvider)
 	{
 		return new EnemyShipEquipmentController(model, viewProvider.shipView.equipmentListView);
+	}
+	//unused
+	void CreateSectorController(EnemyShipViewProvider viewProvider)
+	{
+		EnemyShipModel enemyShip = model as EnemyShipModel;
+		//sectorController = new EnemyShipSectorController(enemyShip.sectorModel, viewProvider);
+	}
+
+	public override void DisposeController(bool disposeModel)
+	{
+		//sectorController.Dispose();
+		healthController.Dispose();
+		energyController.DisposeController();
+		base.DisposeController(disposeModel);
 	}
 
 	/*

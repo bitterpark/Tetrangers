@@ -32,13 +32,15 @@ public class ShipEquipmentModel : IEquipmentListModel
 		BattleManager.EEngagementModeEnded += DoRoundoverGains;
 	}
 
-	
+	public void LowerAllCooldowns(int lowerBy)
+	{
+		foreach (ShipEquipment equipment in GetStoredEquipment())
+			equipment.cooldownTimeRemaining -= lowerBy;
+	}
 
 	public void ResetAllCooldowns()
 	{
-		List<ShipEquipment> allEquipment = new List<ShipEquipment>();
-		allEquipment.AddRange(shipWeapons.ToArray());
-		allEquipment.AddRange(shipOtherEquipment.ToArray());
+		List<ShipEquipment> allEquipment = GetStoredEquipment();//new List<ShipEquipment>();
 
 		foreach (ShipEquipment equipment in allEquipment)
 			equipment.ResetEquipment();

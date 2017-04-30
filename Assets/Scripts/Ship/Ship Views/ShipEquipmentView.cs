@@ -21,6 +21,8 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	[SerializeField]
 	GameObject greenEnergyCostObject;
 	[SerializeField]
+	GameObject shipEnergyCostObject;
+	[SerializeField]
 	GameObject cooldownTimeObject;
 	[SerializeField]
 	GameObject lockonTimeObject;
@@ -65,9 +67,9 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		
 	}
 
-	public void SetDisplayValues(int blueEnergyCost, int greenEnergyCost, int generatorDelta, int maxCooldownTime, string equipmentName)
+	public void SetDisplayValues(int blueEnergyCost, int greenEnergyCost, int shipEnergyCost, int generatorDelta, int maxCooldownTime, string equipmentName)
 	{
-		SetEnergyCost(blueEnergyCost, greenEnergyCost);
+		SetEnergyCost(blueEnergyCost, greenEnergyCost, shipEnergyCost);
 		SetName(equipmentName);
 		SetGeneratorDelta(generatorDelta);
 		SetDamage(0);
@@ -86,7 +88,7 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 			damageObject.SetActive(false);
 	}
 
-	public void SetEnergyCost(int blueCost, int greenCost)
+	public void SetEnergyCost(int blueCost, int greenCost, int shipCost)
 	{
 		if (blueCost > 0)
 		{
@@ -103,6 +105,14 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		}
 		else
 			greenEnergyCostObject.SetActive(false);
+
+		if (shipCost > 0)
+		{
+			shipEnergyCostObject.SetActive(true);
+			shipEnergyCostObject.GetComponentInChildren<Text>().text = shipCost.ToString();
+		}
+		else
+			shipEnergyCostObject.SetActive(false);
 	}
 
 	public void SetCooldownTime(int currentTime, int maxTime)

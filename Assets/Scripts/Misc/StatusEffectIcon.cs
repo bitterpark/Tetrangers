@@ -29,8 +29,17 @@ namespace StatusEffects
 
 			RectTransform myRectTransform = GetComponent<RectTransform>();
 			myRectTransform.SetParent(parent);
-			myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, parent.rect.height);
-			myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, parent.rect.height);
+
+			if (parent.GetComponent<HorizontalLayoutGroup>() != null)
+			{
+				myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, parent.rect.height);
+				myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, parent.rect.height);
+			}
+			else
+			{
+				myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, parent.rect.width);
+				myRectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, parent.rect.width);
+			}
 		}
 
 		public void OnPointerEnter(PointerEventData eventData)

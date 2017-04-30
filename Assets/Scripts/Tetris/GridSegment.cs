@@ -6,7 +6,7 @@ using UnityEngine;
 public class GridSegment
 {
 	public static event UnityEngine.Events.UnityAction<int> ERowsCleared;
-	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks, int segmentIndex);
+	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks, int shipBlocks, int segmentIndex);
 	public event BlocksClearDeleg EBlocksCleared;
 
 	public int minX { get; private set; }
@@ -45,7 +45,11 @@ public class GridSegment
 	{
 		if (EBlocksCleared != null)
 		{
-			PlayerShipModel.TotalEnergyGain totalGain = EBlocksCleared(info.blueBlocksCount, info.greenBlocksCount, info.shieldBlocksCount, segmentIndex);
+			PlayerShipModel.TotalEnergyGain totalGain = EBlocksCleared(info.blueBlocksCount
+				, info.greenBlocksCount
+				, info.shieldBlocksCount
+				, info.shipBlocksCount
+				, segmentIndex);
 			gridFX.ShowEnergyGainFX(info.clearedCellsBelongingToSegment, totalGain);
 		}
 		
@@ -56,6 +60,7 @@ public class GridSegment
 		public int blueBlocksCount = 0;
 		public int greenBlocksCount = 0;
 		public int shieldBlocksCount = 0;
+		public int shipBlocksCount = 0;
 		public List<Cell> clearedCellsBelongingToSegment = new List<Cell>();
 	}
 

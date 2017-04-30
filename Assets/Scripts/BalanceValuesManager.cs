@@ -24,7 +24,8 @@ public class BalanceValuesManager : Singleton<BalanceValuesManager> {
 	public int playerBlueGainPerSecondSaved;
 	public int playerGreenMax;
 	public int playerBlueMax;
-
+	public int playerShipEnergyGain;
+	public int playerShipEnergyMax;
 
 	[Header("General enemy stats")]
 	public int enemyShieldGain = 50;

@@ -12,18 +12,18 @@ public abstract	class ShipCombatController: ShipController
 	{
 		//ShipEquipment.EEquipmentCooldownChanged += UpdateCooldownTime;
 		effectsController = new StatusEffectController(viewProvider.shipView.statusEffectDisplayer, model.statusEffectManager);
-		model.healthManager.EHealthDamaged += DisplayHealthDamage;
-		model.healthManager.EShieldsDamaged += DisplayShieldsDamage;
+		//model.healthManager.EHealthDamaged += DisplayHealthDamage;
+		//model.healthManager.EShieldsDamaged += DisplayShieldsDamage;
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
 		effectsController.Dispose();
-		model.healthManager.EHealthDamaged -= DisplayHealthDamage;
-		model.healthManager.EShieldsDamaged -= DisplayShieldsDamage;
+		//model.healthManager.EHealthDamaged -= DisplayHealthDamage;
+		//model.healthManager.EShieldsDamaged -= DisplayShieldsDamage;
 	}
-
+	/*
 	void DisplayShieldsDamage()
 	{
 		UpdateShields();
@@ -34,7 +34,7 @@ public abstract	class ShipCombatController: ShipController
 	{
 		UpdateHealth();
 		view.PlayGotHitFX();
-	}
+	}*/
 
 }
 

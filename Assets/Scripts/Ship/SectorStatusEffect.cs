@@ -11,8 +11,6 @@ public abstract class SectorStatusEffect: StatusEffect
 		BattleManager.EEngagementModeStarted += DeactivateEffect;
 	}
 
-	//void Funknuts() { Debug.Log(); }
-
 	protected override void SubclassDeactivation()
 	{
 		BattleManager.EEngagementModeStarted -= DeactivateEffect;
@@ -20,12 +18,12 @@ public abstract class SectorStatusEffect: StatusEffect
 
 	protected override void ExtenderActivation(object activateOnObject)
 	{
-		ShipSectorModel activateOnSector = activateOnObject as ShipSectorModel;
+		PlayerShipSectorModel activateOnSector = activateOnObject as PlayerShipSectorModel;
 		Debug.Assert(activateOnSector != null, "Trying to activate player ship effect on non-player ship!");
 		CastExtenderActivation(activateOnSector);
 	}
 
-	protected abstract void CastExtenderActivation(ShipSectorModel useOnPlayerShipModel);
+	protected abstract void CastExtenderActivation(PlayerShipSectorModel useOnPlayerShipModel);
 }
 
 public class EnergySiphonEffect : SectorStatusEffect
@@ -41,7 +39,7 @@ public class EnergySiphonEffect : SectorStatusEffect
 		color = Color.blue;
 	}
 
-	protected override void CastExtenderActivation(ShipSectorModel activateInSector)
+	protected override void CastExtenderActivation(PlayerShipSectorModel activateInSector)
 	{
 		activeOnShip = EnemyShipModel.currentlyActive;
 
@@ -51,7 +49,7 @@ public class EnergySiphonEffect : SectorStatusEffect
 
 	void GainEnergy(int gain)
 	{
-		activeOnShip.energyManager.blueEnergy += gain;
+		//activeOnShip.energyUser.blueEnergy += gain;
 	}
 
 	protected override void ExtenderDeactivation()
@@ -75,7 +73,7 @@ public class DisableEffect : SectorStatusEffect
 		color = Color.gray;
 	}
 
-	protected override void CastExtenderActivation(ShipSectorModel activateInSector)
+	protected override void CastExtenderActivation(PlayerShipSectorModel activateInSector)
 	{
 		mySectorIndex = activateInSector.index;
 		Grid.Instance.GridSegments[mySectorIndex].isUsable = false;

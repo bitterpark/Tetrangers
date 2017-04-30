@@ -29,6 +29,8 @@ public class ParticleDB : Singleton<ParticleDB> {
 			particles = greenClearedBlockParticles;
 		if (blockType == BlockType.Shield)
 			particles = shieldClearedBlockParticles;
+		if (blockType == BlockType.ShipEnergy)
+			particles = shieldClearedBlockParticles;
 
 		Debug.Assert(particles != null, "Could not find the right cleared block particles!");
 		CreateParticles(particles, worldPosition);

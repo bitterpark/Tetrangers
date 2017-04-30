@@ -9,7 +9,7 @@ public abstract class ShipController {
 	protected ShipModel model;
 
 	protected EquipmentListController equipmentController;
-	ShipEnergyController energyController;
+	//ShipEnergyController energyController;
 
 	public ShipController(ShipModel model, IShipViewProvider viewProvider)//:base(model,view)
 	{
@@ -18,19 +18,19 @@ public abstract class ShipController {
 
 		equipmentController = CreateEquipmentController(model.shipEquipment, viewProvider);
 
-		model.healthManager.EHealthChanged += UpdateHealth;
-		model.healthManager.EShieldsChanged += UpdateShields;
-		model.healthManager.EShieldsGainChanged += UpdateShieldsGain;
+		//model.healthManager.EHealthChanged += UpdateHealth;
+		//model.healthManager.EShieldsChanged += UpdateShields;
+		//model.healthManager.EShieldsGainChanged += UpdateShieldsGain;
 
-		energyController = new ShipEnergyController(view.energyView, model.energyManager);
+		//energyController = new ShipEnergyController(view.energyView, model.energyManager);
 
 		model.EGeneratorLevelChanged += UpdateGenerator;
 
 		view.SetNameAndSprite(model.shipName,model.shipSprite);
 
-		UpdateHealth();
-		UpdateShields();
-		UpdateShieldsGain();
+		//UpdateHealth();
+		//UpdateShields();
+		//UpdateShieldsGain();
 		UpdateGenerator();
 	}
 
@@ -39,10 +39,10 @@ public abstract class ShipController {
 	public virtual void DisposeController(bool disposeModel)
 	{
 		equipmentController.DisposeController(disposeModel);
-		energyController.DisposeController();
-		model.healthManager.EHealthChanged -= UpdateHealth;
-		model.healthManager.EShieldsChanged -= UpdateShields;
-		model.healthManager.EShieldsGainChanged -= UpdateShieldsGain;
+		//energyController.DisposeController();
+		//model.healthManager.EHealthChanged -= UpdateHealth;
+		//model.healthManager.EShieldsChanged -= UpdateShields;
+		//model.healthManager.EShieldsGainChanged -= UpdateShieldsGain;
 
 		model.EGeneratorLevelChanged -= UpdateGenerator;
 
@@ -50,21 +50,21 @@ public abstract class ShipController {
 			model.DisposeModel();
 	}
 
-
+	/*
 	protected void UpdateHealth()
 	{
-		view.SetHealth(model.healthManager.health, model.healthManager.healthMax);
+		view.healthView.SetHealth(model.healthManager.health, model.healthManager.healthMax);
 	}
 
 	protected void UpdateShields()
 	{
-		view.SetShields(model.healthManager.shields, model.healthManager.shieldsMax);
+		view.healthView.SetShields(model.healthManager.shields, model.healthManager.shieldsMax);
 	}
 
 	void UpdateShieldsGain()
 	{
-		view.SetShieldsGain(model.healthManager.shieldsCurrentGain);
-	}
+		view.healthView.SetShieldsGain(model.healthManager.shieldsCurrentGain);
+	}*/
 
 	void UpdateGenerator()
 	{

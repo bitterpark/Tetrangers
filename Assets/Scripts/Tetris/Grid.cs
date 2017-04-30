@@ -5,11 +5,11 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 
-public class Grid : Singleton<Grid> 
+public class Grid : Singleton<Grid>
 {
-	
+
 	public static event UnityAction<int> ERowsCleared;
-	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks);
+	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks, int shipBlocks);
 	public static event BlocksClearDeleg EBlocksCleared;
 
 	public static bool gridReady = false;
@@ -37,7 +37,7 @@ public class Grid : Singleton<Grid>
 
 	public int maxX
 	{
-		get { return _gridHorSize - 1;}
+		get { return _gridHorSize - 1; }
 	}
 	public int maxY
 	{
@@ -59,7 +59,7 @@ public class Grid : Singleton<Grid>
 	public Matcher matcher { get; private set; }
 	FigureSettler settler;
 
-	public GridSegment[] GridSegments { get { return gridSegments;} }
+	public GridSegment[] GridSegments { get { return gridSegments; } }
 	GridSegment[] gridSegments;
 
 	public static readonly int segmentCount = 3;
@@ -80,7 +80,7 @@ public class Grid : Singleton<Grid>
 		{
 			int segmentMinX = segmentWidth * i;
 			int segmentMinY = 0;
-			int segmentMaxX = segmentMinX + segmentWidth-1;
+			int segmentMaxX = segmentMinX + segmentWidth - 1;
 			int segmentMaxY = maxSegmentY;
 			gridSegments[i] = new GridSegment(segmentMinX, segmentMinY, segmentMaxX, segmentMaxY, i, gridGroup);
 		}
@@ -109,8 +109,8 @@ public class Grid : Singleton<Grid>
 					newCellImage.color = Color.gray;
 
 				RectTransform newCellImageTransform = newCellImage.GetComponent<RectTransform>();
-                newCellImageTransform.sizeDelta = new Vector2(cellSize,cellSize);
-                newCellImageTransform.GetComponent<RectTransform>().anchoredPosition = new Vector3(j * cellSize, i * cellSize);
+				newCellImageTransform.sizeDelta = new Vector2(cellSize, cellSize);
+				newCellImageTransform.GetComponent<RectTransform>().anchoredPosition = new Vector3(j * cellSize, i * cellSize);
 			}
 		gridReady = true;
 	}
@@ -124,15 +124,15 @@ public class Grid : Singleton<Grid>
 	public Cell GetCell(int cellX, int cellY)
 	{
 		if (cellX < 0 | cellY < 0 | cellX >= _gridHorSize | cellY >= _gridVertSize)
-			Debug.LogFormat("Getting cell ({0},{1}) which does not exist!",cellX,cellY);
-
-		return cells[cellX, cellY];
+			return null;
+		else
+			return cells[cellX, cellY];
 	}
 
-    public bool CellExistsIsUnoccupied(Vector2 cellCoords)
-    {
-        return CellExistsIsUnoccupied((int)cellCoords.x, (int)cellCoords.y);
-    }
+	public bool CellExistsIsUnoccupied(Vector2 cellCoords)
+	{
+		return CellExistsIsUnoccupied((int)cellCoords.x, (int)cellCoords.y);
+	}
 
 	public bool CellExistsIsUnoccupied(int cellX, int cellY)
 	{
@@ -154,7 +154,7 @@ public class Grid : Singleton<Grid>
 		if (cellX < 0 | cellY < 0 | cellX >= _gridHorSize | cellY >= _gridVertSize)
 			Debug.LogFormat("Getting world position of cell ({0},{1}) which does not exist!", cellX, cellY);
 
-		return new Vector2(cellX*cellSize, cellY*cellSize);
+		return new Vector2(cellX * cellSize, cellY * cellSize);
 	}
 
 
@@ -178,12 +178,25 @@ public class Grid : Singleton<Grid>
 
 	public void ClearBottomRows(int numberOfRows)
 	{
-		List<int> rowIndeces = new List<int>();
+		for (int i = numberOfRows - 1; i >= 0; i--)
+			ClearArea(0, i, maxX, i, false);
 
-		for (int i = 0; i < numberOfRows; i++)
-			rowIndeces.Add(i);
+		List<int> possibleMatchesInRows = new List<int>();
+		for (int i = 0; i <= maxX; i++)
+			for (int j = numberOfRows; j <= maxSegmentY; j++)
+			{
+				if (CanLowerBlockInCell(i, j))
+				{
+					for (int tries = 0; tries < numberOfRows; tries++)
+						StartCoroutine(LowerBlockInCell(i, j - tries, false));
 
-		ClearRows(rowIndeces);
+					if (!possibleMatchesInRows.Contains(j - numberOfRows))
+						possibleMatchesInRows.Add(j - numberOfRows);
+				}
+
+
+			}
+		matcher.HandleMatches(possibleMatchesInRows,new List<int>());
 	}
 
 	public void ClearRows(params int[] rows)
@@ -199,9 +212,13 @@ public class Grid : Singleton<Grid>
 			ClearArea(0, rows[i], maxX, rows[i]);
 
 	}
-	
+
 	//Update this with coroutines later?
 	public void ClearArea(int leftX, int bottomY, int rightX, int topY)
+	{
+		ClearArea(leftX, bottomY, rightX, topY, false); 
+	}
+	public void ClearArea(int leftX, int bottomY, int rightX, int topY, bool lowerAboveCells)
 	{
 		Debug.AssertFormat(leftX >= 0 && leftX<= maxX 
 			&& bottomY>=0 && bottomY<= maxY
@@ -220,7 +237,7 @@ public class Grid : Singleton<Grid>
 			for (j = leftX; j <= rightX; j++)
 				clearedCells.Add(cells[j, i]);
 
-		StartCoroutine(ClearCells(clearedCells));
+		StartCoroutine(ClearCells(clearedCells, lowerAboveCells));
 	}
 
 	public void ClearCellAtCoords(int xCoord, int yCoord)
@@ -230,10 +247,18 @@ public class Grid : Singleton<Grid>
 
 	public IEnumerator ClearCells(params Cell[] clearedCells)
 	{
-		return ClearCells(new List<Cell>(clearedCells));
+		return ClearCells(false, clearedCells);
+	}
+	public IEnumerator ClearCells(bool lower, params Cell[] clearedCells)
+	{
+		return ClearCells(new List<Cell>(clearedCells), lower);
+	}
+	public IEnumerator ClearCells(List<Cell> clearedCells)
+	{
+		return ClearCells(clearedCells, false);
 	}
 
-	public IEnumerator ClearCells(List<Cell> clearedCells)
+	public IEnumerator ClearCells(List<Cell> clearedCells, bool lower)
 	{
 		//This should ensure that the cells at the top always go first
 		System.Comparison<Cell> topLeftCellsFirstOrderer = (Cell cell1, Cell cell2) => 
@@ -293,18 +318,26 @@ public class Grid : Singleton<Grid>
 								segmentInfo.shieldBlocksCount++;
 								globalClearInfo.shieldBlocksCount++;
 							}
+							else if (blockInCell.blockType == BlockType.ShipEnergy)
+							{
+								segmentInfo.shipBlocksCount++;
+								globalClearInfo.shipBlocksCount++;
+							}
 						}
 						break;
 					}
 
 				cell.ClearCell();
-				
-				for (int k = cell.yCoord + 1; k < maxY; k++)
-					if (CanLowerBlockInCell(cell.xCoord,k))
-					{
-						loweredBlocks.Add(blockInCell);
-						LowerBlockInCell(cell.xCoord, k, true).LaunchInParallelCoroutinesGroup(this, coroutineGroupIndex.ToString());
-					}
+				if (lower)
+				{
+					for (int k = cell.yCoord + 1; k < maxY; k++)
+						if (CanLowerBlockInCell(cell.xCoord, k))
+						{
+							loweredBlocks.Add(blockInCell);
+							//StartCoroutine(LowerBlockInCell(cell.xCoord, k, false));
+							LowerBlockInCell(cell.xCoord, k, false).LaunchInParallelCoroutinesGroup(this, coroutineGroupIndex.ToString());
+						}
+				}
 			}
 		}
 
@@ -330,7 +363,8 @@ public class Grid : Singleton<Grid>
 				(
 				globalClearInfo.blueBlocksCount
 				, globalClearInfo.greenBlocksCount
-				, globalClearInfo.shieldBlocksCount);
+				, globalClearInfo.shieldBlocksCount
+				,globalClearInfo.shipBlocksCount);
 			gridFX.ShowEnergyGainFX(clearedCells, totalGain);
 		}
 
@@ -343,7 +377,7 @@ public class Grid : Singleton<Grid>
 	bool CanLowerBlockInCell(int cellX, int cellY)
 	{
 		//debug, change this later
-		return false;
+		//return false;
 
 
 		if (cellY - 1 < 0) return false;
@@ -355,16 +389,16 @@ public class Grid : Singleton<Grid>
 			return false;
 	}
 
+	
 	IEnumerator LowerBlockInCell(int cellX, int cellY, bool lowerAllTheWay)
 	{
-		//Debug, change this later
-		lowerAllTheWay = false;
 
 		Cell startCell = cells[cellX, cellY];
 		Cell endCell = cells[cellX, cellY - 1];
 		SettledBlock block = startCell.ExtractBlockFromCell();
 
-		yield return StartCoroutine(block.AnimateMoveToGridCell(endCell.xCoord, endCell.yCoord));
+		block.MoveToGridCell(endCell.xCoord, endCell.yCoord);
+		//yield return StartCoroutine(block.AnimateMoveToGridCell(endCell.xCoord, endCell.yCoord));
 		endCell.FillCell(block, true);
 		if (lowerAllTheWay && CanLowerBlockInCell(endCell.xCoord, endCell.yCoord))
 			yield return StartCoroutine(LowerBlockInCell(endCell.xCoord, endCell.yCoord, true));

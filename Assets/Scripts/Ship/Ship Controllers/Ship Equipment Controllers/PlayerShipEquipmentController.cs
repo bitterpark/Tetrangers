@@ -57,8 +57,32 @@ public class PlayerShipEquipmentController : ShipEquipmentController
 
 	protected override void HandleEquipmentButtonAnimationFinish(ShipEquipmentView equipmentView)
 	{
-		base.HandleEquipmentButtonAnimationFinish(equipmentView);
+		ShipEquipment equipmentInView = GetEquipmentRepresentedByView(equipmentView);
+		IRequiresPlayerTargetSelect targetingInterface = equipmentInView as IRequiresPlayerTargetSelect;
+
+		if (targetingInterface == null)
+			HandleActivatingEquipment(equipmentView, true);
+		else
+		{
+			targetingInterface.CallTargetSelectManager();
+
+			UnityEngine.Events.UnityAction<bool> equipmentActivationWrapper = null;
+			equipmentActivationWrapper =
+				(bool targetSelected) =>
+				{
+					HandleActivatingEquipment(equipmentView, targetSelected);
+					PlayerTargetSelectManager.ETargetSelectionFinished -= equipmentActivationWrapper;
+				};
+			PlayerTargetSelectManager.ETargetSelectionFinished += equipmentActivationWrapper;
+		}
+	}
+
+	void HandleActivatingEquipment(ShipEquipmentView equipmentView, bool activate)
+	{
+		if (activate)
+			base.HandleEquipmentButtonAnimationFinish(equipmentView);
 		TryEnableEquipmentViewButtons();
 	}
+
 }
 

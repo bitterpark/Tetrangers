@@ -21,9 +21,9 @@ public class BattleManager : Singleton<BattleManager> {
 	Text engagementStatusText;
 
 	[SerializeField]
-	PlayerShipViewProvider playerShipView;
+	PlayerShipViewProvider playerShipViewProvider;
 	[SerializeField]
-	ShipView enemyShipView;
+	EnemyShipViewProvider enemyShipViewProvider;
 
 	[SerializeField]
 	BattleResultsView battleResultsView;
@@ -91,15 +91,9 @@ public class BattleManager : Singleton<BattleManager> {
 		if (EBattleManagerActivated != null) EBattleManagerActivated();
 	}
 
-	void DisplayPlayerShip(ShipModel playerShipModel)
+	void DisplayPlayerShip(PlayerShipModel playerShipModel)
 	{
-		//ShipModel playerShipModel = new PlayerShipModel(100, 100, 250, tempShipSprite, "Player Ship");
-
-		//IShipViewProvider fuckShitBalls = playerShipView;
-		//PlayerShipViewProvider recast = fuckShitBalls as PlayerShipViewProvider;
-		//Debug.Assert(recast.sectorEquipmentLists.Count > 0, "Fail fuck!");
-
-		playerShipController = new PlayerShipController(playerShipModel, playerShipView);
+		playerShipController = new PlayerShipController(playerShipModel, playerShipViewProvider);
 	}
 	void ClearPlayerShip(bool clearModel)
 	{
@@ -107,10 +101,10 @@ public class BattleManager : Singleton<BattleManager> {
 		playerShipController = null;
 	}
 
-	void DisplayEnemyShip(ShipModel enemyShipModel)
+	void DisplayEnemyShip(EnemyShipModel enemyShipModel)
 	{
 		//ShipModel enemyShipModel = new EnemyShipModel(50, 200, 250, tempShipSprite, "Enemy Ship");
-		enemyShipController = new EnemyShipController(enemyShipModel, enemyShipView);
+		enemyShipController = new EnemyShipController(enemyShipModel, enemyShipViewProvider);
 	}
 	void ClearEnemyShip(bool clearModel)
 	{

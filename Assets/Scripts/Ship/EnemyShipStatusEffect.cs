@@ -10,14 +10,14 @@ public abstract	class EnemyShipStatusEffect: ShipStatusEffect
 	protected override void ExtenderActivation(object activateOnObject)
 	{
 		EnemyShipModel activateOnEnemyShip = activateOnObject as EnemyShipModel;
-		Debug.Assert(activateOnEnemyShip != null, "Trying to activate player ship effect on non-player ship!");
+		Debug.Assert(activateOnEnemyShip != null, "Trying to activate enemy ship effect on non-player ship!");
 		CastExtenderActivation(activateOnEnemyShip);
 	}
 
 	protected override void CastExtenderActivation(ShipModel useOnShipModel)
 	{
 		EnemyShipModel activateOnEnemyShip = useOnShipModel as EnemyShipModel;
-		Debug.Assert(activateOnEnemyShip != null, "Trying to activate player ship effect on non-player ship!");
+		Debug.Assert(activateOnEnemyShip != null, "Trying to activate enemy ship effect on non-player ship!");
 		CastExtenderActivation(activateOnEnemyShip);
 	}
 

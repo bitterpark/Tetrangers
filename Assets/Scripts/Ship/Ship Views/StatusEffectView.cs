@@ -19,10 +19,6 @@ namespace StatusEffects
 	[RequireComponent(typeof(LayoutGroup))]
 	public class StatusEffectView : MonoBehaviour
 	{
-
-		[SerializeField]
-		Sprite testStatusEffectSprite;
-
 		public void AddStatusEffectIcon(IDisplayableStatusEffect effect)
 		{
 			GameObject effectObject = new GameObject();
