@@ -33,11 +33,11 @@ public class PlayerShipModel : ShipModel {
 	{
 		main = this;
 		
-		FigureSettler.EOverflowingBlocks += HandleOverflowDamage;
+		//FigureSettler.EOverflowingBlocks += HandleOverflowDamage;
 		//healthManager.EShieldsGainChanged += HandleShieldGainChange;
 
-		shipEquipment.AddEquipment(new Heatsink());
-		shipEquipment.AddEquipment(new Stabilizer(), new TestEquipment());
+		shipEquipment.AddEquipment(new Heatsink(), new NukeLauncher());
+		shipEquipment.AddEquipment(new Stabilizer(), new RepairDrones());
 
 		int sectorCount = Grid.segmentCount;
 		shipSectors = new PlayerShipSectorModel[sectorCount];
@@ -47,11 +47,6 @@ public class PlayerShipModel : ShipModel {
 		shipSectors[0].sectorEquipment.AddEquipment(new LaserGun(), new ReactiveArmor());
 		shipSectors[1].sectorEquipment.AddEquipment(new PlasmaCannon(), new Forcefield());
 		shipSectors[2].sectorEquipment.AddEquipment(new HeavyLaser(), new BlueEnergyTransmitter());
-	}
-
-	void HandleOverflowDamage(int overflowingBlocks)
-	{
-		//healthManager.TakeDamage(overflowingBlocks * 25);
 	}
 
 	protected override void InitializeForBattle()
@@ -84,7 +79,12 @@ public class PlayerShipModel : ShipModel {
 
 	protected override ICanSpendEnergy CreateOrGetAppropriateEnergyUser(int blueMax, int greenMax)
 	{
-		resourceManager = new ShipResourceManager(BalanceValuesManager.Instance.playerShipEnergyGain, BalanceValuesManager.Instance.playerShipEnergyMax);//ShipEnergyManager(10, 500);
+		resourceManager = new ShipResourceManager(
+			BalanceValuesManager.Instance.playerShipEnergyGain
+			, BalanceValuesManager.Instance.playerShipEnergyMax
+			, BalanceValuesManager.Instance.playerAmmoMax
+			, BalanceValuesManager.Instance.playerPartsMax
+			);
 		return resourceManager;
 	}
 
@@ -104,7 +104,7 @@ public class PlayerShipModel : ShipModel {
 
 		Grid.EBlocksCleared -= HandleDestroyedBlocks;
 
-		FigureSettler.EOverflowingBlocks -= HandleOverflowDamage;
+		//FigureSettler.EOverflowingBlocks -= HandleOverflowDamage;
 	}
 
 	protected override void TakeDamage(int damage)
@@ -122,9 +122,9 @@ public class PlayerShipModel : ShipModel {
 			DoDeathEvent();
 	}
 
-	ShipHealthManager GetWeakestSectorHealthManager()
+	HealthAndShieldsManager GetWeakestSectorHealthManager()
 	{
-		ShipHealthManager weakestManager = shipSectors[0].healthManager;
+		HealthAndShieldsManager weakestManager = shipSectors[0].healthManager;
 		foreach (ShipSectorModel sector in shipSectors)
 		{
 			if (!sector.isDamaged)

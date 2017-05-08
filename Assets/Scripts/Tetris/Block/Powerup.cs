@@ -137,11 +137,13 @@ public class Change : Powerup
 
 public class Damage: Powerup
 {
-	int damage = 100;
+	int damage = 50;
 
 	public override void UsePowerup()
 	{
-		//PlayerShipModel.main.TakeDamage(damage);
+		int mySegmentIndex = Grid.Instance.GetSegmentIndexFromCoords(x, y);
+		if (mySegmentIndex != -1)
+			PlayerShipModel.main.shipSectors[mySegmentIndex].healthManager.TakeDamage(damage);
 	}
 }
 

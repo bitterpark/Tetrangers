@@ -25,11 +25,14 @@ public class Cell
 		settledBlockInCell = fillWithBlock;
 	}
 
-	public void ClearCell()
+	public IEnumerator ClearCell()
 	{
+		IEnumerator returnValue = null;
 		if (settledBlockInCell != null)
-			settledBlockInCell.ClearBlock();
+			returnValue = settledBlockInCell.ClearBlock();
 		settledBlockInCell = null;
+
+		return returnValue;
 	}
 
 	public SettledBlock ExtractBlockFromCell()

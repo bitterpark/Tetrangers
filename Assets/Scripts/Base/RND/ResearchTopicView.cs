@@ -55,13 +55,15 @@ public class ResearchTopicView: MonoBehaviour
 				equipment.blueEnergyCostToUse
 				,equipment.greenEnergyCostToUse
 				,equipment.shipEnergyCostToUse
+				,equipment.ammoCostToUse
+				,equipment.partsCostToUse
 				,equipment.generatorLevelDelta
 				,equipment.maxCooldownTime
 				,equipment.name);
 			if (equipment.equipmentType == EquipmentTypes.Weapon)
 			{
 				ShipWeapon weapon = equipment as ShipWeapon;
-				newEquipmentView.SetDamage(weapon.damage);
+				newEquipmentView.SetDamage(weapon.damageInfo);
 				newEquipmentView.SetLockonTime(weapon.lockOnTimeRemaining);
 				//newEquipmentView.SetButtonInteractable(false);
 			}

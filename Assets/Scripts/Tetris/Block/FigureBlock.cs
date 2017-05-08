@@ -19,7 +19,7 @@ public class FigureBlock : MonoBehaviour
 	[SerializeField]
 	Color shipBlockColor;
 	[SerializeField]
-	Color powerupBlockColor;
+	Color powerupBlockColor;	
 
 	public Vector2 getBlockOffsets
     {
@@ -166,5 +166,5 @@ public class FigureBlock : MonoBehaviour
 		}
 		FigureController.ERotateStatusDetermined -= ResolveStartedRotation;
 	}
-	
+
 }

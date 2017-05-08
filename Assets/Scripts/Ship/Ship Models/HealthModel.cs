@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using UnityEngine.Events;
 
-public class ShipHealthModel : ShipResourceModel
+public class HealthModel : ResourceModel
 {
 	public event UnityAction EHealthRanOut;
 	public event UnityAction EHealthDamaged;
 
-	public ShipHealthModel(int resourceMax) : base(resourceMax)
+	public HealthModel(int resourceMax) : base(resourceMax)
 	{
 		resourceCurrent = resourceMax;
 	}

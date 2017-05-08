@@ -42,7 +42,7 @@ public abstract class EquipmentUser
 		{
 			ShipWeapon weapon = equipment as ShipWeapon;
 			//Debug.Assert(shipWeapons.Contains(weapon), "Fired weapon : " + weapon.name + " not found in ship's weapons list!");
-			int damage = weapon.ActivateWeapon();
+			int damage = weapon.ActivateWeapon().damage;
 
 			energyUser.SpendEnergyFromEquipmentUse(equipment);
 			DoWeaponFireEvent(damage);

@@ -85,13 +85,13 @@ public class SectorEnergyManager : ICanSpendEnergy
 		set { greenEnergyModel.energyGain = value; }
 	}
 
-	public ShipEnergyModel blueEnergyModel { get; protected set; }
-	public ShipEnergyModel greenEnergyModel { get; protected set; }
+	public EnergyResourceModel blueEnergyModel { get; protected set; }
+	public EnergyResourceModel greenEnergyModel { get; protected set; }
 
 	public SectorEnergyManager(int blueGain, int blueMax, int greenGain, int greenMax)
 	{
-		blueEnergyModel = new ShipEnergyModel(blueGain, blueMax);
-		greenEnergyModel = new ShipEnergyModel(greenGain, greenMax);
+		blueEnergyModel = new EnergyResourceModel(blueGain, blueMax);
+		greenEnergyModel = new EnergyResourceModel(greenGain, greenMax);
 	}
 
 	public void ResetToStartingStats()

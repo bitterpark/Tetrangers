@@ -39,16 +39,19 @@ public class EquipmentListController : IEquipmentListController
 	protected virtual void SetupEquipmentView(ShipEquipmentView newView, ShipEquipment equipment)
 	{
 		newView.SetDisplayValues(
-			equipment.blueEnergyCostToUse, 
-			equipment.greenEnergyCostToUse,
-			equipment.shipEnergyCostToUse,
-			equipment.generatorLevelDelta, 
-			equipment.maxCooldownTime, 
-			equipment.name);
+			equipment.blueEnergyCostToUse
+			, equipment.greenEnergyCostToUse
+			,equipment.shipEnergyCostToUse
+			,equipment.ammoCostToUse
+			,equipment.partsCostToUse
+			,equipment.generatorLevelDelta
+			,equipment.maxCooldownTime
+			, equipment.name
+			);
 		if (equipment.equipmentType == EquipmentTypes.Weapon)
 		{
 			ShipWeapon weapon = equipment as ShipWeapon;
-			newView.SetDamage(weapon.damage);
+			newView.SetDamage(weapon.damageInfo);
 			newView.SetLockonTime(weapon.lockOnTimeRemaining);
 		}
 		newView.SetButtonInteractable(false);

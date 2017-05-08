@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public abstract class ShipResourceModel
+public abstract class ResourceModel
 {
 	public event UnityAction EResourceChanged;
 	public event UnityAction<int> EResourceGained;
@@ -28,27 +28,8 @@ public abstract class ShipResourceModel
 	int _resourceCurrent;
 
 	public int resourceMax { get; set; }
-	/*
-	public int resourceMax
-	{
-		get { return _resourceMax; }
-		set
-		{
-			int oldValue = _resourceMax;
-			_resourceMax = Mathf.Max(value, 0);
-			if (oldValue != _resourceMax)
-			{
-				if (EResourceChanged != null)
-					EResourceChanged();
-				if (oldValue < _resourceCurrent && EResourceGained != null)
-					EResourceGained(_resourceCurrent - oldValue);
-			}
-		}
-	}
-	int _resourceMax = 0;*/
 
-
-	public ShipResourceModel(int resourceMax)
+	public ResourceModel(int resourceMax)
 	{
 		SetStartingStats(resourceMax);
 	}

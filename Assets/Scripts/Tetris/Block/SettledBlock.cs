@@ -7,6 +7,8 @@ using UnityEngine.Events;
 public class SettledBlock : StaticBlock {
 
 	//public static event UnityAction<BlockType> EBlockCleared;
+	public delegate void BlockExpiredDeleg(int gridX, int gridY);
+	public static event BlockExpiredDeleg EIsolatedBlockExpired;
 	public static event UnityAction<int, int> EBlockDespawnedFromCell;
 	public event UnityAction EThisBlockCleared;
 
@@ -23,17 +25,15 @@ public class SettledBlock : StaticBlock {
 				isolatedLifetimeRemaining = isolatedLifetimeMax;
 
 			_isIsolated = value;
-			Color newColor = GetComponent<Image>().color;
-
-			newColor = (!isIsolated) ? new Color(newColor.r, newColor.g, newColor.b, 1f) : new Color(newColor.r, newColor.g, newColor.b, 0.4f);
-
-			GetComponent<Image>().color = newColor;
+			myAnimator.SetBool("IsIsolated", value);
 		}
 	}
 	bool _isIsolated = true;
 	
-	const int isolatedLifetimeMax = 1;
+	const int isolatedLifetimeMax = 0;
 	int isolatedLifetimeRemaining = isolatedLifetimeMax;
+
+	Animator myAnimator;
 
 	public void Initialize(int startingGridX, int startingGridY, BlockType type, PowerupInBlock powerup)
 	{
@@ -70,7 +70,7 @@ public class SettledBlock : StaticBlock {
 		{
 			//Debug.Log("Isolated lifetime handled, remaining lifetime: "+isolatedLifetimeRemaining);
 			if (isolatedLifetimeRemaining == 0)
-				DestroyBlock();
+				ExpireIsolatedBlock();
 			isolatedLifetimeRemaining--;
 		}
 	}
@@ -85,7 +85,6 @@ public class SettledBlock : StaticBlock {
 		Color newColor = GetComponent<Image>().color;
 		if (gain > 0)
 			newColor = new Color(newColor.r, newColor.g, newColor.b, 1f);
-
 		else
 			newColor = new Color(newColor.r, newColor.g, newColor.b, 0.4f);
 
@@ -106,11 +105,32 @@ public class SettledBlock : StaticBlock {
 		yield break;
 	}
 
-	public void ClearBlock()
+	public IEnumerator ClearBlock()
 	{
 		if (EThisBlockCleared != null) EThisBlockCleared();
-
+		return ClearBlockRoutine();
+	}
+	IEnumerator ClearBlockRoutine()
+	{
+		myAnimator.SetTrigger("GotCleared");
+		while (!myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Cleared"))
+			yield return null;
+		while (myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Cleared"))
+			yield return null;
 		SpawnClearParticles();
+		DestroyBlock();
+		yield break;
+	}
+
+	void ExpireIsolatedBlock()
+	{
+		myAnimator.SetTrigger("IsolatedBlockExpired");
+		myAnimator.GetBehaviour<ExpireStateFinishBehaviour>().EStateFinished += HandleExpireAnimationFinish;
+	}
+
+	void HandleExpireAnimationFinish()
+	{
+		if (EIsolatedBlockExpired != null) EIsolatedBlockExpired(currentX, currentY);
 		DestroyBlock();
 	}
 
@@ -138,5 +158,10 @@ public class SettledBlock : StaticBlock {
 		//ParticleDB.Instance.CreateRowClearParticles(transform.position);
 		if (blockType!=BlockType.Powerup)
 			ParticleDB.Instance.CreateClearedBlockParticles(transform.position, blockType);
+	}
+
+	private void Awake()
+	{
+		myAnimator = GetComponent<Animator>();
 	}
 }

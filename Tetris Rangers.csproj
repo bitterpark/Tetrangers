@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.2f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -144,25 +142,25 @@
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\ShipResourceController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\ShipSectorController.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\StatusEffectController.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\EnergyResourceModel.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\FiniteResourceModel.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\HealthModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\Energy Managers\SectorEnergyManager.cs" />
-    <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\Energy Managers\ShipEnergyManager.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\Energy Managers\ShipResourceManager.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\EquipmentUsers\EnemyEquipmentUser.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\EquipmentUsers\EquipmentUser.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\EquipmentUsers\PlayerEquipmentUser.cs" />
-    <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\ShipHealthManager.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\HealthAndShieldsManager.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Managers\StatusEffectManager.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\ResourceModel.cs" />
+    <Compile Include="Assets\Scripts\Ship\Ship Models\ShieldsModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Ship Models\EnemyShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Ship Models\EnemyShipSectorModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Ship Models\PlayerShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Ship Models\PlayerShipSectorModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Ship Models\ShipModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\Ship Models\ShipSectorModel.cs" />
-    <Compile Include="Assets\Scripts\Ship\Ship Models\ShipEnergyModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Models\ShipEquipmentModel.cs" />
-    <Compile Include="Assets\Scripts\Ship\Ship Models\ShipHealthModel.cs" />
-    <Compile Include="Assets\Scripts\Ship\Ship Models\ShipResourceModel.cs" />
-    <Compile Include="Assets\Scripts\Ship\Ship Models\ShipShieldsModel.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Views\EnemyShipViewProvider.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Views\HealthView.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Views\HorizontalBarView.cs" />
@@ -180,8 +178,16 @@
     <Compile Include="Assets\Scripts\Singleton.cs" />
     <Compile Include="Assets\Scripts\SpriteDB.cs" />
     <Compile Include="Assets\Scripts\Subscreen.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\AnimStateFinishBroadcaster.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\ClearStateFinishBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\ExpireStateFinishBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\FigureBlock.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\Powerup.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\PowerupInBlock.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\PowerupInBlockSpawner.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\SettledBlock.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Block\StaticBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\Cell.cs" />
-    <Compile Include="Assets\Scripts\Tetris\FigureBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureController.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureSettler.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureSpawner.cs" />
@@ -189,11 +195,6 @@
     <Compile Include="Assets\Scripts\Tetris\GridFX.cs" />
     <Compile Include="Assets\Scripts\Tetris\GridSegment.cs" />
     <Compile Include="Assets\Scripts\Tetris\Matcher.cs" />
-    <Compile Include="Assets\Scripts\Tetris\Powerup.cs" />
-    <Compile Include="Assets\Scripts\Tetris\PowerupInBlock.cs" />
-    <Compile Include="Assets\Scripts\Tetris\PowerupInBlockSpawner.cs" />
-    <Compile Include="Assets\Scripts\Tetris\SettledBlock.cs" />
-    <Compile Include="Assets\Scripts\Tetris\StaticBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\TetrisManager.cs" />
     <Compile Include="Assets\Scripts\Tooltip.cs" />
     <Compile Include="Assets\Scripts\TooltipManager.cs" />

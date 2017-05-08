@@ -20,6 +20,8 @@ public class ShipEquipmentModel : IEquipmentListModel
 	ICanUseEquipment equipmentOwner;
 	ShipModel parentShip;
 
+	bool isFunctioning = true;
+
 	public ShipEquipmentModel(ShipModel parentShip, ICanUseEquipment equipmentUser)
 	{
 		this.equipmentOwner = equipmentUser;
@@ -30,6 +32,11 @@ public class ShipEquipmentModel : IEquipmentListModel
 	public void InitializeForBattle()
 	{
 		BattleManager.EEngagementModeEnded += DoRoundoverGains;
+	}
+
+	public void SetFunctioning(bool functioning)
+	{
+		isFunctioning = functioning;
 	}
 
 	public void LowerAllCooldowns(int lowerBy)
@@ -115,7 +122,7 @@ public class ShipEquipmentModel : IEquipmentListModel
 	{
 		List<ShipEquipment> allEquipment = new List<ShipEquipment>();
 		List<ShipWeapon> weapons;
-		if (TryGetActivatableWeapons(out weapons, checkEnergy))
+		if (TryGetUsableWeapons(out weapons, checkEnergy))
 			allEquipment.AddRange(weapons.ToArray());
 		List<ShipEquipment> equipment;
 		if (TryGetUseableEquipment(out equipment, checkEnergy))
@@ -124,9 +131,11 @@ public class ShipEquipmentModel : IEquipmentListModel
 		return allEquipment;
 	}
 
-	public bool TryGetActivatableWeapons(out List<ShipWeapon> weapons, bool checkEnergy)
+	public bool TryGetUsableWeapons(out List<ShipWeapon> weapons, bool checkEnergy)
 	{
 		weapons = new List<ShipWeapon>();
+		if (!isFunctioning) return false;
+
 		ShipWeapon weapon;
 		for (int i = 0; i < shipWeapons.Count; i++)
 		{
@@ -144,6 +153,7 @@ public class ShipEquipmentModel : IEquipmentListModel
 	public virtual bool TryGetUseableEquipment(out List<ShipEquipment> equipment, bool checkEnergy)
 	{
 		equipment = new List<ShipEquipment>();
+		if (!isFunctioning) return false;
 
 		ShipEquipment equipmentUnit;
 		for (int i = 0; i < shipOtherEquipment.Count; i++)

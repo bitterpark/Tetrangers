@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public class ShipShieldsModel : ShipEnergyModel
+public class ShieldsModel : EnergyResourceModel
 {
 	public event UnityEngine.Events.UnityAction EShieldsDamaged;
 
 	int normalShieldsGain;
 
-	public ShipShieldsModel(int shieldsGain, int shieldsMax) : base(shieldsGain, shieldsMax)
+	public ShieldsModel(int shieldsGain, int shieldsMax) : base(shieldsGain, shieldsMax)
 	{
 		resourceCurrent = shieldsMax;
 		normalShieldsGain = shieldsGain;

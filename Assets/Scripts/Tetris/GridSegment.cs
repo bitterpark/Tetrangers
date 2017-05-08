@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.Events;
 
 public class GridSegment
 {
-	public static event UnityEngine.Events.UnityAction<int> ERowsCleared;
+	public static event UnityAction<int> ERowsCleared;
 	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks, int shipBlocks, int segmentIndex);
 	public event BlocksClearDeleg EBlocksCleared;
+
+	public event UnityAction EIsolatedBlockExpired;
 
 	public int minX { get; private set; }
 	public int minY { get; private set; }
 	public int maxX { get; private set; }
 	public int maxY { get; private set; }
 
+	public int segmentIndex { get; private set; }
+
 	public bool isUsable = true;
 
-	int segmentIndex;
+	
 
 	GridFX gridFX;
 
@@ -31,6 +35,14 @@ public class GridSegment
 		this.maxY = maxY;
 
 		gridFX = new GridFX(gridGroup);
+
+		SettledBlock.EIsolatedBlockExpired += HandleIsolatedBlockExpiry;
+	}
+
+	void HandleIsolatedBlockExpiry(int blockX, int blockY)
+	{
+		if (EIsolatedBlockExpired != null && CellCoordsAreWithinSegment(blockX, blockY))
+			EIsolatedBlockExpired();
 	}
 
 	public bool CellCoordsAreWithinSegment(int cellX, int cellY)
@@ -64,7 +76,7 @@ public class GridSegment
 		public List<Cell> clearedCellsBelongingToSegment = new List<Cell>();
 	}
 
-
+	
 	public List<SettledBlock> GetGroundedBlocksInSegment()
 	{
 		List<SettledBlock> groundedBlocks = GetGroundedBlocks();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 
 
-public class ShipHealthManager
+public class HealthAndShieldsManager
 {
 	public event UnityAction EHealthChanged
 	{
@@ -65,13 +65,13 @@ public class ShipHealthManager
 	public delegate int DefensesDeleg(int damage);
 	public event DefensesDeleg EActivateDefences;
 
-	ShipShieldsModel shieldsModel;
-	ShipHealthModel healthModel;
+	ShieldsModel shieldsModel;
+	HealthModel healthModel;
 
-	public ShipHealthManager(int healthMax, int shieldsMax, int shieldsGain)
+	public HealthAndShieldsManager(int healthMax, int shieldsMax, int shieldsGain)
 	{
-		shieldsModel = new ShipShieldsModel(shieldsGain, shieldsMax);
-		healthModel = new ShipHealthModel(healthMax);
+		shieldsModel = new ShieldsModel(shieldsGain, shieldsMax);
+		healthModel = new HealthModel(healthMax);
 	}
 
 	public void Dispose()

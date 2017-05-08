@@ -11,7 +11,7 @@ public abstract class EnemyShipModel : ShipModel
 	public static EnemyShipModel currentlyActive = null;
 
 	//public EnemyShipSectorModel sectorModel { get; private set; }
-	public ShipHealthManager healthManager { get; private set; }
+	public HealthAndShieldsManager healthManager { get; private set; }
 	public SectorEnergyManager energyManager { get; private set; }
 
 	BattleAI myAI;
@@ -50,9 +50,9 @@ public abstract class EnemyShipModel : ShipModel
 			, greenMax);
 	}
 
-	ShipHealthManager SetupHealthManager(int healthMax, int shieldsMax)
+	HealthAndShieldsManager SetupHealthManager(int healthMax, int shieldsMax)
 	{
-		return new ShipHealthManager(healthMax, shieldsMax, BalanceValuesManager.Instance.enemyShieldGain);
+		return new HealthAndShieldsManager(healthMax, shieldsMax, BalanceValuesManager.Instance.enemyShieldGain);
 	}
 
 	protected override ICanSpendEnergy CreateOrGetAppropriateEnergyUser(int blueMax, int greenMax)

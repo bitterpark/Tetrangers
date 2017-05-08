@@ -6,6 +6,9 @@ using System.Text;
 
 public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 {
+	const int isolatedBlockExpiryDamage = 10;
+	const int overflowingBlockDamage = 10;
+
 	public int index { get; private set; }
 	
 
@@ -21,17 +24,32 @@ public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 
 	public override void InitializeForBattle()
 	{
+		FigureSettler.EOverflowingBlocks += HandleOverflowingBlocksDamage;
 		Grid.Instance.GridSegments[index].EBlocksCleared += HandleDestroyedBlocks;
+		Grid.Instance.GridSegments[index].EIsolatedBlockExpired += HandleIsolatedBlocksExpiring;
 		EquipmentUser.EAppliedStatusEffectToPlayerShipSector += HandleSectorStatusEffectApplication;
 		base.InitializeForBattle();
 	}
 
 	public override void Dispose()
 	{
-		
+		FigureSettler.EOverflowingBlocks -= HandleOverflowingBlocksDamage;
 		Grid.Instance.GridSegments[index].EBlocksCleared -= HandleDestroyedBlocks;
+		Grid.Instance.GridSegments[index].EIsolatedBlockExpired -= HandleIsolatedBlocksExpiring;
 		EquipmentUser.EAppliedStatusEffectToPlayerShipSector -= HandleSectorStatusEffectApplication;
 		base.Dispose();
+	}
+
+	void HandleIsolatedBlocksExpiring()
+	{
+		if (!isDamaged)
+			healthManager.TakeDamage(isolatedBlockExpiryDamage);
+	}
+
+	void HandleOverflowingBlocksDamage(int overflowingBlocksCount)
+	{
+		if (!isDamaged)
+			healthManager.TakeDamage(overflowingBlockDamage*overflowingBlocksCount);
 	}
 
 	void HandleSectorStatusEffectApplication(StatusEffect effect, int appliesToSectorIndex)
@@ -40,10 +58,10 @@ public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 			effectsManager.AddNewStatusEffect(effect);
 	}
 
-	protected override void HandleHealthRunningOut()
+	protected override void HandleDamagedStatusChange()
 	{
-		isDamaged = true;
-		Grid.Instance.GridSegments[index].isUsable = false;
+		Grid.Instance.GridSegments[index].isUsable = !isDamaged;
+		sectorEquipment.SetFunctioning(!isDamaged);
 	}
 
 	

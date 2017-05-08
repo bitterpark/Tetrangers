@@ -9,11 +9,21 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 	public SectorEnergyManager energyManager { get; private set; }
 	
 	public StatusEffectManager effectsManager { get; private set;}
-	public ShipHealthManager healthManager { get; private set; }
+	public HealthAndShieldsManager healthManager { get; private set; }
 	public ShipEquipmentModel sectorEquipment;
 	public EquipmentUser equipmentUser { get; private set; }
 
-	public bool isDamaged { get; protected set; }
+	public bool isDamaged
+	{
+		get { return _isDamaged; }
+		set
+		{
+			if (value != _isDamaged)
+				HandleDamagedStatusChange();
+			_isDamaged = value;
+		}
+	}
+	bool _isDamaged = false;
 
 	const int sectorHealth = 150;
 	const int sectorShields = 150;
@@ -34,10 +44,11 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 		equipmentUser = CreateAppropriateEquipmentUser(parentShip);
 		sectorEquipment = new ShipEquipmentModel(parentShip, this);
 
-		healthManager = new ShipHealthManager(sectorHealth, sectorShields, 10);
+		healthManager = new HealthAndShieldsManager(sectorHealth, sectorShields, 10);
 
 		//sectorEquipment.AddEquipment(new LaserGun(), new BlockEjector(), new Overdrive());
-		healthManager.EHealthDepleted += HandleHealthRunningOut;
+		healthManager.EHealthChanged += HandleHealthChanging;
+		//healthManager.EHealthDepleted += HandleHealthRunningOut;
 		BattleManager.EEngagementModeStarted += TryRegenShields;
 
 	}
@@ -51,7 +62,8 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 
 	public virtual void Dispose()
 	{
-		healthManager.EHealthDepleted -= HandleHealthRunningOut;
+		//healthManager.EHealthDepleted -= HandleHealthRunningOut;
+		healthManager.EHealthChanged -= HandleHealthChanging;
 		BattleManager.EEngagementModeStarted -= TryRegenShields;
 
 		energyManager.Dispose();
@@ -67,8 +79,15 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 		healthManager.RegenShields();
 	}
 
-	protected abstract void HandleHealthRunningOut();
-	
+	void HandleHealthChanging()
+	{
+		if (healthManager.health <= 0)
+			isDamaged = true;
+		else
+			isDamaged = false;
+	}
+
+	protected abstract void HandleDamagedStatusChange();
 
 }
 

@@ -32,7 +32,6 @@ public class FigureSettler
 
 	IEnumerator NewSettledFigureRoutine(List<SettledBlock> figureBlocks)
 	{
-		//Consider consolidating figureDimensions and GetRowsAndCols
 		FillInSettledFigure(figureBlocks);
 
 		//Might be some doubling here if a row gets cleared and then gets checked for matches anyway
@@ -113,7 +112,7 @@ public class FigureSettler
 
 	void HandleOverflowingBlocks(List<SettledBlock> settledFigureBlocks)
 	{
-		int unmatchedOverflowingBlocks = 0;
+		int unmatchedOverflowingBlockCount = 0;
 		foreach (SettledBlock block in settledFigureBlocks)
 		{
 			if (block != null)
@@ -132,11 +131,11 @@ public class FigureSettler
 					Cell blockCell = Grid.Instance.GetCell(block.currentX, block.currentY);
 					blockCell.EmptyCell();
 					Debug.Log("Handling overflowing blocks!");
-					unmatchedOverflowingBlocks++;
+					unmatchedOverflowingBlockCount++;
 				}
 			}
 		}
-		if (unmatchedOverflowingBlocks>0 && EOverflowingBlocks != null) EOverflowingBlocks(unmatchedOverflowingBlocks);
+		if (unmatchedOverflowingBlockCount>0 && EOverflowingBlocks != null) EOverflowingBlocks(unmatchedOverflowingBlockCount);
 	}
 
 	void HandleIsolatedBlocks()

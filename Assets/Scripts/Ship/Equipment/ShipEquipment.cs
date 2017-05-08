@@ -13,6 +13,8 @@ public abstract class ShipEquipment
 	public int blueEnergyCostToUse { get; set; }
 	public int greenEnergyCostToUse { get; set; }
 	public int shipEnergyCostToUse { get; set; }
+	public int ammoCostToUse { get; set; }
+	public int partsCostToUse { get; set; }
 	public int generatorLevelDelta { get; set;}
 	public string name { get; set; }
 
@@ -115,6 +117,8 @@ public abstract class ShipEquipment
 		blueEnergyCostToUse = 0;
 		greenEnergyCostToUse = 0;
 		shipEnergyCostToUse = 0;
+		ammoCostToUse = 0;
+		partsCostToUse = 0;
 		generatorLevelDelta = 0;
 		equipmentType = EquipmentTypes.Equipment;
 		equipmentGoal = Goal.Defence;
@@ -449,6 +453,41 @@ public class Heatsink : ShipEquipment
 		foreach (PlayerShipSectorModel sector in PlayerShipModel.main.shipSectors)
 			sector.sectorEquipment.LowerAllCooldowns(lowerCooldownsBy);
 	}
+}
+
+public class RepairDrones : ShipEquipment, IRequiresPlayerTargetSelect
+{
+	const float repairPercentage = 0.5f;
+
+	int targetedShipSectorIndex;
+
+	protected override void Initialize()
+	{
+		maxCooldownTime = 4;
+		partsCostToUse = 1;
+		name = "Repair Drones";
+		description = string.Format("Repairs a chosen sector's health. Can restore damaged sectors");
+	}
+
+	public void CallTargetSelectManager()
+	{
+		PlayerTargetSelectManager.Instance.InitiateSelectingPlayerShipSector(this);
+	}
+
+	public void SetTarget(object selectedTarget)
+	{
+		SectorView targetedView = selectedTarget as SectorView;
+		Debug.Assert(targetedView != null, "Could not find targeted view!");
+		targetedShipSectorIndex = targetedView.sectorIndex;
+	}
+
+	protected override void ExtenderActivation()
+	{
+		ShipSectorModel targetedSector = PlayerShipModel.main.shipSectors[targetedShipSectorIndex];
+		targetedSector.healthManager.ResetToStartingHealth();
+	}
+
+	
 }
 
 public class TestEquipment : ShipEquipment, IRequiresPlayerTargetSelect

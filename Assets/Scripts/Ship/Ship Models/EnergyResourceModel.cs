@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class ShipEnergyModel : ShipResourceModel
+public class EnergyResourceModel : ResourceModel
 {
 	public event UnityAction EEnergyGainChanged;
 
@@ -21,7 +21,7 @@ public class ShipEnergyModel : ShipResourceModel
 	}
 	int _energyGain;
 
-	public ShipEnergyModel(int energyGain, int energyMax)
+	public EnergyResourceModel(int energyGain, int energyMax)
 		:base(energyMax)
 	{
 		this.energyGain = energyGain;

@@ -4,9 +4,9 @@
 public class HealthController
 {
 	HealthView view;
-	ShipHealthManager healthModel;
+	HealthAndShieldsManager healthModel;
 
-	public HealthController(HealthView view, ShipHealthManager healthModel)
+	public HealthController(HealthView view, HealthAndShieldsManager healthModel)
 	{
 		this.view = view;
 		this.healthModel = healthModel;

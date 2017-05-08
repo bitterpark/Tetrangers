@@ -49,9 +49,13 @@ public class Grid : Singleton<Grid>
 		get { return _gridVertSize - 5; }
 	}
 
-	const int minMatchSize = 3;
+	[SerializeField]
+	Color oddSegmentCellColor;
+	[SerializeField]
+	Color evenSegmentCellColor;
+	[SerializeField]
+	Color nonSegmentCellColor;
 
-	//bool[,] unoccupiedCells;
 	Cell[,] cells;
 
 	GridFX gridFX;
@@ -64,6 +68,7 @@ public class Grid : Singleton<Grid>
 
 	public static readonly int segmentCount = 3;
 	public static readonly int segmentWidth = 9;
+
 
 	void Awake()
 	{
@@ -106,7 +111,12 @@ public class Grid : Singleton<Grid>
 				newCellImage.transform.SetParent(_gridGroup, false);
 
 				if (gridSegments[1].CellCoordsAreWithinSegment(j, i))
-					newCellImage.color = Color.gray;
+					newCellImage.color = oddSegmentCellColor;
+				else
+					if (gridSegments[0].CellCoordsAreWithinSegment(j, i) || gridSegments[2].CellCoordsAreWithinSegment(j, i))
+					newCellImage.color = evenSegmentCellColor;
+				else
+					newCellImage.color = nonSegmentCellColor;
 
 				RectTransform newCellImageTransform = newCellImage.GetComponent<RectTransform>();
 				newCellImageTransform.sizeDelta = new Vector2(cellSize, cellSize);
@@ -285,7 +295,10 @@ public class Grid : Singleton<Grid>
 		GridSegment.ClearedCellsInfo globalClearInfo = new GridSegment.ClearedCellsInfo();
 
 		List<SettledBlock> loweredBlocks = new List<SettledBlock>();
-		int coroutineGroupIndex = CoroutineExtension.GetLatestAvailableIndex();
+		
+		int clearingCoroutineGroupIndex = CoroutineExtension.GetLatestAvailableIndex();
+		int loweringCoroutineGroupIndex = clearingCoroutineGroupIndex + 1;
+
 
 		foreach (Cell cell in clearedCells)
 		{
@@ -327,21 +340,25 @@ public class Grid : Singleton<Grid>
 						break;
 					}
 
-				cell.ClearCell();
+				IEnumerator cellClearingRoutine = cell.ClearCell();
+				if (cellClearingRoutine != null)
+					cellClearingRoutine.LaunchInParallelCoroutinesGroup(this, clearingCoroutineGroupIndex.ToString());
+
 				if (lower)
 				{
 					for (int k = cell.yCoord + 1; k < maxY; k++)
 						if (CanLowerBlockInCell(cell.xCoord, k))
 						{
 							loweredBlocks.Add(blockInCell);
-							//StartCoroutine(LowerBlockInCell(cell.xCoord, k, false));
-							LowerBlockInCell(cell.xCoord, k, false).LaunchInParallelCoroutinesGroup(this, coroutineGroupIndex.ToString());
+							LowerBlockInCell(cell.xCoord, k, false).LaunchInParallelCoroutinesGroup(this, loweringCoroutineGroupIndex.ToString());
 						}
 				}
 			}
 		}
+		while (CoroutineExtension.GroupIsProcessing(clearingCoroutineGroupIndex.ToString()))
+			yield return null;
 
-		while (CoroutineExtension.GroupIsProcessing(coroutineGroupIndex.ToString()))
+		while (CoroutineExtension.GroupIsProcessing(loweringCoroutineGroupIndex.ToString()))
 			yield return null;
 
 		List<int> newlyLoweredCellRows = new List<int>();
@@ -406,6 +423,14 @@ public class Grid : Singleton<Grid>
 		yield break;
 	}
 
+	public int GetSegmentIndexFromCoords(int x, int y)
+	{
+		foreach (GridSegment segment in gridSegments)
+			if (segment.CellCoordsAreWithinSegment(x, y))
+				return segment.segmentIndex;
+
+		return -1;
+	}
 
 	Grid() { }
 

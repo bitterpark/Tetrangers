@@ -40,26 +40,67 @@ public class ShipResourceManager : ICanSpendEnergy
 		set { shipEnergyModel.energyGain=value; }
 	}
 
-	public ShipEnergyModel shipEnergyModel { get; protected set; }
 
-	public ShipResourceManager(int shipResourceGain, int shipResourceMax)
+	public event UnityAction EAmmoChanged
 	{
-		shipEnergyModel = new ShipEnergyModel(shipResourceGain, shipResourceMax);
+		add { ammoModel.EResourceChanged += value; }
+		remove { ammoModel.EResourceChanged -= value; }
+	}
+	public int ammo
+	{
+		get { return ammoModel.resourceCurrent; }
+		set { ammoModel.resourceCurrent = value; }
+	}
+	public int ammoMax
+	{
+		get { return ammoModel.resourceMax; }
+		set { ammoModel.resourceMax = value; }
+	}
+
+	public event UnityAction EPartsChanged
+	{
+		add { partsModel.EResourceChanged += value; }
+		remove { partsModel.EResourceChanged -= value; }
+	}
+	public int parts
+	{
+		get { return partsModel.resourceCurrent; }
+		set { partsModel.resourceCurrent = value; }
+	}
+	public int partsMax
+	{
+		get { return partsModel.resourceMax; }
+		set { partsModel.resourceMax = value; }
+	}
+
+	public EnergyResourceModel shipEnergyModel { get; protected set; }
+	public FiniteResourceModel ammoModel { get; protected set; }
+	public FiniteResourceModel partsModel { get; protected set; }
+	
+	public ShipResourceManager(int shipResourceGain, int shipResourceMax, int shipAmmoMax, int shipPartsMax)
+	{
+		shipEnergyModel = new EnergyResourceModel(shipResourceGain, shipResourceMax);
+		ammoModel = new FiniteResourceModel(shipAmmoMax);
+		partsModel = new FiniteResourceModel(shipPartsMax);
 	}
 
 	public void Dispose()
 	{
 		shipEnergyModel.DisposeModel();
+		ammoModel.DisposeModel();
+		partsModel.DisposeModel();
 	}
 
 	public bool EnoughEnergyToUseEquipment(ShipEquipment equipment)
 	{
-		return (shipEnergy >= equipment.shipEnergyCostToUse);
+		return (shipEnergy >= equipment.shipEnergyCostToUse && ammo >=equipment.ammoCostToUse && parts >= equipment.partsCostToUse);
 	}
 
 	public void SpendEnergyFromEquipmentUse(ShipEquipment equipment)
 	{
 		shipEnergy -= equipment.blueEnergyCostToUse;
+		ammo -= equipment.ammoCostToUse;
+		parts -= equipment.partsCostToUse;
 	}
 
 	public void IncreaseShipEnergyByGain()

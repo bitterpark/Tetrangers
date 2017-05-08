@@ -2,13 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public struct WeaponDamage
+{
+	public int minDamage;
+	public int maxDamage;
+
+	public AttackType damageType;
+
+	public WeaponDamage(int minDamage, int maxDamage)
+	{
+		this.minDamage = minDamage;
+		this.maxDamage = maxDamage;
+		damageType = AttackType.Regular;
+	}
+
+	public WeaponDamage(int minDamage, int maxDamage, AttackType damageType)
+	{
+		this.minDamage = minDamage;
+		this.maxDamage = maxDamage;
+		this.damageType = damageType;
+	}
+}
+
+public enum AttackType {Regular, Antishield, Antihull }
+
+public struct WeaponAttack
+{
+	public int damage;
+	public AttackType type;
+
+	public WeaponAttack(WeaponDamage attackDamageInfo)
+	{
+		damage = Random.Range(attackDamageInfo.minDamage, attackDamageInfo.maxDamage + 1);
+		type = attackDamageInfo.damageType;
+	}
+}
+
 public abstract class ShipWeapon: ShipEquipment
 {
 
 	public delegate void WeaponLockonDeleg(ShipEquipment weapon, int time);
 	public static event WeaponLockonDeleg EWeaponLockonTimeChanged;
 
-	public int damage { get; protected set; }
+	//public int damage { get; protected set; }
+	public WeaponDamage damageInfo { get; protected set; }
 	public bool lockingOn { get; protected set; }
 	public bool lockedOn
 	{
@@ -35,10 +72,13 @@ public abstract class ShipWeapon: ShipEquipment
 		lockOnTimeRemaining = lockOnTimeRequired;
 	}
 
-	public int ActivateWeapon()
+	public WeaponAttack ActivateWeapon()
 	{
 		base.ActivateEquipment();
-		return damage;
+
+		WeaponAttack attack = new WeaponAttack(damageInfo);
+
+		return attack;
 	}
 
 	/*
@@ -92,7 +132,7 @@ public class LaserGun : ShipWeapon
 	{
 		//lockOnTimeRequired = 1;
 		maxCooldownTime = 1;
-		damage = 60;
+		damageInfo = new WeaponDamage(60, 70);
 		//generatorLevelDelta = 1;
 
 		//onSelfEffect = new ReactiveArmorEffect();
@@ -108,7 +148,7 @@ public class PlasmaCannon : ShipWeapon
 	protected override void Initialize()
 	{
 		maxCooldownTime = 2;
-		damage = 120;
+		damageInfo = new WeaponDamage(120, 130, AttackType.Antishield);
 		blueEnergyCostToUse = 90;
 		name = "Plasma Cannon";
 	}
@@ -129,7 +169,7 @@ public class HeavyLaser : ShipWeapon
 	protected override void Initialize()
 	{
 		maxCooldownTime = 3;
-		damage = 180;
+		damageInfo = new WeaponDamage(180, 190);
 		blueEnergyCostToUse = 120;
 		//generatorLevelDelta = 1;
 		name = "Heavy Laser";
@@ -152,7 +192,7 @@ public class TurboLaser : ShipWeapon
 	protected override void Initialize()
 	{
 		maxCooldownTime = 3;
-		damage = 300;
+		damageInfo = new WeaponDamage(300, 310);
 		blueEnergyCostToUse = 150;
 		//generatorLevelDelta = 2;
 		name = "Turbo Laser";
@@ -166,6 +206,18 @@ public class TurboLaserTopic : ResearchTopic
 		materialsRequired = 400;
 
 		providesEquipment = new TurboLaser();
+	}
+}
+
+public class NukeLauncher: ShipWeapon
+{
+	protected override void Initialize()
+	{
+		maxCooldownTime = 5;
+		damageInfo = new WeaponDamage(360, 370);
+		ammoCostToUse = 2;
+		//generatorLevelDelta = 2;
+		name = "Nuke Launcher";
 	}
 }
 /*

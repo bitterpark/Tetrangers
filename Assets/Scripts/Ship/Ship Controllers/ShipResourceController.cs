@@ -16,9 +16,13 @@ public class ShipResourceController
 
 		model.EEnergyChanged += UpdateEnergy;
 		model.EEnergyGainChanged += UpdateEnergyGain;
+		model.EAmmoChanged += UpdateAmmo;
+		model.EPartsChanged += UpdateParts;
 
 		UpdateEnergy();
 		UpdateEnergyGain();
+		UpdateAmmo();
+		UpdateParts();
 	}
 
 	public virtual void DisposeController()
@@ -39,6 +43,15 @@ public class ShipResourceController
 	void UpdateEnergyGain()
 	{
 		view.SetEnergyGain(model.shipEnergyGain);
+	}
+
+	void UpdateAmmo()
+	{
+		view.SetAmmo(model.ammo, model.ammoMax);
+	}
+	void UpdateParts()
+	{
+		view.SetParts(model.parts,model.partsMax);
 	}
 }
 

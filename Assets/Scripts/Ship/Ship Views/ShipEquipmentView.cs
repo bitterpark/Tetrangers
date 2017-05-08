@@ -17,11 +17,21 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	[SerializeField]
 	GameObject damageObject;
 	[SerializeField]
+	GameObject regularDamageIcon;
+	[SerializeField]
+	GameObject antiShieldDamageIcon;
+	[SerializeField]
+	GameObject antiHullDamageIcon;
+	[SerializeField]
 	GameObject blueEnergyCostObject;
 	[SerializeField]
 	GameObject greenEnergyCostObject;
 	[SerializeField]
 	GameObject shipEnergyCostObject;
+	[SerializeField]
+	GameObject ammoCostObject;
+	[SerializeField]
+	GameObject partsCostObject;
 	[SerializeField]
 	GameObject cooldownTimeObject;
 	[SerializeField]
@@ -45,12 +55,8 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	[SerializeField]
 	Color inactiveCooldownColor;
 
-
-	//public int viewIndex { get; private set; }
-
 	public void Initialize()
 	{
-		//viewIndex = index;
 		fireWeaponButton.onClick.AddListener(DoButtonPress);
 		myAnimator.GetBehaviour<ViewButtonAnimBehaviour>().EStateFinished += AnimatorCallbackOnAnimationFinished;
 	}
@@ -67,25 +73,46 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		
 	}
 
-	public void SetDisplayValues(int blueEnergyCost, int greenEnergyCost, int shipEnergyCost, int generatorDelta, int maxCooldownTime, string equipmentName)
+	public void SetDisplayValues(
+		int blueEnergyCost
+		, int greenEnergyCost
+		, int shipEnergyCost
+		, int ammoCost
+		, int partsCost
+		, int generatorDelta
+		, int maxCooldownTime
+		, string equipmentName)
 	{
 		SetEnergyCost(blueEnergyCost, greenEnergyCost, shipEnergyCost);
 		SetName(equipmentName);
 		SetGeneratorDelta(generatorDelta);
-		SetDamage(0);
+		SetNoDamage();
 		SetCooldownTime(0, maxCooldownTime);
+		SetAmmoCost(ammoCost);
+		SetPartsCost(partsCost);
 	}
 	
+	
 
-	public void SetDamage(int damage)
+	public void SetDamage(WeaponDamage damageInfo)
 	{
-		if (damage > 0)
+		if (damageInfo.minDamage > 0)
 		{
 			damageObject.SetActive(true);
-			damageObject.GetComponentInChildren<Text>().text = damage.ToString();
+			damageObject.GetComponentInChildren<Text>().text = damageInfo.minDamage + "-" + damageInfo.maxDamage;
+			if (damageInfo.damageType == AttackType.Regular)
+				regularDamageIcon.SetActive(true);
+			else if (damageInfo.damageType == AttackType.Antishield)
+				antiShieldDamageIcon.SetActive(true);
+			else if (damageInfo.damageType == AttackType.Antihull)
+				antiHullDamageIcon.SetActive(true);
 		}
 		else
-			damageObject.SetActive(false);
+			SetNoDamage();
+	}
+	public void SetNoDamage()
+	{
+		damageObject.SetActive(false);
 	}
 
 	public void SetEnergyCost(int blueCost, int greenCost, int shipCost)
@@ -113,6 +140,27 @@ public class ShipEquipmentView : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		}
 		else
 			shipEnergyCostObject.SetActive(false);
+	}
+
+	public void SetAmmoCost(int cost)
+	{
+		if (cost == 0)
+			ammoCostObject.SetActive(false);
+		else
+		{
+			ammoCostObject.SetActive(true);
+			ammoCostObject.GetComponentInChildren<Text>().text = cost.ToString();
+		}
+	}
+	public void SetPartsCost(int cost)
+	{
+		if (cost == 0)
+			partsCostObject.SetActive(false);
+		else
+		{
+			partsCostObject.SetActive(true);
+			partsCostObject.GetComponentInChildren<Text>().text = cost.ToString();
+		}
 	}
 
 	public void SetCooldownTime(int currentTime, int maxTime)
