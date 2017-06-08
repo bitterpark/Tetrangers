@@ -74,7 +74,7 @@ public abstract class ShipModel: ICanUseEquipment, ICanHaveStatusEffects, IHasEn
 	protected abstract ICanSpendEnergy CreateOrGetAppropriateEnergyUser(int blueMax, int greenMax);
 	protected abstract EquipmentUser CreateAppropriateEquipmentUser();
 
-	protected abstract void TakeDamage(int damage);
+	protected abstract void GetHitByWeapon(AttackInfo attack);
 
 	protected void ResetToStartingStats()
 	{

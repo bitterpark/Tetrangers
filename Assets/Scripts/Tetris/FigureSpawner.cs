@@ -19,12 +19,12 @@ public class FigureSpawner : Singleton<FigureSpawner>
 
 	void Awake()
 	{
-		TetrisManager.ETetrisStarted += StartSpawning;
+		TetrisManager.ETetrisStarted += SetSpawningPointCoords;
 		TetrisManager.ETetrisEndClear += ClearOnTetrisEnd;
 		TetrisManager.ENextPlayerMoveStarted += DropInCurrentFigure;
 	}
 
-	public void StartSpawning()
+	public void SetSpawningPointCoords()
 	{
 		spawnedFiguresX = Mathf.RoundToInt(Grid.Instance.maxX/2);
 		//The 0,0 center of figures is not always at the top of the figure, this makes sure any blocks above the center still fit

@@ -26,6 +26,26 @@ public abstract class PassiveShipEquipment : ShipEquipment
 		BattleManager.EBattleFinished -= DeactivatePassiveEffect;
 	}
 
+	protected override void UpdateActiveStatus(bool active)
+	{
+		if (active)
+			ActivatePassiveEffect();
+		else
+			DeactivatePassiveEffect();
+	}
+
+	void TryActivatePassiveEffect()
+	{
+		if (equipmentIsActive)
+			ActivatePassiveEffect();
+	}
+
+	void TryDeactivatePassiveEffect()
+	{
+		if (equipmentIsActive)
+			DeactivatePassiveEffect();
+	}
+
 	protected abstract void ActivatePassiveEffect();
 	protected abstract void DeactivatePassiveEffect();
 

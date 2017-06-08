@@ -12,15 +12,17 @@ public class PlayerShipEquipmentController : ShipEquipmentController
 	{
 		//this.sectorListViews = sectorListViews;
 
-		BattleAI.EAITurnFinished += TryEnableEquipmentViewButtons;
-		BattleManager.EEngagementModeEnded += DisableEquipmentViewButtons;
+		BattleAI.EAITurnStarted += DisableEquipmentViewButtons;
+		BattleManager.EEngagementModeEnded += TryEnableEquipmentViewButtons;
+		//BattleManager.EEngagementModeEnded += DisableEquipmentViewButtons;
 	}
 
 	public override void DisposeController(bool disposeModel)
 	{
 		base.DisposeController(disposeModel);
-		BattleAI.EAITurnFinished -= TryEnableEquipmentViewButtons;
-		BattleManager.EEngagementModeEnded -= DisableEquipmentViewButtons;
+		BattleAI.EAITurnStarted -= DisableEquipmentViewButtons;
+		BattleManager.EEngagementModeEnded -= TryEnableEquipmentViewButtons;
+		//BattleManager.EEngagementModeEnded -= DisableEquipmentViewButtons;
 	}
 
 

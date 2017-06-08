@@ -22,7 +22,7 @@ public abstract class PlayerShipStatusEffect : ShipStatusEffect
 
 	protected abstract void CastExtenderActivation(PlayerShipModel useOnPlayerShipModel);
 }
-
+/*
 public class MeltdownEffect : PlayerShipStatusEffect
 {
 	int blueGainAdded = 0;
@@ -46,5 +46,5 @@ public class MeltdownEffect : PlayerShipStatusEffect
 	{
 		//PlayerShipModel.energyGainPerSecondsSavedEnabled = false;
 	}
-}
+}*/
 

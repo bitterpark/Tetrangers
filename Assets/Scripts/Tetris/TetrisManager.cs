@@ -99,6 +99,7 @@ public class TetrisManager : Singleton<TetrisManager>
 			yield return null;
 		if (ETetrisStarted != null)
 			ETetrisStarted();
+		StartNextPlayerMove();
 		//ContinueTetris();
 		yield break;
 	}
@@ -154,8 +155,8 @@ public class TetrisManager : Singleton<TetrisManager>
 
 	void Awake()
 	{
-		BattleManager.EEngagementModeStarted += PauseTetris;
-		BattleManager.EEngagementModeEnded += ContinueTetris;
+		//BattleManager.EEngagementModeStarted += PauseTetris;
+		//BattleManager.EEngagementModeEnded += ContinueTetris;
 		BattleManager.EBattleManagerDeactivated += EndAndClearTetris;
 		BattleManager.EBattleStarted += StartTetris;
 		BattleManager.EBattleFinished += PauseTetris;

@@ -40,6 +40,8 @@ public class BaseScreen: MonoBehaviour
 
 	public void OpenBaseScreen()
 	{
+		MusicPlayer.Instance.PlayNextBaseTrack();
+
 		GameDataManager.EIntelChanged += UpdateIntelText;
 		GameDataManager.EMaterialsChanged += UpdateMaterialsText;
 		UpdateIntelText();

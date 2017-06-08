@@ -6,10 +6,8 @@ using UnityEngine.Events;
 public class FigureSettler
 {
 	public static event UnityAction ENewFigureSettled;
-	public static event UnityAction ETogglePowerupEffects;
+	public static event UnityAction<List<IEnumerator>> ETogglePowerupEffects;
 	public static event UnityAction<int> EOverflowingBlocks;
-
-	public static event UnityAction EToggleAllSettledBlocksSetToIsolated;
 
 	Matcher matcher;
 
@@ -44,39 +42,20 @@ public class FigureSettler
 		IEnumerator matchesRoutine = matcher.HandleMatches(figureRows, figureCols);
 		if (matchesRoutine != null)
 			yield return Grid.Instance.StartCoroutine(matchesRoutine);
-		//
-		/*
-		//Lower any remaining parts of the figure floating in the air
-		List<Cell> settledFigureCells = figureInfo.settledBlockCells;
 
-		System.Comparison<Cell> bottomCellsFirstOrderer = (Cell cell1, Cell cell2) =>
+		List<IEnumerator> powerupEffectRoutines = new List<IEnumerator>();
+		while (ETogglePowerupEffects != null)
 		{
-			if (cell1.yCoord < cell2.yCoord)
-				return -1;
-			if (cell1.yCoord > cell2.yCoord)
-				return 1;
+			ETogglePowerupEffects(powerupEffectRoutines);
+			foreach (IEnumerator routine in powerupEffectRoutines)
+				yield return Grid.Instance.StartCoroutine(routine);
+		}
 
-			return 0;
-		};
-
-		settledFigureCells.Sort(bottomCellsFirstOrderer);
-		foreach (Cell cell in figureInfo.settledBlockCells)
-			if (CanLowerBlockInCell(cell.xCoord, cell.yCoord))
-			{
-				LowerBlockInCell(cell.xCoord, cell.yCoord, true).LaunchInParallelCoroutinesGroup(this, "Figure blocks lowering");
-				//yield return StartCoroutine(LowerBlockInCell(cell.xCoord, cell.yCoord, true));
-			}
-		while (CoroutineExtension.GroupIsProcessing("Figure blocks lowering"))
-			yield return null;
-		*/
-		while (ETogglePowerupEffects != null) ETogglePowerupEffects();
 		HandleOverflowingBlocks(figureBlocks);
-		HandleIsolatedBlocks();
+		//Grid.Instance.UpdateIsolatedBlocks();
 		if (ENewFigureSettled != null) ENewFigureSettled();
 		yield break;
 	}
-
-
 
 	void FillInSettledFigure(List<SettledBlock> settledBlocks)
 	{
@@ -130,29 +109,12 @@ public class FigureSettler
 				{
 					Cell blockCell = Grid.Instance.GetCell(block.currentX, block.currentY);
 					blockCell.EmptyCell();
-					Debug.Log("Handling overflowing blocks!");
+					//Debug.Log("Handling overflowing blocks!");
 					unmatchedOverflowingBlockCount++;
 				}
 			}
 		}
 		if (unmatchedOverflowingBlockCount>0 && EOverflowingBlocks != null) EOverflowingBlocks(unmatchedOverflowingBlockCount);
-	}
-
-	void HandleIsolatedBlocks()
-	{
-		if (EToggleAllSettledBlocksSetToIsolated != null) EToggleAllSettledBlocksSetToIsolated();
-		//List<SettledBlock> isolatedBlocks = new List<SettledBlock>();
-		//List<SettledBlock> allGroundedBlocks = new List<SettledBlock>();
-		//List<SettledBlock> allExistingBlocksBuffered = new List<SettledBlock>(SettledBlock.existingBlocks);
-		foreach (GridSegment segment in Grid.Instance.GridSegments)
-			segment.SetGroundedBlocksInSegment();
-			//allGroundedBlocks.AddRange(segment.GetGroundedBlocksInSegment());
-		/*
-		foreach (SettledBlock block in allExistingBlocksBuffered)
-		{
-			if (!allGroundedBlocks.Contains(block))
-				Grid.Instance.GetCell(block.currentX, block.currentY).EmptyCell();
-		}*/
 	}
 
 

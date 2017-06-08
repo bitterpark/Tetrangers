@@ -16,16 +16,18 @@ public abstract class EnemyShipModel : ShipModel
 
 	BattleAI myAI;
 
-	public static EnemyShipModel GetEnemyShipModelInstance()
+	public static EnemyShipModel GetEnemyShipModelInstance(bool lightShip)
 	{
+		/*
 		float randomValue = UnityEngine.Random.value;
 
 		EnemyShipModel result = null;
 
 		System.Type[] allShipTypes = {typeof(HeavyShip), typeof(AssaultShip) };
 		//result = (EnemyShipModel)System.Activator.CreateInstance(allShipTypes[Random.Range(0,allShipTypes.Length)]);
-		result = new HeavyShip();
-		return result;
+		result = new HeavyShip();*/
+		if (lightShip) return new LightShip();
+		else return new HeavyShip();
 	}
 
 	public EnemyShipModel()
@@ -38,6 +40,7 @@ public abstract class EnemyShipModel : ShipModel
 	{		
 		energyManager = SetupEnergyManager(blueEnergyMax, greenEnergyMax);
 		healthManager = SetupHealthManager(healthMax, shieldsMax);
+		healthManager.EHealthDepleted += DoDeathEvent;
 		base.SetStartingStats(healthMax, shieldsMax, shieldsGain, blueEnergyMax, greenEnergyMax, sprite, name);
 	}
 
@@ -75,7 +78,7 @@ public abstract class EnemyShipModel : ShipModel
 		TetrisManager.ECurrentPlayerMoveDone += GainEnergyOnPlayerMove;
 		BattleManager.EEngagementModeEnded += GainEnergyOnNewRound;
 		//sectorModel.InitializeForBattle();
-		PlayerEquipmentUser.EPlayerWeaponFired += TakeDamage;
+		PlayerEquipmentUser.EPlayerWeaponFired += GetHitByWeapon;
 	}
 
 	public override void DisposeModel()
@@ -87,7 +90,7 @@ public abstract class EnemyShipModel : ShipModel
 		TetrisManager.ECurrentPlayerMoveDone -= GainEnergyOnPlayerMove;
 		BattleManager.EEngagementModeEnded -= GainEnergyOnNewRound;
 
-		PlayerEquipmentUser.EPlayerWeaponFired -= TakeDamage;
+		PlayerEquipmentUser.EPlayerWeaponFired -= GetHitByWeapon;
 		//sectorModel.Dispose();
 		myAI.Dispose();
 		myAI = null;
@@ -108,9 +111,9 @@ public abstract class EnemyShipModel : ShipModel
 		energyManager.IncreaseGreenByGain();
 	}
 
-	protected override void TakeDamage(int damage)
+	protected override void GetHitByWeapon(AttackInfo attack)
 	{
-		healthManager.TakeDamage(damage);
+		healthManager.TakeDamage(attack);
 	}
 
 
@@ -177,10 +180,39 @@ public class HeavyShip : EnemyShipModel
 			, BalanceValuesManager.Instance.heavyMaxGreen
 			, SpriteDB.Instance.shipsprite, "Heavy Ship");
 
-		shipEquipment.AddEquipment(new BlueAmp(), new PlasmaCannon(), new ReactiveArmor(), new Forcefield());
+		shipEquipment.AddEquipment(new HeavyLaser(), new Railgun());
 		//sectorModel.sectorEquipment.AddEquipment(new PlasmaCannon(), new ReactiveArmor(), new Forcefield());
 		//shipEquipment.AddEquipment(new ReactiveArmor(), new Forcefield());
 		//shipEquipment.AddEquipment(new Siphon());
+
+		//shipShieldsGain = 10;
+		//SetShieldsGain(10);
+		//AddOtherEquipment(new BlueAmp());
+	}
+}
+
+public class LightShip : EnemyShipModel
+{
+	protected override void InitializeClassStats()
+	{
+		SetStartingStats(180
+			, 180
+			, BalanceValuesManager.Instance.enemyShieldGain
+			, BalanceValuesManager.Instance.heavyMaxBlue
+			, BalanceValuesManager.Instance.heavyMaxGreen
+			, SpriteDB.Instance.shipsprite, "Light Ship");
+
+		if (Random.value<0.33f)
+			shipEquipment.AddEquipment(new HeavyLaser());
+		else
+			if (Random.value<0.66f)
+			shipEquipment.AddEquipment(new DualRailgun());
+		else
+			shipEquipment.AddEquipment(new TorpedoLauncher());
+		//sectorModel.sectorEquipment.AddEquipment(new PlasmaCannon(), new ReactiveArmor(), new Forcefield());
+		//shipEquipment.AddEquipment(new ReactiveArmor(), new Forcefield());
+		if (Random.value<0.5f)
+			shipEquipment.AddEquipment(new Siphon());
 
 		//shipShieldsGain = 10;
 		//SetShieldsGain(10);

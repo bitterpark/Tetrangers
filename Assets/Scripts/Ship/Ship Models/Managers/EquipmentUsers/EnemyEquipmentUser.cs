@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 public class EnemyEquipmentUser: EquipmentUser
 {
-	public static event UnityAction<int> EEnemyWeaponFired;
+	public static event UnityAction<AttackInfo> EEnemyWeaponFired;
 	public static event UnityAction<StatusEffect> EEnemyAppliedStatusEffectToPlayer;
 
 	public EnemyEquipmentUser(ShipModel parentShip, IHasEnergy energyUser) : base(parentShip, energyUser)
@@ -19,10 +19,10 @@ public class EnemyEquipmentUser: EquipmentUser
 			EEnemyAppliedStatusEffectToPlayer(effect);
 	}
 
-	protected override void DoWeaponFireEvent(int weaponDamage)
+	protected override void DoWeaponFireEvent(AttackInfo attack)
 	{
 		if (EEnemyWeaponFired != null)
-			EEnemyWeaponFired(weaponDamage);
+			EEnemyWeaponFired(attack);
 	}
 
 	public override void InitializeForBattle()

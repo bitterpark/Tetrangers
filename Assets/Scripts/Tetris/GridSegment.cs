@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class GridSegment
 {
 	public static event UnityAction<int> ERowsCleared;
-	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(int blueBlocks, int greenBlocks, int shieldBlocks, int shipBlocks, int segmentIndex);
+	public delegate PlayerShipModel.TotalEnergyGain BlocksClearDeleg(ClearedCellsInfo clearInfo, int segmentIndex);
 	public event BlocksClearDeleg EBlocksCleared;
 
 	public event UnityAction EIsolatedBlockExpired;
@@ -20,7 +20,7 @@ public class GridSegment
 
 	public bool isUsable = true;
 
-	
+	public List<SettledBlock> blocksInSegment = new List<SettledBlock>();
 
 	GridFX gridFX;
 
@@ -57,11 +57,7 @@ public class GridSegment
 	{
 		if (EBlocksCleared != null)
 		{
-			PlayerShipModel.TotalEnergyGain totalGain = EBlocksCleared(info.blueBlocksCount
-				, info.greenBlocksCount
-				, info.shieldBlocksCount
-				, info.shipBlocksCount
-				, segmentIndex);
+			PlayerShipModel.TotalEnergyGain totalGain = EBlocksCleared(info, segmentIndex);
 			gridFX.ShowEnergyGainFX(info.clearedCellsBelongingToSegment, totalGain);
 		}
 		
@@ -76,6 +72,20 @@ public class GridSegment
 		public List<Cell> clearedCellsBelongingToSegment = new List<Cell>();
 	}
 
+	public int GetBlocksOfTypeCount(BlockType type)
+	{
+		return GetBlocksOfType(type).Count;
+	}
+
+	public List<SettledBlock> GetBlocksOfType(BlockType type)
+	{
+		List<SettledBlock> blocksOfType = new List<SettledBlock>();
+		foreach (SettledBlock block in blocksInSegment)
+			if (block.blockType == type)
+				blocksOfType.Add(block);
+
+		return blocksOfType;
+	}
 	
 	public List<SettledBlock> GetGroundedBlocksInSegment()
 	{
@@ -113,6 +123,7 @@ public class GridSegment
 		while (x1 <= maxX && (!currentCell.isUnoccupied && currentCell.settledBlockInCell.isIsolated))
 		{
 			currentCell.settledBlockInCell.isIsolated = false;
+			//Debug.Log("Isolated set to false");
 			x1++;
 			currentCell = Grid.Instance.GetCell(x1, y);
 		}
@@ -125,6 +136,7 @@ public class GridSegment
 			while (x1 >= 0 && (!currentCell.isUnoccupied && currentCell.settledBlockInCell.isIsolated))
 			{
 				currentCell.settledBlockInCell.isIsolated = false;
+				//Debug.Log("Isolated set to false");
 				x1--;
 				currentCell = Grid.Instance.GetCell(x1, y);
 			}

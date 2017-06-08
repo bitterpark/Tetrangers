@@ -18,15 +18,16 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 		get { return _isDamaged; }
 		set
 		{
-			if (value != _isDamaged)
-				HandleDamagedStatusChange();
+			bool oldValue = _isDamaged;
 			_isDamaged = value;
+			if (_isDamaged != oldValue)
+				HandleDamagedStatusChange(_isDamaged);
 		}
 	}
 	bool _isDamaged = false;
 
-	const int sectorHealth = 150;
-	const int sectorShields = 150;
+	//const int sectorHealth = BalanceValuesManager.Instance.sectorHealth;
+	//const int sectorShields = 150;
 	//const int sectorShieldsGain = 50;
 
 	public ShipSectorModel(ShipModel parentShip)
@@ -44,7 +45,9 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 		equipmentUser = CreateAppropriateEquipmentUser(parentShip);
 		sectorEquipment = new ShipEquipmentModel(parentShip, this);
 
-		healthManager = new HealthAndShieldsManager(sectorHealth, sectorShields, 10);
+		healthManager = new HealthAndShieldsManager(BalanceValuesManager.Instance.sectorHealth
+			, BalanceValuesManager.Instance.sectorShields
+			, 10);
 
 		//sectorEquipment.AddEquipment(new LaserGun(), new BlockEjector(), new Overdrive());
 		healthManager.EHealthChanged += HandleHealthChanging;
@@ -57,7 +60,7 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 
 	public virtual void InitializeForBattle()
 	{
-		//sectorEquipment.InitializeForBattle();
+		sectorEquipment.InitializeForBattle();
 	}
 
 	public virtual void Dispose()
@@ -69,9 +72,7 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 		energyManager.Dispose();
 		equipmentUser.Dispose();
 		sectorEquipment.DisposeModel();
-		//sectorEquipment.DisposeModel();
 		healthManager.Dispose();
-		//equipmentUser.Dispose();
 	}
 
 	protected virtual void TryRegenShields()
@@ -87,7 +88,7 @@ public abstract class ShipSectorModel: IHasEnergy, ICanUseEquipment
 			isDamaged = false;
 	}
 
-	protected abstract void HandleDamagedStatusChange();
+	protected abstract void HandleDamagedStatusChange(bool becameDamaged);
 
 }
 

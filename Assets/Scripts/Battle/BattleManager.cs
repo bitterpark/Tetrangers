@@ -76,6 +76,7 @@ public class BattleManager : Singleton<BattleManager> {
 		PlayerShipModel.EPlayerDied += DisplayBattleLoss;
 		TetrisManager.ETetrisLost += DisplayBattleLoss;
 		EnemyShipModel.EEnemyDied += DisplayBattleWin;
+		BattleAI.EAITurnFinished += EndEngagementMode;
 
 		if (EBattleStarted != null)
 			EBattleStarted();
@@ -122,9 +123,9 @@ public class BattleManager : Singleton<BattleManager> {
 	void StartEngagementMode()
 	{
 		turnsRemaining = turnsPerEngagement;
-		engagementButton.GetComponent<Animator>().SetTrigger("Stop_Alert");
-		engagementButton.interactable = true;
-		engagementStatusText.text = string.Format("Disengage ({0})",turnsRemaining);
+		//engagementButton.GetComponent<Animator>().SetTrigger("Stop_Alert");
+		//engagementButton.interactable = true;
+		//engagementStatusText.text = string.Format("Disengage ({0})",turnsRemaining);
 
 		//Debug.Log("Engagement mode started");
 
@@ -190,6 +191,7 @@ public class BattleManager : Singleton<BattleManager> {
 		PlayerShipModel.EPlayerDied -= DisplayBattleLoss;
 		TetrisManager.ETetrisLost -= DisplayBattleLoss;
 		EnemyShipModel.EEnemyDied -= DisplayBattleWin;
+		BattleAI.EAITurnFinished -= EndEngagementMode;
 
 		engagementButton.GetComponent<Animator>().SetTrigger("Stop_Alert");
 		RevertEngagementMode();

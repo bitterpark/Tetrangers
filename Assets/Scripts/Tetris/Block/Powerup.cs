@@ -3,15 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IPowerup
-{
-	//IEnumerator GetPowerupRoutine();
-	void UsePowerup();
-}
+
 
 public enum PowerupType {Bomb, Change, LineClear, Damage};
 
-public abstract class Powerup: IPowerup
+public abstract class Powerup
 {
 	protected int x;
 	protected int y;
@@ -54,13 +50,13 @@ public abstract class Powerup: IPowerup
 		FigureSettler.ETogglePowerupEffects += ActivatePowerup;
 	}
 
-	void ActivatePowerup()
+	void ActivatePowerup(List<IEnumerator> powerupRoutines)
 	{
 		FigureSettler.ETogglePowerupEffects -= ActivatePowerup;
-		UsePowerup();
+		powerupRoutines.Add(UsePowerup());
 	}
 
-	public abstract void UsePowerup();
+	public abstract IEnumerator UsePowerup();
 
 	
 }
@@ -70,7 +66,7 @@ public class Bomb : Powerup
 {
 	//bool bombDetonated = false;
 
-	public override void UsePowerup()
+	public override IEnumerator UsePowerup()
 	{
 		//FigureSettler.ENewFigureSettled -= DetonateBomb;
 
@@ -79,7 +75,7 @@ public class Bomb : Powerup
 		int bombEndX = Mathf.Clamp((int)x + 1, 0, Grid.Instance.maxX);
 		int bombEndY = Mathf.Clamp((int)y + 1, 0, Grid.Instance.maxY);
 
-		Grid.Instance.ClearArea(bombStartX, bombStartY, bombEndX, bombEndY);
+		return Clearer.Instance.ClearAreaRoutine(bombStartX, bombStartY, bombEndX, bombEndY, true);
 		//bombDetonated = true;
 	}
 	/*
@@ -128,9 +124,10 @@ public class Bomb : Powerup
 
 public class Change : Powerup
 {
-	public override void UsePowerup()
+	public override IEnumerator UsePowerup()
 	{
 		FigureSpawner.Instance.ChangeNextFigure();
+		yield break;
 	}
 
 }
@@ -139,18 +136,19 @@ public class Damage: Powerup
 {
 	int damage = 50;
 
-	public override void UsePowerup()
+	public override IEnumerator UsePowerup()
 	{
 		int mySegmentIndex = Grid.Instance.GetSegmentIndexFromCoords(x, y);
 		if (mySegmentIndex != -1)
 			PlayerShipModel.main.shipSectors[mySegmentIndex].healthManager.TakeDamage(damage);
+		yield break;
 	}
 }
 
 public class LineClear : Powerup
 {
-	public override void UsePowerup()
+	public override IEnumerator UsePowerup()
 	{
-		Grid.Instance.ClearRows(y);
+		return Clearer.Instance.ClearRowsRoutine(y);
 	}
 }

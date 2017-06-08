@@ -6,7 +6,7 @@ public class Cell
 {
 	public bool isUnoccupied
 	{
-		get { return settledBlockInCell == null;}
+		get { return (settledBlockInCell == null || settledBlockInCell.isBeingDestroyed);}
 	}
 
 	public int xCoord;
@@ -34,6 +34,7 @@ public class Cell
 
 		return returnValue;
 	}
+
 
 	public SettledBlock ExtractBlockFromCell()
 	{

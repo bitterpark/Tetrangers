@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -36,34 +35,35 @@ public class PlayerShipModel : ShipModel {
 		//FigureSettler.EOverflowingBlocks += HandleOverflowDamage;
 		//healthManager.EShieldsGainChanged += HandleShieldGainChange;
 
-		shipEquipment.AddEquipment(new Heatsink(), new NukeLauncher());
-		shipEquipment.AddEquipment(new Stabilizer(), new RepairDrones());
+		//shipEquipment.AddEquipment(new Heatsink(), new NukeLauncher());
+		//shipEquipment.AddEquipment(new RepairDrones());
 
 		int sectorCount = Grid.segmentCount;
 		shipSectors = new PlayerShipSectorModel[sectorCount];
 		for (int i = 0; i < sectorCount; i++)
+		{
 			shipSectors[i] = new PlayerShipSectorModel(this, i);
-
-		shipSectors[0].sectorEquipment.AddEquipment(new LaserGun(), new ReactiveArmor());
-		shipSectors[1].sectorEquipment.AddEquipment(new PlasmaCannon(), new Forcefield());
-		shipSectors[2].sectorEquipment.AddEquipment(new HeavyLaser(), new BlueEnergyTransmitter());
+			shipSectors[i].ESectorDamaged += HandleLosingSector;
+		}
+		shipSectors[0].sectorEquipment.AddEquipment(new LaserGun(), new ShieldGenerator());
+		shipSectors[1].sectorEquipment.AddEquipment(new ClusterLauncher(), new RepairDrones());
+		shipSectors[2].sectorEquipment.AddEquipment(new DualRailgun(), new Stabilizer());
 	}
 
 	protected override void InitializeForBattle()
 	{
 		base.InitializeForBattle();
-		EnemyEquipmentUser.EEnemyWeaponFired += TakeDamage;
+		EnemyEquipmentUser.EEnemyWeaponFired += GetHitByWeapon;
 		EnemyEquipmentUser.EEnemyAppliedStatusEffectToPlayer += statusEffectManager.AddNewStatusEffect;
+		EquipmentUser.EAppliedStatusEffectToPlayerShipSector += ApplyStatusEffectToRandomFunctioningSector;
 
 		BattleManager.EBattleFinished += ResetToStartingStatsKeepHealth;
 		MissionManager.EMissionStarted += ResetToStartingStats;
 
-		Grid.EBlocksCleared += HandleDestroyedBlocks;
+		Clearer.EBlocksCleared += HandleDestroyedBlocks;
 
 		foreach (ShipSectorModel sector in shipSectors)
 			sector.InitializeForBattle();
-		
-
 	}
 
 	protected override void InitializeClassStats()
@@ -96,21 +96,53 @@ public class PlayerShipModel : ShipModel {
 	public override void DisposeModel()
 	{
 		base.DisposeModel();
-		EnemyEquipmentUser.EEnemyWeaponFired -= TakeDamage;
+		EnemyEquipmentUser.EEnemyWeaponFired -= GetHitByWeapon;
 		EnemyEquipmentUser.EEnemyAppliedStatusEffectToPlayer -= statusEffectManager.AddNewStatusEffect;
+		EquipmentUser.EAppliedStatusEffectToPlayerShipSector -= ApplyStatusEffectToRandomFunctioningSector;
 
 		BattleManager.EBattleFinished -= ResetToStartingStatsKeepHealth;
 		MissionManager.EMissionStarted -= ResetToStartingStats;
 
-		Grid.EBlocksCleared -= HandleDestroyedBlocks;
+		Clearer.EBlocksCleared -= HandleDestroyedBlocks;
 
 		//FigureSettler.EOverflowingBlocks -= HandleOverflowDamage;
 	}
 
-	protected override void TakeDamage(int damage)
+	void ApplyStatusEffectToRandomFunctioningSector(StatusEffect effect)
 	{
-		GetWeakestSectorHealthManager().TakeDamage(damage);
+		List<int> eligibleSectorIndices = new List<int>();
+		foreach (PlayerShipSectorModel sector in shipSectors)
+			if (!sector.isDamaged) eligibleSectorIndices.Add(sector.index);
 
+		int randomIndex = eligibleSectorIndices[Random.Range(0, eligibleSectorIndices.Count)];
+		shipSectors[randomIndex].HandleSectorStatusEffectApplication(effect);
+	}
+
+	protected override void GetHitByWeapon(AttackInfo attack)
+	{
+		GetWeakestSectorHealthManager().TakeDamage(attack);
+	}
+
+	HealthAndShieldsManager GetWeakestSectorHealthManager()
+	{
+		//Debug.Log("Getting weakest ship sector");
+		HealthAndShieldsManager weakestManager = shipSectors[0].healthManager;
+		foreach (ShipSectorModel sector in shipSectors)
+		{
+			if (!sector.isDamaged)
+			{
+				int weakestTotalHitpoints = weakestManager.health + weakestManager.shields;
+				int checkedTotalHitpoints = sector.healthManager.health + sector.healthManager.shields;
+				if (checkedTotalHitpoints < weakestTotalHitpoints || (checkedTotalHitpoints == weakestTotalHitpoints && Random.value<0.5f))
+					weakestManager = sector.healthManager;
+			}
+		}
+		return weakestManager;
+	}
+
+	void HandleLosingSector()
+	{
+		//Debug.Log("Handling losing sector");
 		bool allSectorsDamaged = true;
 		foreach (ShipSectorModel sector in shipSectors)
 			if (!sector.isDamaged)
@@ -122,29 +154,17 @@ public class PlayerShipModel : ShipModel {
 			DoDeathEvent();
 	}
 
-	HealthAndShieldsManager GetWeakestSectorHealthManager()
-	{
-		HealthAndShieldsManager weakestManager = shipSectors[0].healthManager;
-		foreach (ShipSectorModel sector in shipSectors)
-		{
-			if (!sector.isDamaged)
-				if (sector.healthManager.health + sector.healthManager.shields < weakestManager.health + weakestManager.shields)
-					weakestManager = sector.healthManager;
-		}
-		return weakestManager;
-	}
-
 	protected override void DoDeathEvent()
 	{
 		if (EPlayerDied != null)
 			EPlayerDied();
 	}
 
-	PlayerShipModel.TotalEnergyGain HandleDestroyedBlocks(int blueBlocks, int greenBlocks, int shieldBlocks, int shipBlocks)
+	PlayerShipModel.TotalEnergyGain HandleDestroyedBlocks(GridSegment.ClearedCellsInfo clearInfo)
 	{
 		int shipEnergyGain = 0;
 
-		shipEnergyGain = GainEnergyFromDestroyedBlocks(BlockType.ShipEnergy, shipBlocks);
+		shipEnergyGain = GainEnergyFromDestroyedBlocks(BlockType.ShipEnergy, clearInfo.shipBlocksCount);
 
 		return new PlayerShipModel.TotalEnergyGain(0, 0, 0, shipEnergyGain);
 	}

@@ -37,6 +37,8 @@ public class ShipEquipmentModel : IEquipmentListModel
 	public void SetFunctioning(bool functioning)
 	{
 		isFunctioning = functioning;
+		foreach (ShipEquipment equipment in GetStoredEquipment())
+			equipment.equipmentIsActive = functioning;
 	}
 
 	public void LowerAllCooldowns(int lowerBy)

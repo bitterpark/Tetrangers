@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.5.2f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -81,7 +83,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\BalanceValuesManager.cs" />
+    <Compile Include="Assets\Scripts\BorderSquare.cs" />
+    <Compile Include="Assets\Scripts\GridCellClickHandler.cs" />
+    <Compile Include="Assets\Scripts\StarmapManager.cs" />
+    <Compile Include="Assets\StarmapObject.cs" />
+    <Compile Include="Assets\DetectClickScript.cs" />
     <Compile Include="Assets\Scripts\Base\BaseScreen.cs" />
     <Compile Include="Assets\Scripts\Base\BaseSubscreen.cs" />
     <Compile Include="Assets\Scripts\Base\Hangar\HangarEquipmentController.cs" />
@@ -108,8 +114,6 @@
     <Compile Include="Assets\Scripts\Equipment Lists\Views\TabButtonsView.cs" />
     <Compile Include="Assets\Scripts\Equipment Lists\Views\TabbedEquipmentListView.cs" />
     <Compile Include="Assets\Scripts\FloatingText.cs" />
-    <Compile Include="Assets\Scripts\GameDataManager.cs" />
-    <Compile Include="Assets\Scripts\MainMenuManager.cs" />
     <Compile Include="Assets\Scripts\Misc\StatusEffectDisplayer.cs" />
     <Compile Include="Assets\Scripts\Misc\StatusEffectIcon.cs" />
     <Compile Include="Assets\Scripts\Mission\MissionCompletedScreen.cs" />
@@ -117,7 +121,6 @@
     <Compile Include="Assets\Scripts\Mission\MissionProgressScreen.cs" />
     <Compile Include="Assets\Scripts\Mission\MissionSubscreen.cs" />
     <Compile Include="Assets\Scripts\ParticleController.cs" />
-    <Compile Include="Assets\Scripts\ParticleDB.cs" />
     <Compile Include="Assets\Scripts\Ship\BattleAI.cs" />
     <Compile Include="Assets\Scripts\Ship\EnemyShipStatusEffect.cs" />
     <Compile Include="Assets\Scripts\Ship\Equipment\Ability.cs" />
@@ -125,6 +128,7 @@
     <Compile Include="Assets\Scripts\Ship\Equipment\PassiveShipSectorEquipment.cs" />
     <Compile Include="Assets\Scripts\Ship\Equipment\PlayerTargetSelectManager.cs" />
     <Compile Include="Assets\Scripts\Ship\Equipment\ShipEquipment.cs" />
+    <Compile Include="Assets\Scripts\Ship\Equipment\ShipWeapon.cs" />
     <Compile Include="Assets\Scripts\Ship\PlayerShipStatusEffect.cs" />
     <Compile Include="Assets\Scripts\Ship\SectorStatusEffect.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Controllers\EnemyShipController.cs" />
@@ -173,10 +177,16 @@
     <Compile Include="Assets\Scripts\Ship\Ship Views\ShipView.cs" />
     <Compile Include="Assets\Scripts\Ship\Ship Views\StatusEffectView.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipStatusEffect.cs" />
-    <Compile Include="Assets\Scripts\Ship\ShipWeapon.cs" />
     <Compile Include="Assets\Scripts\Ship\StatusEffect.cs" />
-    <Compile Include="Assets\Scripts\Singleton.cs" />
-    <Compile Include="Assets\Scripts\SpriteDB.cs" />
+    <Compile Include="Assets\Scripts\Singletons\BalanceValuesManager.cs" />
+    <Compile Include="Assets\Scripts\Singletons\GameDataManager.cs" />
+    <Compile Include="Assets\Scripts\Singletons\MainMenuManager.cs" />
+    <Compile Include="Assets\Scripts\Singletons\MusicPlayer.cs" />
+    <Compile Include="Assets\Scripts\Singletons\ParticleDB.cs" />
+    <Compile Include="Assets\Scripts\Singletons\Singleton.cs" />
+    <Compile Include="Assets\Scripts\Singletons\SoundFXPlayer.cs" />
+    <Compile Include="Assets\Scripts\Singletons\SpriteDB.cs" />
+    <Compile Include="Assets\Scripts\Singletons\TooltipManager.cs" />
     <Compile Include="Assets\Scripts\Subscreen.cs" />
     <Compile Include="Assets\Scripts\Tetris\Block\AnimStateFinishBroadcaster.cs" />
     <Compile Include="Assets\Scripts\Tetris\Block\ClearStateFinishBehaviour.cs" />
@@ -188,6 +198,7 @@
     <Compile Include="Assets\Scripts\Tetris\Block\SettledBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\Block\StaticBlock.cs" />
     <Compile Include="Assets\Scripts\Tetris\Cell.cs" />
+    <Compile Include="Assets\Scripts\Tetris\Clearer.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureController.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureSettler.cs" />
     <Compile Include="Assets\Scripts\Tetris\FigureSpawner.cs" />
@@ -197,7 +208,6 @@
     <Compile Include="Assets\Scripts\Tetris\Matcher.cs" />
     <Compile Include="Assets\Scripts\Tetris\TetrisManager.cs" />
     <Compile Include="Assets\Scripts\Tooltip.cs" />
-    <Compile Include="Assets\Scripts\TooltipManager.cs" />
     <Compile Include="Assets\ViewButtonAnimBehaviour.cs" />
   </ItemGroup>
   <ItemGroup>

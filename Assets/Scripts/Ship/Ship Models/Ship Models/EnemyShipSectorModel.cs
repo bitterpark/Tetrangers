@@ -45,7 +45,7 @@ public class EnemyShipSectorModel : ShipSectorModel
 		energyManager.IncreaseGreenByGain();
 	}
 
-	protected override void HandleDamagedStatusChange()
+	protected override void HandleDamagedStatusChange(bool becameDamaged)
 	{
 		throw new NotImplementedException();
 	}

@@ -30,13 +30,21 @@ public class ShieldsModel : EnergyResourceModel
 
 	public int TakeDamage(int damage)
 	{
-		int oldShields = resourceCurrent;
-		resourceCurrent -= damage;
-		energyGain = 0;
+		return TakeDamage(damage, false);
+	}
+	public int TakeDamage(int damage, bool lowerByHalf)
+	{
+		if (lowerByHalf)
+			damage = Mathf.RoundToInt(damage * 0.5f);
 
+		int overflowingDamage = Mathf.Max(damage - resourceCurrent, 0);
+		resourceCurrent -= damage;
 		if (damage > 0 && EShieldsDamaged != null) EShieldsDamaged();
 
-		return Mathf.Min(0, oldShields - resourceCurrent);
+		if (lowerByHalf)
+			overflowingDamage *= 2;
+
+		return overflowingDamage;
 	}
 
 	public void Regen()

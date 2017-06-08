@@ -46,6 +46,7 @@ public class BlueEnergyTransmitter : PassiveShipSectorEquipment
 	{
 		foreach (ShipSectorModel sector in adjacentSectors)
 			sector.energyManager.EBlueEnergyGained -= TriggerEnergyGain;
+		adjacentSectors.Clear();
 	}
 
 	protected override void Initialize()

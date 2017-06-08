@@ -73,7 +73,7 @@ public class Matcher
 	IEnumerator ClearMatches(List<Cell> matchingBlockCells)
 	{
 		if (matchingBlockCells.Count > 0)
-			return Grid.Instance.ClearCells(matchingBlockCells);
+			return Clearer.Instance.ClearCells(matchingBlockCells);
 
 		return null;
 	}
@@ -131,7 +131,7 @@ public class Matcher
 
 	public IEnumerator HandleFilledUpRows(List<int> checkedRowNumbers)
 	{
-		return Grid.Instance.ClearFilledUpRows(CheckForFilledUpRows(checkedRowNumbers));
+		return Clearer.Instance.ClearFilledUpRows(CheckForFilledUpRows(checkedRowNumbers));
 	}
 
 	List<List<Cell>> CheckForFilledUpRows(List<int> checkedRowNumbers)

@@ -16,6 +16,8 @@ public class SettledBlock : StaticBlock {
 
 	public BlockType blockType { get; private set; }
 
+	public bool isBeingDestroyed = false;
+
 	public bool isIsolated
 	{
 		get { return _isIsolated; }
@@ -28,12 +30,19 @@ public class SettledBlock : StaticBlock {
 			myAnimator.SetBool("IsIsolated", value);
 		}
 	}
-	bool _isIsolated = true;
+	bool _isIsolated = false;
 	
 	const int isolatedLifetimeMax = 0;
 	int isolatedLifetimeRemaining = isolatedLifetimeMax;
 
+	GridSegment settledInSegment;
+
 	Animator myAnimator;
+
+	public Cell GetCell()
+	{
+		return Grid.Instance.GetCell(currentX,currentY);
+	}
 
 	public void Initialize(int startingGridX, int startingGridY, BlockType type, PowerupInBlock powerup)
 	{
@@ -42,21 +51,14 @@ public class SettledBlock : StaticBlock {
 		blockType = type;
 
 		existingBlocks.Add(this);
+		settledInSegment = Grid.Instance.GetSegmentFromCoords(startingGridX, startingGridY);
+		if (settledInSegment!=null) settledInSegment.blocksInSegment.Add(this);
 
-		FigureSettler.EToggleAllSettledBlocksSetToIsolated += ResetIsolationStatus;
-		BattleManager.EEngagementModeStarted += HandleLifetimeDecrease;
-		//if (blockType == BlockType.Blue)
-		//PlayerShipModel.main.blueEnergyModel.EEnergyGainChanged += SetColorBasedOnPlayerEnergyGain;
-
-		//if (blockType == BlockType.Green)
-		//PlayerShipModel.EPlayerGreenGainChanged += SetColorBasedOnPlayerEnergyGain;
-
-		//if (blockType == BlockType.Shield)
-		//PlayerShipModel.EPlayerShieldGainChanged += SetColorBasedOnPlayerEnergyGain;
-
-		//if (blockType != BlockType.Powerup)
-		//SetColorBasedOnPlayerEnergyGain(PlayerShipModel.GetPlayerResourceIncome(type));
-
+		Clearer.EToggleAllSettledBlocksSetToIsolated += ResetIsolationStatus;
+		//BattleManager.EEngagementModeStarted += HandleLifetimeDecrease;
+		Clearer.EExpireIsolatedBlocks += HandleLifetimeDecrease;
+		//TetrisManager.ECurrentPlayerMoveDone += HandleLifetimeDecrease;
+		
 		if (powerup != null)
 		{
 			powerup.Initialize(this);
@@ -64,13 +66,13 @@ public class SettledBlock : StaticBlock {
 		}
 	}
 
-	void HandleLifetimeDecrease()
+	void HandleLifetimeDecrease(List<IEnumerator> expiryRoutines)
 	{
 		if (isIsolated)
 		{
 			//Debug.Log("Isolated lifetime handled, remaining lifetime: "+isolatedLifetimeRemaining);
 			if (isolatedLifetimeRemaining == 0)
-				ExpireIsolatedBlock();
+				expiryRoutines.Add(ExpireBlockRoutine());
 			isolatedLifetimeRemaining--;
 		}
 	}
@@ -112,6 +114,8 @@ public class SettledBlock : StaticBlock {
 	}
 	IEnumerator ClearBlockRoutine()
 	{
+		isBeingDestroyed = true;
+		SoundFXPlayer.Instance.PlayBlockClearSound();
 		myAnimator.SetTrigger("GotCleared");
 		while (!myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Cleared"))
 			yield return null;
@@ -122,8 +126,26 @@ public class SettledBlock : StaticBlock {
 		yield break;
 	}
 
+	IEnumerator ExpireBlockRoutine()
+	{
+		isBeingDestroyed = true;
+		SoundFXPlayer.Instance.PlayIsolatedBlockExpireSound();
+		myAnimator.SetTrigger("IsolatedBlockExpired");
+		while (!myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Isolated_expired"))
+			yield return null;
+		while (myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Isolated_expired"))
+			yield return null;
+
+
+		HandleExpireAnimationFinish();
+		yield break;
+	}
+	//UNused, remove later
 	void ExpireIsolatedBlock()
 	{
+		//Debug.Log("Isolated block expired");
+		//Debug.Log("Isolated:" + isIsolated);
+		SoundFXPlayer.Instance.PlayIsolatedBlockExpireSound();
 		myAnimator.SetTrigger("IsolatedBlockExpired");
 		myAnimator.GetBehaviour<ExpireStateFinishBehaviour>().EStateFinished += HandleExpireAnimationFinish;
 	}
@@ -136,9 +158,12 @@ public class SettledBlock : StaticBlock {
 
 	public void DestroyBlock()
 	{
-		FigureSettler.EToggleAllSettledBlocksSetToIsolated -= ResetIsolationStatus;
-		BattleManager.EEngagementModeStarted -= HandleLifetimeDecrease;
+		Clearer.EToggleAllSettledBlocksSetToIsolated -= ResetIsolationStatus;
+		//BattleManager.EEngagementModeStarted -= HandleLifetimeDecrease;
+		Clearer.EExpireIsolatedBlocks -= HandleLifetimeDecrease;
 		existingBlocks.Remove(this);
+		if (settledInSegment != null) settledInSegment.blocksInSegment.Remove(this);
+		settledInSegment = null;
 		//if (blockType == BlockType.Blue)
 		//PlayerShipModel.EPlayerBlueGainChanged -= SetColorBasedOnPlayerEnergyGain;
 		//if (blockType == BlockType.Green)

@@ -10,7 +10,7 @@ public interface ICanUseEquipment
 
 public abstract class EquipmentUser
 {
-	public delegate void StatusEffectToShipSectorDeleg (StatusEffect appliedEffect, int sectorIndex);
+	public delegate void StatusEffectToShipSectorDeleg (StatusEffect appliedEffect);
 	public static event StatusEffectToShipSectorDeleg EAppliedStatusEffectToPlayerShipSector;
 
 	protected StatusEffectManager statusEffectManager;
@@ -42,10 +42,10 @@ public abstract class EquipmentUser
 		{
 			ShipWeapon weapon = equipment as ShipWeapon;
 			//Debug.Assert(shipWeapons.Contains(weapon), "Fired weapon : " + weapon.name + " not found in ship's weapons list!");
-			int damage = weapon.ActivateWeapon().damage;
+			AttackInfo attack = weapon.ActivateWeapon();
 
 			energyUser.SpendEnergyFromEquipmentUse(equipment);
-			DoWeaponFireEvent(damage);
+			DoWeaponFireEvent(attack);
 		}
 		else
 		{
@@ -57,12 +57,11 @@ public abstract class EquipmentUser
 
 	void ApplyStatusEffectToPlayerShipSector(StatusEffect effect)
 	{
-		int sectorIndex = Random.Range(0, Grid.segmentCount);
-		EAppliedStatusEffectToPlayerShipSector(effect, sectorIndex);
+		EAppliedStatusEffectToPlayerShipSector(effect);
 	}
 
 	protected abstract void ApplyStatusEffectToOpponent(StatusEffect effect);
-	protected abstract void DoWeaponFireEvent(int weaponDamage);
+	protected abstract void DoWeaponFireEvent(AttackInfo attack);
 
 	public bool EnoughEnergyToUseEquipment(ShipEquipment equipment)
 	{

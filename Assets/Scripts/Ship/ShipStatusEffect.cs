@@ -127,73 +127,7 @@ public class ReactiveArmorEffect : ShipStatusEffect
 	}
 }
 
-public class GreenAmplificationEffect : ShipStatusEffect
-{
-	ShipModel activeOnShip;
 
-	int blueGainDecrease;
-	int greenGainIncrease;
 
-	protected override void InitializeValues()
-	{
-		name = "Green Amplification Field";
-		icon = SpriteDB.Instance.siphonEffectSprite;
-		description = string.Format("Until next engagement: removes all blue energy gain, doubles green energy gain");//, BalanceValuesManager.Instance.bluePointsWorthPerGreenPoint);
-		color = Color.green;
-	}
 
-	protected override void CastExtenderActivation(ShipModel activateOnShip)
-	{
-		activeOnShip = activateOnShip;
-
-		//blueGainDecrease = activateOnShip.energyUser.blueEnergyGain;
-		//activeOnShip.energyUser.blueEnergyGain -= blueGainDecrease;
-		//greenGainIncrease = activateOnShip.energyUser.greenEnergyGain;
-		//activeOnShip.energyUser.blueEnergyGain += greenGainIncrease;
-
-	}
-
-	protected override void ExtenderDeactivation()
-	{
-		//activeOnShip.energyUser.blueEnergyGain += blueGainDecrease;
-		//activeOnShip.energyUser.blueEnergyGain -= greenGainIncrease;
-		activeOnShip = null;
-	}
-}
-
-public class BlueAmplificationEffect : ShipStatusEffect
-{
-	ShipModel activeOnShip;
-
-	int blueGainIncrease;
-	int greenGainDecrease;
-
-	protected override void InitializeValues()
-	{
-		name = "Blue Amplification Field";
-		icon = SpriteDB.Instance.siphonEffectSprite;
-		description = string.Format("Until next engagement: removes all green energy gain, doubles blue energy gain");
-		color = Color.cyan;
-	}
-
-	protected override void CastExtenderActivation(ShipModel activateOnShip)
-	{
-		//Debug.Log("Activating blue amp");
-		activeOnShip = activateOnShip;
-
-		//greenGainDecrease = activateOnShip.energyUser.greenEnergyGain;
-		//blueGainIncrease = activateOnShip.energyUser.blueEnergyGain;
-		//activeOnShip.energyUser.blueEnergyGain += blueGainIncrease;
-		//activeOnShip.energyUser.blueEnergyGain -= greenGainDecrease;
-
-	}
-
-	protected override void ExtenderDeactivation()
-	{
-		//Debug.Log("Deactivating blue amp");
-		//activeOnShip.energyUser.blueEnergyGain -= blueGainIncrease;
-		//activeOnShip.energyUser.blueEnergyGain += greenGainDecrease;
-		activeOnShip = null;
-	}
-}
 

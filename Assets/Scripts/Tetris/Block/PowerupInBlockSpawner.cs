@@ -97,6 +97,8 @@ public class PowerupInBlockSpawner : Singleton<PowerupInBlockSpawner> {
 		System.Array types = System.Enum.GetValues(typeof(PowerupType));
 
 		PowerupType randomType = (PowerupType)types.GetValue(Random.Range(0, types.Length));
+		//debug, remove later
+		randomType = PowerupType.Bomb;
 		newPowerup.AssignPowerupType(randomType);
 		return newPowerup;
 		//spawnInCell.powerupInCell = newPowerup;

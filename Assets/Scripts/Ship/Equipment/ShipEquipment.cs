@@ -49,11 +49,16 @@ public abstract class ShipEquipment
 
 			return fullDesc;
 		}
-		protected set { _description = value+"\n"; }
+		protected set { _description = value + "\n"; }
 	}
 	string _description = null;
 
-	public int maxCooldownTime { get; protected set; }
+	public int maxCooldownTime
+	{
+		get { return _adjustedMaxCooldownTime; }
+		protected set { _adjustedMaxCooldownTime = value * 5; }
+	}
+	int _adjustedMaxCooldownTime = 0;
 	public int cooldownTimeRemaining 
 	{
 		get { return _cooldownTimeRemaining; }
@@ -66,7 +71,17 @@ public abstract class ShipEquipment
 	}
 	int _cooldownTimeRemaining = 0;
 
-	//public bool isUseable { get; protected set; }
+	public bool equipmentIsActive
+	{
+		get { return _isActive; }
+		set
+		{
+			if (_isActive!=value)
+				UpdateActiveStatus(value);
+			_isActive = value;
+		}
+	}
+	bool _isActive = true;
 
 	public StatusEffect onSelfEffect
 	{
@@ -104,6 +119,8 @@ public abstract class ShipEquipment
 	}
 	StatusEffect _onOpponentEffect;
 
+	protected UnityEngine.Events.UnityAction activationSoundAction;
+
 	string effectOnSelfDescription = null;
 	string effectOnSectorDescription = null;
 	string effectOnOpponentDescription = null;
@@ -122,10 +139,16 @@ public abstract class ShipEquipment
 		generatorLevelDelta = 0;
 		equipmentType = EquipmentTypes.Equipment;
 		equipmentGoal = Goal.Defence;
+		activationSoundAction = SoundFXPlayer.Instance.PlayEquipmentActivationSound;
 		Initialize();
 	}
 
 	protected abstract void Initialize();
+
+	protected virtual void UpdateActiveStatus(bool active)
+	{
+
+	}
 
 	public virtual bool IsUsableByShip(ShipModel ship)
 	{
@@ -149,6 +172,11 @@ public abstract class ShipEquipment
 			//installedOnShip = installedInSector.pa;
 		}
 		
+	}
+
+	public void PlayActivationSound()
+	{
+		activationSoundAction.Invoke();
 	}
 
 	public virtual void ActivateEquipment()
@@ -176,25 +204,7 @@ public abstract class ShipEquipment
 
 }
 
-public class Forcefield : ShipEquipment
-{
-	int healthGain;
 
-	protected override void Initialize()
-	{
-		maxCooldownTime = 3;
-		//blueEnergyCostToUse = 0;
-		greenEnergyCostToUse = 60;
-		healthGain = greenEnergyCostToUse * 2;
-		name = "Forcefield";
-		description = string.Format("Restore {0} shields", healthGain);
-	}
-
-	protected override void ExtenderActivation()
-	{
-		//installedOnShip.healthManager.shields += healthGain;
-	}
-}
 
 public class Interface : ShipEquipment
 {
@@ -215,7 +225,7 @@ public class Interface : ShipEquipment
 		//installedOnShip.energyUser.blueEnergy += blueGain;
 	}
 }
-
+//Currently defunct
 public class BlockEjector :ShipEquipment
 {
 	const int numberOfRowsCleared = 2;
@@ -231,7 +241,7 @@ public class BlockEjector :ShipEquipment
 	protected override void ExtenderActivation()
 	{
 		base.ExtenderActivation();
-		Grid.Instance.ClearBottomRows(numberOfRowsCleared);
+		//Grid.Instance.EmptyBottomRowsInSegment(numberOfRowsCleared);
 	}
 }
 public class BlockEjectorTopic: ResearchTopic
@@ -343,7 +353,8 @@ public class ReactiveArmorTopic : ResearchTopic
 		providesEquipment = new ReactiveArmor();
 	}
 }
-
+//Defunct
+/*
 public class MeltdownTrigger : ShipEquipment
 {
 	protected override void Initialize()
@@ -363,21 +374,39 @@ public class MeltdownTriggerTopic : ResearchTopic
 
 		providesEquipment = new MeltdownTrigger();
 	}
-}
+}*/
 
 
-public class GreenAmp : Ability
+public class GreenAmp : ShipEquipment, IRequiresPlayerTargetSelect
 {
+	int targetSectorIndex;
+
+	SectorStatusEffect effectApppliedToSector = new GreenAmplificationEffect();
+
 	protected override void Initialize()
 	{
 		maxCooldownTime = 2;
-		blueEnergyCostToUse = 40;
-		//blueEnergyCostToUse = 50;
+		greenEnergyCostToUse = 20;
+		//greenEnergyCostToUse = 25;
 		//greenEnergyCostToUse = 50;
 
 		name = "Green Amp";
-		onSelfEffect = new GreenAmplificationEffect();
-		onOpponentEffect = new GreenAmplificationEffect();
+		description = effectApppliedToSector.description;
+		//onSelfEffect = new BlueAmplificationEffect();
+		//onOpponentEffect = new BlueAmplificationEffect();
+	}
+
+	public void CallTargetSelectManager()
+	{
+		PlayerTargetSelectManager.Instance.InitiateSelectingPlayerShipSector(this);
+	}
+
+	public void SetTarget(object selectedTarget)
+	{
+		SectorView targetedView = selectedTarget as SectorView;
+		Debug.Assert(targetedView != null, "Could not find targeted view!");
+		targetSectorIndex = targetedView.sectorIndex;
+		PlayerShipModel.main.shipSectors[targetSectorIndex].HandleSectorStatusEffectApplication(effectApppliedToSector);
 	}
 }
 public class GreenAmpTopic : ResearchTopic
@@ -391,8 +420,12 @@ public class GreenAmpTopic : ResearchTopic
 	}
 }
 
-public class BlueAmp : Ability
+public class BlueAmp : ShipEquipment, IRequiresPlayerTargetSelect
 {
+	int targetSectorIndex;
+
+	SectorStatusEffect effectApppliedToSector = new BlueAmplificationEffect();
+
 	protected override void Initialize()
 	{
 		maxCooldownTime = 2;
@@ -401,8 +434,22 @@ public class BlueAmp : Ability
 		//greenEnergyCostToUse = 50;
 
 		name = "Blue Amp";
-		onSelfEffect = new BlueAmplificationEffect();
-		onOpponentEffect = new BlueAmplificationEffect();
+		description = effectApppliedToSector.description;
+		//onSelfEffect = new BlueAmplificationEffect();
+		//onOpponentEffect = new BlueAmplificationEffect();
+	}
+
+	public void CallTargetSelectManager()
+	{
+		PlayerTargetSelectManager.Instance.InitiateSelectingPlayerShipSector(this);
+	}
+
+	public void SetTarget(object selectedTarget)
+	{
+		SectorView targetedView = selectedTarget as SectorView;
+		Debug.Assert(targetedView != null, "Could not find targeted view!");
+		targetSectorIndex = targetedView.sectorIndex;
+		PlayerShipModel.main.shipSectors[targetSectorIndex].HandleSectorStatusEffectApplication(effectApppliedToSector);
 	}
 }
 public class BlueAmpTopic : ResearchTopic
@@ -416,21 +463,35 @@ public class BlueAmpTopic : ResearchTopic
 	}
 }
 
-public class Stabilizer : ShipEquipment
+public class Stabilizer : ShipEquipment, IRequiresPlayerTargetSelect
 {
 	const int lowerByRows = 2;
+	int lowerInSegmentIndex = -1;
 
 	protected override void Initialize()
 	{
-		maxCooldownTime = 5;
-		shipEnergyCostToUse = 00;//500;
+		maxCooldownTime = 4;
+		blueEnergyCostToUse = 60;
 		name = "Stabilizer";
-		description = string.Format("Lowers the grid by {0} rows", lowerByRows);
+		description = string.Format("Lowers a selected sector's grid by {0} rows", lowerByRows);
 	}
 
 	protected override void ExtenderActivation()
 	{
-		Grid.Instance.ClearBottomRows(lowerByRows);
+		Debug.Assert(lowerInSegmentIndex != -1, "Target ship segment index not defined!");
+		Clearer.Instance.EmptyBottomRowsInSegment(lowerByRows, lowerInSegmentIndex);
+	}
+
+	public void CallTargetSelectManager()
+	{
+		PlayerTargetSelectManager.Instance.InitiateSelectingPlayerShipSector(this);
+	}
+
+	public void SetTarget(object selectedTarget)
+	{
+		SectorView targetedView = selectedTarget as SectorView;
+		Debug.Assert(targetedView != null, "Could not find targeted view!");
+		lowerInSegmentIndex = targetedView.sectorIndex;
 	}
 }
 
@@ -441,7 +502,7 @@ public class Heatsink : ShipEquipment
 	protected override void Initialize()
 	{
 		maxCooldownTime = 4;
-		shipEnergyCostToUse = 10;//300;
+		shipEnergyCostToUse = 300;
 		name = "Heatsink";
 		description = string.Format("Lowers all cooldowns by {0}", lowerCooldownsBy);
 	}
@@ -455,18 +516,60 @@ public class Heatsink : ShipEquipment
 	}
 }
 
+public class ShieldGenerator : ShipEquipment, IRequiresPlayerTargetSelect
+{
+	int shieldsGain;
+	int bonusPerShieldBlock = 10;
+	int sectorIndex;
+	protected override void Initialize()
+	{
+		maxCooldownTime = 3;
+		blueEnergyCostToUse = 30;
+		shieldsGain = 40;
+		name = "Forcefield";
+		description = string.Format("Restore {0} shields, plus {1} per blue block, destroy all blue blocks", shieldsGain, bonusPerShieldBlock);
+	}
+
+	public void CallTargetSelectManager()
+	{
+		PlayerTargetSelectManager.Instance.InitiateSelectingPlayerShipSector(this);
+	}
+
+	public void SetTarget(object selectedTarget)
+	{
+		SectorView targetedView = selectedTarget as SectorView;
+		Debug.Assert(targetedView != null, "Could not find targeted view!");
+		sectorIndex = targetedView.sectorIndex;
+		
+	}
+
+	protected override void ExtenderActivation()
+	{
+		List<Cell> shieldBlockCellsInSegment = new List<Cell>();
+		foreach (SettledBlock block in Grid.Instance.GridSegments[sectorIndex].GetBlocksOfType(BlockType.Shield))
+			shieldBlockCellsInSegment.Add(block.GetCell());
+		Clearer.Instance.EmptyCells(shieldBlockCellsInSegment);
+
+		int totalShieldPointsGained = shieldsGain;
+
+		totalShieldPointsGained += bonusPerShieldBlock * shieldBlockCellsInSegment.Count;
+		PlayerShipModel.main.shipSectors[sectorIndex].healthManager.RestoreShields(totalShieldPointsGained);
+		
+	}
+}
+
 public class RepairDrones : ShipEquipment, IRequiresPlayerTargetSelect
 {
-	const float repairPercentage = 0.5f;
+	const float repairPercentage = 0.33f;
 
 	int targetedShipSectorIndex;
 
 	protected override void Initialize()
 	{
-		maxCooldownTime = 4;
-		partsCostToUse = 1;
+		maxCooldownTime = 3;
+		blueEnergyCostToUse = 60;
 		name = "Repair Drones";
-		description = string.Format("Repairs a chosen sector's health. Can restore damaged sectors");
+		description = string.Format("Repairs a third of a chosen sector's health. Can restore damaged sectors");
 	}
 
 	public void CallTargetSelectManager()
@@ -484,42 +587,12 @@ public class RepairDrones : ShipEquipment, IRequiresPlayerTargetSelect
 	protected override void ExtenderActivation()
 	{
 		ShipSectorModel targetedSector = PlayerShipModel.main.shipSectors[targetedShipSectorIndex];
-		targetedSector.healthManager.ResetToStartingHealth();
+		targetedSector.healthManager.RepairToPercentage(repairPercentage);
 	}
 
 	
 }
 
-public class TestEquipment : ShipEquipment, IRequiresPlayerTargetSelect
-{
-
-	int targetedShipSectorIndex;
-
-	protected override void Initialize()
-	{
-		maxCooldownTime = 3;
-		name = "TestEquipment";
-		description = string.Format("Clear all blocks in a selected ship sector");
-	}
-
-	protected override void ExtenderActivation()
-	{
-		GridSegment targetedSegment = Grid.Instance.GridSegments[targetedShipSectorIndex];
-		Grid.Instance.ClearArea(targetedSegment.minX,targetedSegment.minY,targetedSegment.maxX,targetedSegment.maxY);
-	}
-
-	public void CallTargetSelectManager()
-	{
-		PlayerTargetSelectManager.Instance.InitiateSelectingPlayerShipSector(this);
-	}
-
-	public void SetTarget(object selectedTarget)
-	{
-		SectorView targetedView = selectedTarget as SectorView;
-		Debug.Assert(targetedView != null, "Could not find targeted view!");
-		targetedShipSectorIndex = targetedView.sectorIndex;
-	}
-}
 
 //ENEMIES ONLY
 
@@ -532,7 +605,7 @@ public class Siphon : ShipEquipment
 		greenEnergyCostToUse = 20;
 
 		name = "Siphon";
-		onSectorEffect = new DisableEffect();//EnergySiphonEffect();
+		onSectorEffect = new EnergySiphonEffect();
 	}
 }
 

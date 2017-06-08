@@ -39,6 +39,7 @@ public class MissionManager : Singleton<MissionManager>
 
 	public void OpenNewMission(Mission openedMission)
 	{
+		MusicPlayer.Instance.PlayNextCombatTrack();
 		currentMission = openedMission;
 		GenerateNewMissions();
 		shipsDefeatedInCurrentMission = 0;
@@ -50,8 +51,8 @@ public class MissionManager : Singleton<MissionManager>
 	void GenerateNewMissions()
 	{
 		availableMissions.Clear();
-		availableMissions.Add(new Mission("Defeat all enemy ships", 1));
-		availableMissions.Add(new Mission("Complete a sector patrol", 1));
+		availableMissions.Add(new Mission("Defeat the enemy flagship", 1));
+		availableMissions.Add(new Mission("Complete a sector patrol", 3));
 	}
 
 	void ProgressCurrentMission()
@@ -116,7 +117,7 @@ public struct Mission
 	{
 		enemyShips = new EnemyShipModel[enemyShipCount];
 		for (int i = 0; i < enemyShipCount; i++)
-			enemyShips[i] = EnemyShipModel.GetEnemyShipModelInstance();
+			enemyShips[i] = EnemyShipModel.GetEnemyShipModelInstance(enemyShipCount>1);
 		this.description = description;
 		rewards = new List<Reward>();
 		GenerateRewards();

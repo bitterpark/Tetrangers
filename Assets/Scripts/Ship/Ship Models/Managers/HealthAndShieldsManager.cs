@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
-
+using UnityEngine;
 
 public class HealthAndShieldsManager
 {
@@ -89,19 +89,58 @@ public class HealthAndShieldsManager
 		healthModel.ResetToStartingStats();
 	}
 
+	public void TakeNonWeaponDamage(int damage)
+	{
+		AttackInfo nonWeaponAttack = new AttackInfo(damage);
+		TakeDamage(nonWeaponAttack);
+	}
+
+	public void TakeDamage(AttackInfo attack)
+	{
+		int remainingDamage = attack.damage;
+		if (EActivateDefences != null)
+			remainingDamage = EActivateDefences(remainingDamage);
+
+		bool tookDamage = false;
+
+		if (remainingDamage > 0)
+		{
+			bool resistDamage = (attack.type == AttackType.Antihull) ? true : false;
+			remainingDamage = shieldsModel.TakeDamage(remainingDamage, resistDamage);
+			tookDamage = true;
+		}
+		if (remainingDamage > 0)
+		{
+			bool resistDamage = (attack.type == AttackType.Antishield) ? true : false;
+			healthModel.TakeDamage(remainingDamage, resistDamage);
+			tookDamage = true;
+		}
+
+		if (tookDamage)
+			SoundFXPlayer.Instance.PlayTookDamageSound();
+
+	}
+
 	public void TakeDamage(int damage)
 	{
-		int totalDamage = damage;
-		if (EActivateDefences != null)
-			totalDamage = EActivateDefences(damage);
+		int remainingDamage = damage;
 
-		if (totalDamage > 0)
-		{
-			totalDamage = shieldsModel.TakeDamage(totalDamage);
-			//SetShieldsGain(0);
-		}
-		if (totalDamage > 0)
-			healthModel.resourceCurrent-=totalDamage;
+		if (remainingDamage > 0)
+			remainingDamage = shieldsModel.TakeDamage(remainingDamage);
+
+		if (remainingDamage > 0)
+			healthModel.TakeDamage(remainingDamage); ;
+	}
+
+	public void RepairToPercentage(float percentage)
+	{
+		int repairedHealth = Mathf.Max(Mathf.RoundToInt(healthModel.resourceMax * percentage), 1);
+		healthModel.resourceCurrent += repairedHealth;
+	}
+
+	public void RestoreShields(int restoreAmount)
+	{
+		shieldsModel.resourceCurrent += restoreAmount;
 	}
 
 	public void RegenShields()

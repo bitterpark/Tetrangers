@@ -40,7 +40,7 @@ public abstract class ShipEquipmentController : EquipmentListController
 	protected virtual void HandleEquipmentButtonPress(ShipEquipmentView buttonView)
 	{
 		ShipEquipment equipment = GetEquipmentRepresentedByView(buttonView);
-
+		equipment.PlayActivationSound();
 		//if (equipment != null)
 			//ShowEquipmentTypeViews(equipment.equipmentType);
 	}

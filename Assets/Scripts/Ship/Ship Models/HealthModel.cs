@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using UnityEngine;
 using UnityEngine.Events;
 
 public class HealthModel : ResourceModel
@@ -28,6 +25,14 @@ public class HealthModel : ResourceModel
 
 	public void TakeDamage(int damage)
 	{
+		TakeDamage(damage, false);
+	}
+
+	public void TakeDamage(int damage, bool lowerByHalf)
+	{
+		if (lowerByHalf)
+			damage = Mathf.RoundToInt(damage * 0.5f);
+
 		resourceCurrent -= damage;
 		if (damage > 0 && EHealthDamaged != null) EHealthDamaged();
 		if (resourceCurrent == 0 && EHealthRanOut != null) EHealthRanOut(); 

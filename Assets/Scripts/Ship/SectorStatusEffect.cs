@@ -49,7 +49,7 @@ public class EnergySiphonEffect : SectorStatusEffect
 
 	void GainEnergy(int gain)
 	{
-		//activeOnShip.energyUser.blueEnergy += gain;
+		activeOnShip.energyManager.blueEnergy += gain;
 	}
 
 	protected override void ExtenderDeactivation()
@@ -83,6 +83,74 @@ public class DisableEffect : SectorStatusEffect
 	protected override void ExtenderDeactivation()
 	{
 		Grid.Instance.GridSegments[mySectorIndex].isUsable = true;
+	}
+}
+
+public class GreenAmplificationEffect : SectorStatusEffect
+{
+	ShipModel activeOnShip;
+	PlayerShipSectorModel activatedOnSector;
+
+	int blueGainDecrease;
+	int greenGainIncrease;
+
+	protected override void InitializeValues()
+	{
+		name = "Green Amplification Field";
+		icon = SpriteDB.Instance.siphonEffectSprite;
+		description = string.Format("Until next engagement: removes all blue energy gain, doubles green energy gain");//, BalanceValuesManager.Instance.bluePointsWorthPerGreenPoint);
+		color = Color.green;
+	}
+
+	protected override void CastExtenderActivation(PlayerShipSectorModel activateOnSector)
+	{
+		activatedOnSector = activateOnSector;
+
+		blueGainDecrease = activatedOnSector.energyManager.blueEnergyGain;
+		activatedOnSector.energyManager.blueEnergyGain -= blueGainDecrease;
+		greenGainIncrease = activatedOnSector.energyManager.greenEnergyGain;
+		activatedOnSector.energyManager.greenEnergyGain += greenGainIncrease;
+
+	}
+
+	protected override void ExtenderDeactivation()
+	{
+		activatedOnSector.energyManager.blueEnergyGain += blueGainDecrease;
+		activatedOnSector.energyManager.greenEnergyGain -= greenGainIncrease;
+	}
+}
+
+public class BlueAmplificationEffect : SectorStatusEffect
+{
+	//ShipModel activeOnShip;
+	PlayerShipSectorModel activatedOnSector;
+
+	int blueGainIncrease;
+	int greenGainDecrease;
+
+	protected override void InitializeValues()
+	{
+		name = "Blue Amplification Field";
+		icon = SpriteDB.Instance.siphonEffectSprite;
+		description = string.Format("Until next engagement: removes all green energy gain, doubles blue energy gain");
+		color = Color.cyan;
+	}
+
+	protected override void CastExtenderActivation(PlayerShipSectorModel activateOnSector)
+	{
+		activatedOnSector = activateOnSector;
+
+		greenGainDecrease = activatedOnSector.energyManager.greenEnergyGain;
+		blueGainIncrease = activatedOnSector.energyManager.blueEnergyGain;
+		activatedOnSector.energyManager.blueEnergyGain += blueGainIncrease;
+		activatedOnSector.energyManager.greenEnergyGain -= greenGainDecrease;
+
+	}
+
+	protected override void ExtenderDeactivation()
+	{
+		activatedOnSector.energyManager.blueEnergyGain -= blueGainIncrease;
+		activatedOnSector.energyManager.greenEnergyGain += greenGainDecrease;
 	}
 }
 

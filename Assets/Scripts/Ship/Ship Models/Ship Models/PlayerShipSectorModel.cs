@@ -6,6 +6,8 @@ using System.Text;
 
 public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 {
+	public event UnityEngine.Events.UnityAction ESectorDamaged;
+
 	const int isolatedBlockExpiryDamage = 10;
 	const int overflowingBlockDamage = 10;
 
@@ -27,7 +29,7 @@ public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 		FigureSettler.EOverflowingBlocks += HandleOverflowingBlocksDamage;
 		Grid.Instance.GridSegments[index].EBlocksCleared += HandleDestroyedBlocks;
 		Grid.Instance.GridSegments[index].EIsolatedBlockExpired += HandleIsolatedBlocksExpiring;
-		EquipmentUser.EAppliedStatusEffectToPlayerShipSector += HandleSectorStatusEffectApplication;
+		//EquipmentUser.EAppliedStatusEffectToPlayerShipSector += HandleSectorStatusEffectApplication;
 		base.InitializeForBattle();
 	}
 
@@ -36,14 +38,15 @@ public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 		FigureSettler.EOverflowingBlocks -= HandleOverflowingBlocksDamage;
 		Grid.Instance.GridSegments[index].EBlocksCleared -= HandleDestroyedBlocks;
 		Grid.Instance.GridSegments[index].EIsolatedBlockExpired -= HandleIsolatedBlocksExpiring;
-		EquipmentUser.EAppliedStatusEffectToPlayerShipSector -= HandleSectorStatusEffectApplication;
+		ESectorDamaged = null;
+		//EquipmentUser.EAppliedStatusEffectToPlayerShipSector -= HandleSectorStatusEffectApplication;
 		base.Dispose();
 	}
 
 	void HandleIsolatedBlocksExpiring()
 	{
-		if (!isDamaged)
-			healthManager.TakeDamage(isolatedBlockExpiryDamage);
+		//if (!isDamaged)
+			//healthManager.TakeDamage(isolatedBlockExpiryDamage);
 	}
 
 	void HandleOverflowingBlocksDamage(int overflowingBlocksCount)
@@ -52,29 +55,32 @@ public class PlayerShipSectorModel: ShipSectorModel, ICanUseEquipment
 			healthManager.TakeDamage(overflowingBlockDamage*overflowingBlocksCount);
 	}
 
-	void HandleSectorStatusEffectApplication(StatusEffect effect, int appliesToSectorIndex)
+	public void HandleSectorStatusEffectApplication(StatusEffect effect)
 	{
-		if (index == appliesToSectorIndex)
-			effectsManager.AddNewStatusEffect(effect);
+		effectsManager.AddNewStatusEffect(effect);
 	}
 
-	protected override void HandleDamagedStatusChange()
+	protected override void HandleDamagedStatusChange(bool becameDamaged)
 	{
-		Grid.Instance.GridSegments[index].isUsable = !isDamaged;
-		sectorEquipment.SetFunctioning(!isDamaged);
+		if (becameDamaged && ESectorDamaged != null)
+			ESectorDamaged();
+
+		Grid.Instance.GridSegments[index].isUsable = !becameDamaged;
+		sectorEquipment.SetFunctioning(!becameDamaged);
 	}
 
 	
 
-	PlayerShipModel.TotalEnergyGain HandleDestroyedBlocks(int blueBlocks, int greenBlocks, int shieldBlocks, int shipBlocks, int gridSegmentIndexUnused)
+	PlayerShipModel.TotalEnergyGain HandleDestroyedBlocks(GridSegment.ClearedCellsInfo clearInfo, int gridSegmentIndexUnused)
 	{
 		int blueGain = 0;
 		int greenGain = 0;
 		int shieldGain = 0;
 
-		blueGain = GainEnergyFromDestroyedBlocks(BlockType.Blue, blueBlocks);
-		greenGain = GainEnergyFromDestroyedBlocks(BlockType.Green, greenBlocks);
-		shieldGain = GainEnergyFromDestroyedBlocks(BlockType.Shield, shieldBlocks);
+		blueGain = GainEnergyFromDestroyedBlocks(BlockType.Blue, clearInfo.blueBlocksCount);
+		blueGain += GainEnergyFromDestroyedBlocks(BlockType.Blue, clearInfo.greenBlocksCount);
+		blueGain += GainEnergyFromDestroyedBlocks(BlockType.Blue, clearInfo.shieldBlocksCount);
+		blueGain += GainEnergyFromDestroyedBlocks(BlockType.Blue, clearInfo.shipBlocksCount);
 
 		return new PlayerShipModel.TotalEnergyGain(blueGain, greenGain, shieldGain, 0);
 	}

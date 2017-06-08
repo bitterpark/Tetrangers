@@ -7,7 +7,9 @@ public enum Goal {Attack,Defence,Buff}
 public class BattleAI
 {
 	public static UnityAction<ShipEquipment> EAIUsedEquipment;
+	public static UnityAction EAITurnStarted;
 	public static UnityAction EAITurnFinished;
+
 
 	EnemyShipModel myShipModel;
 	//ShipModel opponentShipModel;
@@ -21,14 +23,20 @@ public class BattleAI
 		defaultGoalPriorities.Add(Goal.Defence, 2);
 		defaultGoalPriorities.Add(Goal.Buff, 1);
 
-		BattleManager.EEngagementModeStarted += DoTurn;
+		BattleManager.EEngagementModeStarted += StartNewTurn;
 		EnemyShipEquipmentController.EEnemyEquipmentUseFinished += DoTurn;
 	}
 
 	public void Dispose()
 	{
-		BattleManager.EEngagementModeStarted -= DoTurn;
+		BattleManager.EEngagementModeStarted -= StartNewTurn;
 		EnemyShipEquipmentController.EEnemyEquipmentUseFinished -= DoTurn;
+	}
+
+	void StartNewTurn()
+	{
+		if (EAITurnStarted != null) EAITurnStarted();
+		DoTurn();
 	}
 
 	void DoTurn()
